@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  title: Nooks Fullstack Takehome Server
+  version: '1.0.0'
+paths:
+  /session:
+    post:
+      operationId: createSession
+      summary: Create a new session
+      requestBody:
+          description: Session information
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewSession'
+      responses:
+        '201':
+          description: Successful Creation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+  /sessions/{id}:
+    get:
+      description: Returns session information for a given session id
+      operationId: getSession
+      parameters:
+        - name: id
+          in: path
+          description: ID of session
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '404':
+          description: Session not found
+components:
+  schemas:
+    Session:
+      allOf:
+        - $ref: '#/components/schemas/NewSession'
+        - type: object
+          required:
+          - id
+          properties:
+            id:
+              type: string
+              example: a5b0def7-ea3b-4c4a-b96f-42088a303fcc
+    NewSession:
+      type: object
+      required:
+        - videoUrl
+      properties:
+        videoUrl:
+          type: string
+          example: https://www.youtube.com/watch?v=NX1eKLReSpY
+        name:
+          type: string
+          example: My Watch Party
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 500
+        message:
+          type: string
+          example: Internal Server Error
