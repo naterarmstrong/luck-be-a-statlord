@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Nooks Fullstack Takehome Server
+  title: Luck Be a Statlord
   version: '1.0.0'
 paths:
   /session:

@@ -1,5 +1,5 @@
 {
-    "name": "nooks-fullstack-takehome-server",
+    "name": "luck-be-a-statlord",
     "version": "1.0.0",
     "scripts": {
         "build": "npx tsc",
