@@ -4,6 +4,10 @@ import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snack
 import { v4 as uuidv4 } from "uuid";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { ProcessedRun, processRun } from "../utils/processRun";
+
+const confirm = require('../img/confirm.png');
+const dud = require('../img/dud.png');
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -16,14 +20,6 @@ const VisuallyHiddenInput = styled('input')({
     whiteSpace: 'nowrap',
     width: 1,
 });
-
-export type ProcessedRun = {
-    UUID: string,
-    number: number,
-    victory: boolean,
-    // The unix timestamp of the run's completion
-    date: number,
-}
 
 const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
@@ -47,24 +43,18 @@ const UploadRuns: React.FC = () => {
         const runs = [];
         for (const file of selectedFiles) {
             const text = await file.text();
-            const runNumber = text.split('\n', 2)[0].match("--- STARTING RUN #(.*) ---")?.[1];
-            const victory = text.indexOf("VICTORY") !== -1;
+            const processed = processRun(text);
             var outcome: string;
-            if (victory) {
+            if (processed.victory) {
                 outcome = "success";
             } else {
                 outcome = "failure";
             }
-            const processedRun: ProcessedRun = {
-                UUID: uuidv4(),
-                number: Number(runNumber),
-                victory: victory,
-                date: file.lastModified
-            };
-            runs.push(processedRun);
-            console.log(`Run ${runNumber} was a ${outcome}`);
+            runs.push(processed);
+            console.log(`Run ${processed.number} was a ${outcome}`);
         }
-        setProcessedRuns(runs)
+        setProcessedRuns(runs);
+        // TODO: Actually send over processed run information to the server
     }
 
 
@@ -118,19 +108,21 @@ const UploadRuns: React.FC = () => {
             </Grid>
             <Box width="100%" />
             {processedRuns.length > 0 &&
-                <Table>
+                <Table sx={{ maxWidth: "700px", maxHeight: "700px" }} stickyHeader>
                     <TableHead>
                         <TableRow>
                             <TableCell>Run #</TableCell>
-                            <TableCell>Successful</TableCell>
+                            <TableCell>Victory</TableCell>
                             <TableCell>Date Played</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {processedRuns.map((run: ProcessedRun, index) => (
-                            < TableRow key={run.number} selected={run.victory}>
+                            < TableRow role="checkbox" key={run.number} selected={run.victory} >
                                 <TableCell>{run.number}</TableCell>
-                                <TableCell>{run.victory ? "Victory" : "Failure"}</TableCell>
+                                <TableCell>
+                                    <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
+                                </TableCell>
                                 <TableCell>{getRunDate(run.date)}</TableCell>
                             </TableRow>
                         ))}
