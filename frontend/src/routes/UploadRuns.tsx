@@ -43,15 +43,21 @@ const UploadRuns: React.FC = () => {
         const runs = [];
         for (const file of selectedFiles) {
             const text = await file.text();
-            const processed = processRun(text);
-            var outcome: string;
-            if (processed.victory) {
-                outcome = "success";
-            } else {
-                outcome = "failure";
+            console.log(`Processing run ${file.name}`);
+            try {
+                const processed = processRun(text);
+                var outcome: string;
+                if (processed.victory) {
+                    outcome = "success";
+                } else {
+                    outcome = "failure";
+                }
+                runs.push(processed);
+                console.log(`Run ${processed.number} was a ${outcome}`);
+            } catch (error) {
+                console.error(`Failed to process run ${file.name} for reason ${error}`)
+                continue
             }
-            runs.push(processed);
-            console.log(`Run ${processed.number} was a ${outcome}`);
         }
         setProcessedRuns(runs);
         // TODO: Actually send over processed run information to the server

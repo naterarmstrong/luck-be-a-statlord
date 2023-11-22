@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { IIDToSymbol, Symbol } from "./symbol";
 
 export class ProcessedRun {
     UUID: string;
@@ -73,6 +74,9 @@ const RENT_F20_SPINS = {
     120: 2000,
 }
 
+const preSpinSymbolRegex = /Spin layout before effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
+const postSpinSymbolRegex = /Spin layout after effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
+
 export function processRun(text: string): ProcessedRun {
     // spins[0] is the information before the run starts
     const spins = text.split(/--- SPIN #/);
@@ -80,12 +84,28 @@ export function processRun(text: string): ProcessedRun {
     const version = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
     let isFloor20 = true;
 
+    const start = performance.now();
+
     for (const spinText of spins.slice(1)) {
         const spinNum = spinText.match("([\\d]*)")?.[1]!;
-        console.log(`Spin number ${spinNum}`);
+
+        const symbols = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
+        //console.log(`Spin number ${spinNum}`);
+        //console.log(symbols);
+        for (const symbolStr of symbols) {
+            const symbol = IIDToSymbol(symbolStr);
+            if (symbol === Symbol.Unknown) {
+                console.error(`Found unknown symbol: ${symbolStr}`);
+            }
+        }
+        //console.log(`Symbol text: ${symbols}`);
+        //const symbolList = symbols.split(",").map((s: string) => s.trim());
+        //console.log(symbolList);
     }
 
-    console.log(`Run number ${runNumber} on version ${version}`)
+    const end = performance.now();
+
+    console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
 
     return new ProcessedRun(runNumber, version, 0, true);
 }
