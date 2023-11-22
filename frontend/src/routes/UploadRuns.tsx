@@ -6,6 +6,7 @@ import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { ProcessedRun, msToTime, processRun } from "../utils/processRun";
 import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
+import { getOperatingSystem } from "../utils/os";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -26,6 +27,8 @@ const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
     const [selectedFiles, setSelectedFiles] = useState<Array<File>>([]);
     const [processedRuns, setProcessedRuns] = useState<Array<ProcessedRun>>([]);
+
+    const os = getOperatingSystem();
 
     const selectFiles = (event: any) => {
         const fList: Array<File> = Array.from(event.target.files);
@@ -66,16 +69,18 @@ const UploadRuns: React.FC = () => {
 
 
     return (
-        <Grid container spacing={2} alignItems="center" justifyContent="center" >
+        <Grid container spacing={2} alignItems="center" justifyContent="center" sx={{ overflowY: "scroll" }} >
             <Grid item>
                 <Typography>
-                    Runs are located at different locations on different operating systems. <br />
-
-                    Windows: `%USERPROFILE/AppData/Roaming/Godot/app_userdata/Luck be a Landlord/run_logs`<br />
-
-                    Mac: `~/Library/Application Support/Godot/app_userdata/Luck be a Landlord/run_logs`<br />
-
-                    Linux: `~/.local/share/godot/app_userdata/Luck be a Landlord/run_logs`<br />
+                    {os === "Unknown" ? "Runs are located at different locations on different operating systems." : null}
+                    <Box width="100%" />
+                    {os === "Windows" || os === "Unknown" ? "Windows runs are at `%USERPROFILE/AppData/Roaming/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
+                    <Box width="100%" />
+                    {os === "Mac" || os === "Unknown" ? "Mac runs are at `~/Library/Application Support/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
+                    <Box width="100%" />
+                    {os === "Mac" || os === "Unknown" ? "You will need hidden files visible (CMD+SHIFT+.) to see Library." : null}
+                    <Box width="100%" />
+                    {os === "Linux" || os === "Unknown" ? "Linux runs are at `~/.local/share/godot/app_userdata/Luck be a Landlord/run_logs`" : null}
                 </Typography>
             </Grid>
             <Box width="100%" />
@@ -115,7 +120,7 @@ const UploadRuns: React.FC = () => {
             </Grid>
             <Box width="100%" />
             {processedRuns.length > 0 &&
-                <Grid item sx={{ overflowY: "scroll", maxHeight: "400px" }}>
+                <Grid item sx={{ overflowY: "scroll", maxHeight: "600px" }}>
                     <Table>
                         <TableHead>
                             <TableRow>
