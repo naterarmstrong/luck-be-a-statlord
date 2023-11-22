@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { IIDToSymbol, Symbol } from "./symbol";
 
+// Rename to RunSummary?
 export class ProcessedRun {
     UUID: string;
     number: number;
@@ -17,6 +18,11 @@ export class ProcessedRun {
     midSyms: Array<Symbol>;
     lateSyms: Array<Symbol>;
 
+    // Maybe this is in optional run details?
+    // So we have run summary, run details, etc
+    // runDetails?: RunDetails;
+    spins: Array<Symbol[]>;
+
     constructor(
         number: number,
         version: string,
@@ -26,7 +32,8 @@ export class ProcessedRun {
         guillotine: boolean,
         earlySyms: Symbol[],
         midSyms: Symbol[],
-        lateSyms: Symbol[]
+        lateSyms: Symbol[],
+        spins: Array<Symbol[]>
     ) {
         this.UUID = v4();
         this.number = number;
@@ -38,8 +45,29 @@ export class ProcessedRun {
         this.earlySyms = earlySyms;
         this.midSyms = midSyms;
         this.lateSyms = lateSyms;
+        this.spins = spins;
     }
 }
+
+// TODO:
+// Run summary, run details, extract view of just uploaded runs into its own component
+// Top bar that lets you go to different places
+/*
+
+/upload brings you to the upload page. Need to be logged in to upload runs probably
+/login brings you to the login/signup page (do I want to even send emails??)
+/user/:userid brings you to the user page, where they can show
+    - winrate (in runs over 1m or something)
+    - number of runs
+    - number of guillotines
+    - something else? highest winrate something or other?
+    - pinned runs (another TODO)
+/run/:runid brings you to the run page, which shows
+    - run summary at top of page
+    - pageable view of all spins, along with tentantive inventory and list of items/essences
+/ brings you to the main screen, which shows number of runs uploaded, overall winrate, some random stats
+
+*/
 
 export class SpinInfo {
     // TODO: how to handle doubles??
@@ -119,25 +147,29 @@ export function processRun(text: string): ProcessedRun {
     let earlySyms: Array<Symbol> = [];
     let midSyms: Array<Symbol> = [];
     let lateSyms: Array<Symbol> = [];
+    const processedSpins: Array<Symbol[]> = [];
 
     const start = performance.now();
 
     for (const spinText of spins.slice(1)) {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
-        const symbols = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
+        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
         // The final mapping is to ignore cases where something (a capsule) gives a removal token
         // (v), reroll token (r), or essence (e), which is denoted like -12e1. We are only
         // interested in the essence token
         const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]))!;
 
-        // Cut these off and calculate at end of early game, midgame, late game.
-        // Probably cut at 225 rent, 600 rent, end of game?
+        let symbols: Symbol[] = [];
 
         // Note: Would have to keep track of inventory across spins by inferring based off of
         // symbols added, destroyed, removed. However, that is currently impossible because the logs
         // do not include which symbols are removed. They also don't include how many reroll /
         // removal / essence things you have at any given time.
+
+        // Can keep track of how many spins since a symbol was last seen, and say that it was
+        // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
+        // copies, but eh whatever
 
 
         // TODO: Capturing transformations (coal -> diamond, egg -> chick -> chicken, dog -> wolf) needs to go into effects
@@ -146,7 +178,7 @@ export function processRun(text: string): ProcessedRun {
         //console.log(`Spin number ${spinNum}`);
         //console.log(symbols);
         for (let i = 0; i < 20; i++) {
-            const symbolStr = symbols[i];
+            const symbolStr = symbolStrs[i];
             const val = values[i];
             const symbol = IIDToSymbol(symbolStr);
             if (symbol === Symbol.Unknown) {
@@ -154,6 +186,12 @@ export function processRun(text: string): ProcessedRun {
             }
             appearancesPerSymbol.set(symbol, (appearancesPerSymbol.get(symbol) ?? 0) + 1);
             coinsPerSymbol.set(symbol, (coinsPerSymbol.get(symbol) ?? 0) + val);
+            symbols.push(symbol);
+        }
+
+        if (!isVictory) {
+            // Skip keeping track of every single board once going for endless / guillotine essence
+            processedSpins.push(symbols);
         }
 
         if (spinText.includes("VICTORY")) {
@@ -196,7 +234,7 @@ export function processRun(text: string): ProcessedRun {
         console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / appearancesPerSymbol.get(best[i][0])!} average`);
     }
 
-    return new ProcessedRun(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms);
+    return new ProcessedRun(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms, processedSpins);
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {

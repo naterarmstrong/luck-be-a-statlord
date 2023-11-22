@@ -94,14 +94,14 @@ const UploadRuns: React.FC = () => {
                 </Box>
             </Grid>
             <Grid item>
-                {selectedFiles.length > 0 && selectedFiles.length < 10 && selectedFiles.map((file, index) => (
+                {selectedFiles.length > 0 && selectedFiles.length <= 5 && selectedFiles.map((file, index) => (
                     <ListItem
                         divider
                         key={index}>
                         {file.name} played on {getRunDate(file.lastModified)}
                     </ListItem>
                 ))}
-                {selectedFiles.length >= 10 && (<Typography> {selectedFiles.length} runs selected </Typography>)}
+                {selectedFiles.length > 5 && (<Typography> {selectedFiles.length} runs selected </Typography>)}
             </Grid>
             <Grid item>
                 <Button
