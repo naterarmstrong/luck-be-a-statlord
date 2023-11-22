@@ -1,3 +1,163 @@
+const amethyst = require("../img/amethyst.png");
+const anchor = require("../img/anchor.png");
+const apple = require("../img/apple.png");
+const banana = require("../img/banana.png");
+const banana_peel = require("../img/banana_peel.png");
+const bar_of_soap = require("../img/bar_of_soap.png");
+const bartender = require("../img/bartender.png");
+const bear = require("../img/bear.png");
+const beastmaster = require("../img/beastmaster.png");
+const bee = require("../img/bee.png");
+const beehive = require("../img/beehive.png");
+const beer = require("../img/beer.png");
+const big_ore = require("../img/big_ore.png");
+const big_urn = require("../img/big_urn.png");
+const billionaire = require("../img/billionaire.png");
+const bounty_hunter = require("../img/bounty_hunter.png");
+const bronze_arrow = require("../img/bronze_arrow.png");
+const bubble = require("../img/bubble.png");
+const buffing_powder = require("../img/buffing_powder.png");
+const candy = require("../img/candy.png");
+const card_shark = require("../img/card_shark.png");
+const cat = require("../img/cat.png");
+const cheese = require("../img/cheese.png");
+const chef = require("../img/chef.png");
+const chemical_seven = require("../img/chemical_seven.png");
+const cherry = require("../img/cherry.png");
+const chick = require("../img/chick.png");
+const chicken = require("../img/chicken.png");
+const clubs = require("../img/clubs.png");
+const coal = require("../img/coal.png");
+const coconut = require("../img/coconut.png");
+const coconut_half = require("../img/coconut_half.png");
+const coin = require("../img/coin.png");
+const comedian = require("../img/comedian.png");
+const cow = require("../img/cow.png");
+const crab = require("../img/crab.png");
+const crow = require("../img/crow.png");
+const cultist = require("../img/cultist.png");
+const dame = require("../img/dame.png");
+const diamond = require("../img/diamond.png");
+const diamonds = require("../img/diamonds.png");
+const diver = require("../img/diver.png");
+const dog = require("../img/dog.png");
+const dove = require("../img/dove.png");
+const dud = require("../img/dud.png");
+const dwarf = require("../img/dwarf.png");
+const egg = require("../img/egg.png");
+const eldritch_beast = require("../img/eldritch_beast.png");
+const emerald = require("../img/emerald.png");
+const empty = require("../img/empty_border.png");
+const essence_capsule = require("../img/essence_capsule.png");
+const farmer = require("../img/farmer.png");
+const d5 = require("../img/d5.png");
+const flower = require("../img/flower.png");
+const frozen_fossil = require("../img/frozen_fossil.png");
+const gambler = require("../img/gambler.png");
+const general_zaroff = require("../img/general_zaroff.png");
+const archaeologist = require("../img/archaeologist.png");
+const golden_arrow = require("../img/golden_arrow.png");
+const golden_egg = require("../img/golden_egg.png");
+const goldfish = require("../img/goldfish.png");
+const golem = require("../img/golem.png");
+const goose = require("../img/goose.png");
+const hearts = require("../img/hearts.png");
+const hex_of_destruction = require("../img/hex_of_destruction.png");
+const hex_of_draining = require("../img/hex_of_draining.png");
+const hex_of_emptiness = require("../img/hex_of_emptiness.png");
+const hex_of_hoarding = require("../img/hex_of_hoarding.png");
+const hex_of_midas = require("../img/hex_of_midas.png");
+const hex_of_tedium = require("../img/hex_of_tedium.png");
+const hex_of_thievery = require("../img/hex_of_thievery.png");
+const highlander = require("../img/highlander.png");
+const honey = require("../img/honey.png");
+const hooligan = require("../img/hooligan.png");
+const hustler = require("../img/hustler.png");
+const item_capsule = require("../img/item_capsule.png");
+const jellyfish = require("../img/jellyfish.png");
+const joker = require("../img/joker.png");
+const key = require("../img/key.png");
+const king_midas = require("../img/king_midas.png");
+const light_bulb = require("../img/light_bulb.png");
+const lockbox = require("../img/lockbox.png");
+const rarity_capsule = require("../img/rarity_capsule.png");
+const magic_key = require("../img/magic_key.png");
+const magpie = require("../img/magpie.png");
+const martini = require("../img/martini.png");
+const matryoshka_doll_1 = require("../img/matryoshka_doll_1.png");
+const matryoshka_doll_2 = require("../img/matryoshka_doll_2.png");
+const matryoshka_doll_3 = require("../img/matryoshka_doll_3.png");
+const matryoshka_doll_4 = require("../img/matryoshka_doll_4.png");
+const matryoshka_doll_5 = require("../img/matryoshka_doll_5.png");
+const mega_chest = require("../img/mega_chest.png");
+const midas_bomb = require("../img/midas_bomb.png");
+const milk = require("../img/milk.png");
+const mine = require("../img/mine.png");
+const miner = require("../img/miner.png");
+const monkey = require("../img/monkey.png");
+const moon = require("../img/moon.png");
+const mouse = require("../img/mouse.png");
+const mrs_fruit = require("../img/mrs_fruit.png");
+const ninja = require("../img/ninja.png");
+const omelette = require("../img/omelette.png");
+const orange = require("../img/orange.png");
+const ore = require("../img/ore.png");
+const owl = require("../img/owl.png");
+const oyster = require("../img/oyster.png");
+const peach = require("../img/peach.png");
+const pear = require("../img/pear.png");
+const pearl = require("../img/pearl.png");
+const pirate = require("../img/pirate.png");
+const pinata = require("../img/pinata.png");
+const present = require("../img/present.png");
+const pufferfish = require("../img/pufferfish.png");
+const rabbit = require("../img/rabbit.png");
+const rabbit_fluff = require("../img/rabbit_fluff.png");
+const rain = require("../img/rain.png");
+const removal_capsule = require("../img/removal_capsule.png");
+const reroll_capsule = require("../img/reroll_capsule.png");
+const robin_hood = require("../img/robin_hood.png");
+const ruby = require("../img/ruby.png");
+const safe = require("../img/safe.png");
+const sand_dollar = require("../img/sand_dollar.png");
+const sapphire = require("../img/sapphire.png");
+const seed = require("../img/seed.png");
+const shiny_pebble = require("../img/shiny_pebble.png");
+const silver_arrow = require("../img/silver_arrow.png");
+const sloth = require("../img/sloth.png");
+const snail = require("../img/snail.png");
+const spades = require("../img/spades.png");
+const spirit = require("../img/spirit.png");
+const strawberry = require("../img/strawberry.png");
+const sun = require("../img/sun.png");
+const target = require("../img/target.png");
+const tedium_capsule = require("../img/tedium_capsule.png");
+const thief = require("../img/thief.png");
+const d3 = require("../img/d3.png");
+const time_capsule = require("../img/time_capsule.png");
+const toddler = require("../img/toddler.png");
+const tomb = require("../img/tomb.png");
+const treasure_chest = require("../img/treasure_chest.png");
+const turtle = require("../img/turtle.png");
+const urn = require("../img/urn.png");
+const void_creature = require("../img/void_creature.png");
+const void_fruit = require("../img/void_fruit.png");
+const void_stone = require("../img/void_stone.png");
+const watermelon = require("../img/watermelon.png");
+const wealthy_capsule = require("../img/wealthy_capsule.webp");
+const wildcard = require("../img/wildcard.png");
+const wine = require("../img/wine.png");
+const witch = require("../img/witch.png");
+const wolf = require("../img/wolf.png");
+
+
+
+
+
+
+
+
+
 export const IIDToSymbol = (iid: string): Symbol => {
     return IID_TO_SYMBOL.get(iid) ?? Symbol.Unknown;
 }
@@ -479,161 +639,156 @@ export const IID_TO_SYMBOL: Map<string, Symbol> = new Map([
     ["wolf", Symbol.Wolf],
 ])
 
-// export const SYMBOL_IMAGES: Record<Symbol, string> = {
-// TODO: grab images
-// }
-
-
-/*
-"Amethyst", Rarity.Rare, 1, 0, 4, 1, "amethyst.png", "NEW_ACHIEVEMENT_4_12", "Increase an Amethyst's value 20 or more times before rent payment #12 is due."),
-"Anchor", Rarity.Common, 1, 0, 2, 0, "anchor.png", "NEW_ACHIEVEMENT_2_1", "Have a Diver and Pirate share an Anchor."),
-"Apple", Rarity.Rare, 3, 0, 6, 2, "apple.png", "NEW_ACHIEVEMENT_2_16", "Have 2 Seeds grow into 2 Apples during a spin."),
-"Banana", Rarity.Common, 1, 1, 6, 3, "banana.png", "NEW_ACHIEVEMENT_2_4", "Have a Banana add a Banana Peel that destroys a Thief during a spin."),
-"Banana Peel", Rarity.Common, 1, 1, 2, 1, "banana_peel.png", "NEW_ACHIEVEMENT_2_5", "Have a Banana Peel destroy 2 or more Thieves during a spin."),
-"Bar of Soap", Rarity.Uncommon, 1, 1, 0, 0, "bar_of_soap.png", "NEW_ACHIEVEMENT_6_1", "Have a Bar of Soap add 4 or more Bubbles before being destroyed."),
-"Bartender", Rarity.Rare, 3, 4, 2, 5, "bartender.png", "NEW_ACHIEVEMENT_6_9", "Have a Bartender add a Martini."),
-"Bear", Rarity.Uncommon, 2, 2, 1, 6, "bear.png", "NEW_ACHIEVEMENT_2_2", "Have 3 or more Bears destroy the same Honey."),
-"Beastmaster", Rarity.Rare, 2, 27, 2, 3, "beastmaster.png", "NEW_ACHIEVEMENT_2_9", "Have a Beastmaster increase the value of 5 or more symbols during a spin."),
-"Bee", Rarity.Common, 1, 6, 1, 2, "bee.png", "NEW_ACHIEVEMENT_2_10", "Have a Bee give 6 or more coins."),
-"Beehive", Rarity.Rare, 3, 1, 2, 1, "beehive.png", "NEW_ACHIEVEMENT_7_5", "Have a Beehive add a Honey that is destroyed by a Bear during the same spin."),
-"Beer", Rarity.Common, 1, 0, 4, 3, "beer.png", "NEW_ACHIEVEMENT_2_30", "Have a Dwarf and a Pirate share a Beer."),
-"Big Ore", Rarity.Uncommon, 2, 8, 3, 4, "big_ore.png", "NEW_ACHIEVEMENT_2_13", "Have a Big Ore add 2 Rare symbols (without the help of X-ray Machine)."),
-"Big Urn", Rarity.Uncommon, 2, 1, 2, 2, "big_urn.png", "NEW_ACHIEVEMENT_2_14", "Destroy 2 or more Big Urns during a spin."),
-"Billionaire", Rarity.Uncommon, 0, 2, 3, 5, "billionaire.png", "NEW_ACHIEVEMENT_3_27", "Guillotine 500 Billionaires across all games."),
-"Bounty Hunter", Rarity.Common, 1, 2, 2, 5, "bounty_hunter.png", "NEW_ACHIEVEMENT_2_8", "Have a Bounty Hunter destroy 2 or more Thieves during a spin."),
-"Bronze Arrow", Rarity.Uncommon, 0, 1, 1, 1, "bronze_arrow.png", "NEW_ACHIEVEMENT_2_18", "Have 3 or more Bronze Arrows point to 0 symbols during a spin.", ["bronze"]),
-"Bubble", Rarity.Common, 2, 0, 5, 0, "bubble.png", "NEW_ACHIEVEMENT_2_19", "Have 3 or more Bubbles be destroyed during a spin."),
-"Buffing Capsule", Rarity.Uncommon, 0, 0, 0, 1, "buffing_powder.png", "NEW_ACHIEVEMENT_5_13", "Have a Buffing Capsule adjacent to 2 or more Amethysts or Pears during a spin."),
-"Candy", Rarity.Common, 1, 0, 4, 2, "candy.png", "NEW_ACHIEVEMENT_4_18", "Have 8 or more Candy."),
-"Card Shark", Rarity.Rare, 3, 5, 2, 3, "card_shark.png", "NEW_ACHIEVEMENT_2_22", "Have a Card Shark make 5 or more symbols Wildcards during a spin."),
-"Cat", Rarity.Common, 1, 2, 2, 15, "cat.png", "NEW_ACHIEVEMENT_4_26", "Have a Cat give 999,999,999 coins or more."),
-"Cheese", Rarity.Common, 1, 0, 7, 2, "cheese.png", "NEW_ACHIEVEMENT_2_24", "Have a Cheese adjacent to Milk, Omelette, and Egg during a spin."),
-"Chef", Rarity.Rare, 2, 21, 2, 3, "chef.png", "NEW_ACHIEVEMENT_7_6", "Have a Chef increase the value of 5 or more symbols during a spin."),
-"Chemical Seven", Rarity.Uncommon, 0, 0, 2, 4, "chemical_seven.png", "NEW_ACHIEVEMENT_2_26", "Destroy 3 or more Chemical Sevens during a spin.", ["chemical 7"]),
-"Cherry", Rarity.Common, 1, 0, 4, 2, "cherry.png", "NEW_ACHIEVEMENT_3_0", "Have 3 or more Cherries adjacent to each other."),
-"Chick", Rarity.Uncommon, 1, 1, 3, 4, "chick.png", "NEW_ACHIEVEMENT_2_28", "Have a Chick not grow into a Chicken for 12 or more spins."),
-"Chicken", Rarity.Rare, 2, 2, 3, 6, "chicken.png", "NEW_ACHIEVEMENT_2_29", "Have a Chicken add an Egg and Golden Egg during a spin."),
-"Clubs", Rarity.Uncommon, 1, 6, 8, 4, "clubs.png", "NEW_ACHIEVEMENT_2_6", "Have 5 or more Clubs."),
-"Coal", Rarity.Common, 0, 1, 0, 1, "coal.png", "NEW_ACHIEVEMENT_2_31", "Have 2 Coal transform into a Diamond before rent payment #4 is due (without the help of Time Machine Essence)."),
-"Coconut", Rarity.Uncommon, 1, 1, 4, 1, "coconut.png", "NEW_ACHIEVEMENT_2_27", "Have a Monkey destroy a Coconut and destroy 2 Coconut Halves during a spin."),
-"Coconut Half", Rarity.Uncommon, 2, 0, 4, 2, "coconut_half.png", "NEW_ACHIEVEMENT_5_15", "Have Mrs. Fruit and a Monkey share a Coconut Half."),
-"Coin", Rarity.Common, 1, 0, 3, 2, "coin.png", "NEW_ACHIEVEMENT_3_2", "Have a Coin give 20 or more coins."),
-"Comedian", Rarity.Rare, 3, 6, 2, 5, "comedian.png", "NEW_ACHIEVEMENT_3_3", "Have a Comedian be destroyed by General Zaroff."),
-"Cow", Rarity.Rare, 3, 1, 2, 3, "cow.png", "NEW_ACHIEVEMENT_3_4", "Have a Cow add a Milk that is destroyed by a Cat during the same spin."),
-"Crab", Rarity.Common, 1, 1, 3, 2, "crab.png", "NEW_ACHIEVEMENT_4_8", "Have 5 Crabs in a row."),
-"Crow", Rarity.Common, 2, 0, 2, 3, "crow.png", "NEW_ACHIEVEMENT_3_7", "Remove a Crow 1 spin before it would give -3 coins."),
-"Cultist", Rarity.Common, 0, 2, 7, 4, "cultist.png", "NEW_ACHIEVEMENT_3_8", "Have 6 or more Cultists."),
-"Dame", Rarity.Rare, 2, 10, 2, 3, "dame.png", "NEW_ACHIEVEMENT_3_11", "Have a Dame destroy a Martini while adjacent to a Diamond."),
-"Diamond", Rarity.VeryRare, 5, 1, 6, 1, "diamond.png", "NEW_ACHIEVEMENT_3_12", "Have 5 or more Diamonds."),
-"Diamonds", Rarity.Uncommon, 1, 6, 8, 4, "diamonds.png", "NEW_ACHIEVEMENT_3_13", "Have 5 or more Diamonds (not the gem)."),
-"Diver", Rarity.Rare, 2, 10, 2, 3, "diver.png", "NEW_ACHIEVEMENT_4_1", "Have a Diver remove 20 or more symbols before rent payment #12 is due."),
-"Dog", Rarity.Common, 1, 25, 2, 3, "dog.png", "NEW_ACHIEVEMENT_3_15", "Pet the Dog for 1 minute or more."),
-"Dove", Rarity.Rare, 2, 0, 1, 3, "dove.png", "NEW_ACHIEVEMENT_3_16", "Have a Dove prevent 20 or more destructions before rent payment #12 is due."),
-"Dud", Rarity.Special, 0, 0, 0, 0, "dud.png"),
-"Dwarf", Rarity.Common, 1, 2, 2, 5, "dwarf.png", "NEW_ACHIEVEMENT_3_17", "Have a Dwarf destroy a symbol that has its value increased afterwards."),
-"Egg", Rarity.Common, 1, 1, 11, 8, "egg.png", "NEW_ACHIEVEMENT_6_21", "Have an Egg transform into a Chick, grow into a Chicken, and lay an Egg during a spin."),
-"Eldritch Creature", Rarity.VeryRare, 4, 18, 3, 2, "eldritch_beast.png", "NEW_ACHIEVEMENT_3_19", "Add a symbol then immediately remove it to increase the value of an Eldritch Creature.", ["eldritch"]),
-"Emerald", Rarity.Rare, 3, 1, 5, 1, "emerald.png", "NEW_ACHIEVEMENT_3_20", "Add 2 or more Emeralds during a spin."),
-"Empty", Rarity.Special, 0, 0, 6, 8, "empty_border.png"),
-"Essence Capsule", Rarity.Uncommon, -12, 0, 0, 1, "essence_capsule.png", "NEW_ACHIEVEMENT_3_21", "Lose the game during a spin where an Essence Capsule is destroyed."),
-"Farmer", Rarity.Rare, 2, 20, 2, 3, "farmer.png", "NEW_ACHIEVEMENT_3_23", "Have a Farmer adjacent to a Seed that grows into a Rare symbol."),
-"Five-Sided Die", Rarity.Uncommon, 0, 0, 1, 3, "d5.png", "NEW_ACHIEVEMENT_3_10", "Have a Five-Sided Die destroy 2 or more Gamblers during a spin.", ["5 sided die", "d5"]),
-"Flower", Rarity.Common, 1, 0, 6, 0, "flower.png", "NEW_ACHIEVEMENT_3_24", "Have a Flower give 19,073,486,328,125 or more coins."),
-"Frozen Fossil", Rarity.Rare, 0, 10, 0, 1, "frozen_fossil.png", "NEW_ACHIEVEMENT_3_25", "Remove a symbol to make a Frozen Fossil be destroyed faster.", ["fossil"]),
-"Gambler", Rarity.Common, 1, 2, 2, 5, "gambler.png", "NEW_ACHIEVEMENT_3_26", "Have a Gambler give 200 or more coins when destroyed before rent payment #12 is due."),
-"General Zaroff", Rarity.Rare, 1, 26, 2, 3, "general_zaroff.png", "NEW_ACHIEVEMENT_2_15", "Have General Zaroff destroy 1924 humans across all games.", ["zaroff"]),
-"Geologist", Rarity.Rare, 2, 5, 2, 3, "archaeologist.png", "NEW_ACHIEVEMENT_5_29", "Have a Geologist destroy 20 or more symbols before rent payment #12 is due.", ["archaeologist"]),
-"Golden Arrow", Rarity.VeryRare, 0, 1, 1, 1, "golden_arrow.png", "NEW_ACHIEVEMENT_3_28", "Have 3 or more Golden Arrows point to 0 symbols during a spin.", ["gold", "golden"]),
-"Golden Egg", Rarity.Rare, 4, 0, 5, 3, "golden_egg.png", "NEW_ACHIEVEMENT_3_29", "Have a Golden Egg adjacent to an Egg.", ["gold egg"]),
-"Goldfish", Rarity.Common, 1, 2, 2, 4, "goldfish.png", "NEW_ACHIEVEMENT_3_30", "Have a Goldfish and Toddler share a Bubble."),
-"Golem", Rarity.Uncommon, 0, 1, 0, 2, "golem.png", "NEW_ACHIEVEMENT_3_31", "Have a Golem add a Spirit."),
-"Goose", Rarity.Common, 1, 1, 1, 4, "goose.png", "NEW_ACHIEVEMENT_4_0", "Have a Goose lay a Golden Egg before rent payment #1 is due."),
-"Hearts", Rarity.Uncommon, 1, 6, 8, 4, "hearts.png", "NEW_ACHIEVEMENT_4_2", "Have 5 or more Hearts."),
-"Hex of Destruction", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_destruction.png", "NEW_ACHIEVEMENT_4_14", "Have a Hex of Destruction trigger 3 spins in a row.", ["destruction"]),
-"Hex of Draining", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_draining.png", "NEW_ACHIEVEMENT_2_23", "Have a Hex of Draining increase the value of a symbol.", ["draining"]),
-"Hex of Emptiness", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_emptiness.png", "NEW_ACHIEVEMENT_4_5", "Have a Hex of Emptiness trigger 3 spins in a row.", ["emptiness"]),
-"Hex of Hoarding", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_hoarding.png", "NEW_ACHIEVEMENT_5_8", "Have a Hex of Hoarding trigger 3 spins in a row.", ["hoarding"]),
-"Hex of Midas", Rarity.Uncommon, 3, 1, 4, 3, "hex_of_midas.png", "NEW_ACHIEVEMENT_4_7", "Have a Hex of Midas trigger 3 spins in a row.", ["midas"]),
-"Hex of Tedium", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_tedium.png", "NEW_ACHIEVEMENT_3_5", "Add a Hex of Tedium from the choice after destroying a Tedium Capsule.", ["tedium"]),
-"Hex of Thievery", Rarity.Uncommon, 3, 0, 4, 2, "hex_of_thievery.png", "NEW_ACHIEVEMENT_4_9", "Have a Hex of Thievery trigger 3 spins in a row.", ["thievery"]),
-"Highlander", Rarity.VeryRare, 6, 1, 1, 0, "highlander.png", "NEW_ACHIEVEMENT_7_13", "Add 10 tooltips from the same Highlander."),
-"Honey", Rarity.Rare, 3, 0, 6, 1, "honey.png", "NEW_ACHIEVEMENT_4_11", "Have a Honey give 20 or more coins."),
-"Hooligan", Rarity.Uncommon, 2, 6, 2, 3, "hooligan.png", "NEW_ACHIEVEMENT_2_0", "Have a Hooligan destroy 3 or more symbols during a spin."), //HOOLIGAN SWEEP!!!
-"Hustling Capsule", Rarity.Uncommon, -7, 0, 0, 1, "hustler.png", "NEW_ACHIEVEMENT_4_13", "Lose the game during a spin where a Hustling Capsule is destroyed."),
-"Item Capsule", Rarity.Uncommon, 0, 0, 0, 1, "item_capsule.png", "NEW_ACHIEVEMENT_4_3", "Have an Item Capsule add a Pool Ball."),
-"Jellyfish", Rarity.Uncommon, 2, 0, 2, 2, "jellyfish.png", "NEW_ACHIEVEMENT_4_15", "Remove a Jellyfish with a Removal Token."),
-"Joker", Rarity.Rare, 3, 4, 3, 3, "joker.png", "NEW_ACHIEVEMENT_3_6", "Have a Joker increase the value of 5 or more symbols during a spin."),
-"Key", Rarity.Common, 1, 4, 6, 1, "key.png", "NEW_ACHIEVEMENT_4_17", "Have a Key destroy 2 or more symbols during a spin."),
-"King Midas", Rarity.Rare, 1, 2, 2, 3, "king_midas.png", "NEW_ACHIEVEMENT_3_14", "Have King Midas adjacent to a Golden Egg."),
-"Light Bulb", Rarity.Common, 1, 8, 0, 0, "light_bulb.png", "NEW_ACHIEVEMENT_7_2", "Have a Light Bulb increase the value of 5 or more symbols during a spin."),
-"Lockbox", Rarity.Common, 1, 0, 3, 3, "lockbox.png", "NEW_ACHIEVEMENT_4_21", "Destroy 5 Lockboxes before rent payment #12 is due."),
-"Lucky Capsule", Rarity.Uncommon, 0, 0, 0, 1, "rarity_capsule.png", "NEW_ACHIEVEMENT_5_20", "Add a Common symbol from the choice after destroying a Lucky Capsule."),
-"Magic Key", Rarity.Rare, 2, 4, 0, 0, "magic_key.png", "NEW_ACHIEVEMENT_4_23", "Have a Magic Key increase the value of a symbol that is destroyed by a Key."),
-"Magpie", Rarity.Common, -1, 0, 1, 4, "magpie.png", "NEW_ACHIEVEMENT_4_4", "Be 1 coin short of affording rent during a spin where a Magpie gives less than 0 coins."),
-"Martini", Rarity.Rare, 3, 0, 4, 2, "martini.png", "NEW_ACHIEVEMENT_4_25", "Have a Martini be destroyed while adjacent to a Dwarf."),
-"Matryoshka Doll", Rarity.Uncommon, 0, 1, 0, 1, "matryoshka_doll_1.png", "NEW_ACHIEVEMENT_4_24", "Destroy a Matryoshka Doll before it destroys itself.", ["matryoshka doll 1"]),
-"Matryoshka Doll", Rarity.Special, 1, 1, 1, 1, "matryoshka_doll_2.png", undefined, undefined, ["matryoshka doll 2"]),
-"Matryoshka Doll", Rarity.Special, 2, 1, 1, 1, "matryoshka_doll_3.png", undefined, undefined, ["matryoshka doll 3"]),
-"Matryoshka Doll", Rarity.Special, 3, 1, 1, 1, "matryoshka_doll_4.png", undefined, undefined, ["matryoshka doll 4"]),
-"Matryoshka Doll", Rarity.Special, 4, 0, 1, 0, "matryoshka_doll_5.png", undefined, undefined, ["matryoshka doll 5"]),
-"Mega Chest", Rarity.VeryRare, 3, 0, 3, 3, "mega_chest.png", "NEW_ACHIEVEMENT_4_27", "Destroy 2 Mega Chests before rent payment #12 is due."),
-"Midas Bomb", Rarity.VeryRare, 0, 0, 0, 0, "midas_bomb.png", "NEW_ACHIEVEMENT_4_28", "Have a Midas Bomb destroy more than 18 symbols during a spin."),
-"Milk", Rarity.Common, 1, 0, 6, 2, "milk.png", "NEW_ACHIEVEMENT_4_29", "Have 2 or more Cats share a Milk."),
-"Mine", Rarity.Rare, 4, 1, 0, 0, "mine.png", "NEW_ACHIEVEMENT_4_30", "Have 2 or more Mining Picks before rent payment #12 is due."),
-"Miner", Rarity.Common, 1, 4, 2, 3, "miner.png", "NEW_ACHIEVEMENT_4_31", "Have a Beer be destroyed while adjacent to a Miner."),
-"Monkey", Rarity.Common, 1, 3, 2, 3, "monkey.png", "NEW_ACHIEVEMENT_5_0", "Have a Monkey destroy a symbol that has its value increased afterwards."),
-"Moon", Rarity.Rare, 3, 4, 0, 1, "moon.png", "NEW_ACHIEVEMENT_5_1", "Destroy a Moon."),
-"Mouse", Rarity.Common, 1, 2, 1, 3, "mouse.png", "NEW_ACHIEVEMENT_6_10", "Have a Mouse destroy a Cheese while adjacent to a Ninja."),
-"Mrs. Fruit", Rarity.Rare, 2, 6, 2, 3, "mrs_fruit.png", "NEW_ACHIEVEMENT_5_3", "Have Mrs. Fruit destroy 20 or more symbols before rent payment #12 is due.", ["ms fruit"]),
-"Ninja", Rarity.Uncommon, 2, 1, 3, 6, "ninja.png", "NEW_ACHIEVEMENT_5_4", "Have a Ninja in your inventory but not appear for 3 spins in a row."),
-"Omelette", Rarity.Rare, 3, 5, 2, 3, "omelette.png", "NEW_ACHIEVEMENT_7_7", "Have an Omelette give 20 or more coins."),
-"Orange", Rarity.Uncommon, 2, 0, 5, 2, "orange.png", "NEW_ACHIEVEMENT_5_6", ),
-"Ore", Rarity.Common, 1, 8, 5, 4, "ore.png", "NEW_ACHIEVEMENT_5_7", "Have an Ore add a Diamond (without the help of X-ray Machine Essence)."),
-"Owl", Rarity.Common, 1, 0, 3, 4, "owl.png", "NEW_ACHIEVEMENT_4_6", "Have an Owl give 12 or more coins."),
-"Oyster", Rarity.Common, 1, 2, 2, 3, "oyster.png", "NEW_ACHIEVEMENT_5_9", "Have an Oyster add 2 Pearls during a spin."),
-"Peach", Rarity.Uncommon, 2, 1, 4, 2, "peach.png", "NEW_ACHIEVEMENT_5_10", "Have Mrs. Fruit destroy a Peach that adds a Seed that grows into a Peach."),
-"Pear", Rarity.Rare, 1, 0, 3, 2, "pear.png", "NEW_ACHIEVEMENT_5_11", "Increase a Pear's value 20 or more times before rent payment #12 is due."),
-"Pearl", Rarity.Common, 1, 0, 8, 1, "pearl.png", "NEW_ACHIEVEMENT_5_12", "Have a Diver and a Geologist share a Pearl."),
-"Pirate", Rarity.VeryRare, 2, 8, 2, 3, "pirate.png", "NEW_ACHIEVEMENT_5_14", "Have a Pirate destroy 20 or more symbols before rent payment #12 is due."),
-"Piñata", Rarity.Uncommon, 1, 1, 2, 0, "pinata.png", "NEW_ACHIEVEMENT_5_5", "Destroy a Piñata before rent payment #2 is due."),
-"Present", Rarity.Common, 0, 0, 2, 3, "present.png", "NEW_ACHIEVEMENT_3_1", "Have a Present be destroyed 1 spin before the holidays."),
-"Pufferfish", Rarity.Uncommon, 2, 0, 2, 2, "pufferfish.png", "NEW_ACHIEVEMENT_5_16", "Have a Pufferfish adjacent to a Bubble that is destroyed during a spin."),
-"Rabbit", Rarity.Uncommon, 1, 0, 2, 9, "rabbit.png", "NEW_ACHIEVEMENT_6_18", "Have Rabbits do 1,000 binkies across all games."),
-"Rabbit Fluff", Rarity.Uncommon, 2, 0, 0, 6, "rabbit_fluff.png", "NEW_ACHIEVEMENT_7_20", "Shed 3 pounds (1.37kg) of Rabbit Fluff across all games."),
-"Rain", Rarity.Uncommon, 2, 2, 0, 1, "rain.png", "NEW_ACHIEVEMENT_5_19", "Have a Rain adjacent to a Seed that grows into a Flower."),
-"Removal Capsule", Rarity.Uncommon, 0, 0, 0, 1, "removal_capsule.png", "NEW_ACHIEVEMENT_5_21", "Have a Removal Capsule not be destroyed 3 or more spins after adding it."),
-"Reroll Capsule", Rarity.Uncommon, 0, 0, 0, 1, "reroll_capsule.png", "NEW_ACHIEVEMENT_5_22", "Have a Reroll Capsule not be destroyed 3 or more spins after adding it."),
-"Robin Hood", Rarity.Rare, -4, 10, 2, 4, "robin_hood.png", "NEW_ACHIEVEMENT_5_26", "Have Robin Hood destroy an Apple while it's directly above a Toddler."),
-"Ruby", Rarity.Rare, 3, 1, 5, 1, "ruby.png", "NEW_ACHIEVEMENT_5_24", "Add 2 or more Rubies during a spin."),
-"Safe", Rarity.Uncommon, 1, 0, 3, 3, "safe.png", "NEW_ACHIEVEMENT_5_25", "Destroy 4 Safes before rent payment #12 is due."),
-"Sand Dollar", Rarity.Uncommon, 2, 0, 2, 2, "sand_dollar.png", "NEW_ACHIEVEMENT_5_23", "Have a Sand Dollar give 40 or more coins when removed with a Removal Token."),
-"Sapphire", Rarity.Uncommon, 2, 0, 5, 1, "sapphire.png", "NEW_ACHIEVEMENT_5_27", "Have a Big Ore add 2 Sapphires during a spin."),
-"Seed", Rarity.Common, 1, 11, 5, 6, "seed.png", "NEW_ACHIEVEMENT_5_28", "Have a Seed grow into a Watermelon (without the help of Fertilizer Essence)."),
-"Shiny Pebble", Rarity.Common, 1, 0, 5, 2, "shiny_pebble.png", "NEW_ACHIEVEMENT_2_3", "Have a Big Ore add 2 Shiny Pebbles during a spin."),
-"Silver Arrow", Rarity.Rare, 0, 1, 1, 1, "silver_arrow.png", "NEW_ACHIEVEMENT_5_31", "Have 3 or more Silver Arrows point to 0 symbols during a spin.", ["silver"]),
-"Sloth", Rarity.Uncommon, 0, 0, 1, 3, "sloth.png", "NEW_ACHIEVEMENT_5_30", "Have a Sloth adjacent to a Snail and Turtle."),
-"Snail", Rarity.Common, 0, 0, 2, 3, "snail.png", "NEW_ACHIEVEMENT_6_0", "Have a Snail give 20 coins or more."),
-"Spades", Rarity.Uncommon, 1, 6, 8, 4, "spades.png", "NEW_ACHIEVEMENT_2_12", "Have 5 or more Spades."),
-"Spirit", Rarity.Rare, 6, 0, 5, 3, "spirit.png", "NEW_ACHIEVEMENT_6_2", "Have 10 or more Spirits."),
-"Strawberry", Rarity.Rare, 3, 1, 4, 2, "strawberry.png", "NEW_ACHIEVEMENT_6_3", "Have 2 Seeds grow into 2 Strawberries during a spin."),
-"Sun", Rarity.Rare, 3, 2, 0, 1, "sun.png", "NEW_ACHIEVEMENT_6_4", "Have 3 or more Suns adjacent to the same Flower."),
-"Target", Rarity.Uncommon, 2, 0, 5, 2, "target.png", "NEW_ACHIEVEMENT_6_5", "Have a Target be destroyed by a symbol that isn't adjacent to it."),
-"Tedium Capsule", Rarity.Uncommon, 0, 0, 0, 3, "tedium_capsule.png", "NEW_ACHIEVEMENT_6_6", "Have a Tedium Capsule and Lucky Capsule be destroyed during a spin."),
-"Thief", Rarity.Uncommon, -1, 0, 6, 6, "thief.png", "NEW_ACHIEVEMENT_6_7", "Have a Thief give 500 or more coins when destroyed before rent payment #12 is due."),
-"Three-Sided Die", Rarity.Common, 0, 0, 1, 3, "d3.png", "NEW_ACHIEVEMENT_3_9", "Have a Three-Sided Die destroy 2 or more Gamblers during a spin.", ["3 sided die, d3"]),
-"Time Capsule", Rarity.Uncommon, 0, 1, 1, 1, "time_capsule.png", "NEW_ACHIEVEMENT_6_8", "Have a Time Capsule add a different capsule."),
-"Toddler", Rarity.Common, 1, 8, 3, 4, "toddler.png", "NEW_ACHIEVEMENT_2_7", "Have a Toddler destroy 6 or more symbols during a spin."),
-"Tomb", Rarity.Rare, 3, 2, 2, 3, "tomb.png", "NEW_ACHIEVEMENT_5_2", "Have a Tomb add 5 or more Spirits during a spin (without the help of Grave Robber Essence)."),
-"Treasure Chest", Rarity.Rare, 2, 0, 3, 4, "treasure_chest.png", "NEW_ACHIEVEMENT_5_17", "Destroy 3 Treasure Chests before rent payment #12 is due."),
-"Turtle", Rarity.Common, 0, 0, 2, 4, "turtle.png", "NEW_ACHIEVEMENT_6_12", "Have a Turtle appear in the leftmost column during a spin, then appear in the rightmost column during the next spin."),
-"Urn", Rarity.Common, 1, 1, 2, 2, "urn.png", "NEW_ACHIEVEMENT_6_13", "Destroy 2 or more Urns during a spin."),
-"Void Creature", Rarity.Uncommon, 0, 2, 1, 6, "void_creature.png", "NEW_ACHIEVEMENT_6_14", "Have a Beastmaster adjacent to a Void Creature that adds a Spirit."),
-"Void Fruit", Rarity.Uncommon, 0, 2, 3, 6, "void_fruit.png", "NEW_ACHIEVEMENT_6_15", "Have a Seed grow into a Void Fruit that isn't destroyed during the same spin."),
-"Void Stone", Rarity.Uncommon, 0, 2, 4, 6, "void_stone.png", "NEW_ACHIEVEMENT_6_16", "Have a Void Stone give 50 coins or more."),
-"Watermelon", Rarity.VeryRare, 4, 1, 4, 2, "watermelon.png", "NEW_ACHIEVEMENT_6_17", "Have 5 or more Watermelons."),
-"Wealthy Capsule", Rarity.Uncommon, 0, 0, 0, 3, "lucky_capsule.png", "NEW_ACHIEVEMENT_4_22", "Have a Wealthy Capsule not be destroyed 3 or more spins after adding it."),
-"Wildcard", Rarity.VeryRare, 0, 0, 1, 1, "wildcard.png", "NEW_ACHIEVEMENT_7_19", "Have 3 Wildcards each give 1,000,000 coins or more."),
-"Wine", Rarity.Uncommon, 2, 0, 4, 3, "wine.png", "NEW_ACHIEVEMENT_6_19", "Have 50 gallons (189.3 litres) of Beer and Wine be consumed."),
-"Witch", Rarity.Rare, 2, 13, 5, 4, "witch.png", "NEW_ACHIEVEMENT_6_20", "Have an Eldritch Creature destroy a Witch."),
-"Wolf", Rarity.Uncommon, 2, 0, 2, 4, "wolf.png", "NEW_ACHIEVEMENT_3_18", "Have 3 or more Wolves adjacent to the same Moon."),
-*/
+export const SYMBOL_TO_IMG: Map<Symbol, string> = new Map([
+    [Symbol.Amethyst, amethyst],
+    [Symbol.Anchor, anchor],
+    [Symbol.Apple, apple],
+    [Symbol.Banana, banana],
+    [Symbol.BananaPeel, banana_peel],
+    [Symbol.BarofSoap, bar_of_soap],
+    [Symbol.Bartender, bartender],
+    [Symbol.Bear, bear],
+    [Symbol.Beastmaster, beastmaster],
+    [Symbol.Bee, bee],
+    [Symbol.Beehive, beehive],
+    [Symbol.Beer, beer],
+    [Symbol.BigOre, big_ore],
+    [Symbol.BigUrn, big_urn],
+    [Symbol.Billionaire, billionaire],
+    [Symbol.BountyHunter, bounty_hunter],
+    [Symbol.BronzeArrow, bronze_arrow],
+    [Symbol.Bubble, bubble],
+    [Symbol.BuffingCapsule, buffing_powder],
+    [Symbol.Candy, candy],
+    [Symbol.CardShark, card_shark],
+    [Symbol.Cat, cat],
+    [Symbol.Cheese, cheese],
+    [Symbol.Chef, chef],
+    [Symbol.ChemicalSeven, chemical_seven],
+    [Symbol.Cherry, cherry],
+    [Symbol.Chick, chick],
+    [Symbol.Chicken, chicken],
+    [Symbol.Clubs, clubs],
+    [Symbol.Coal, coal],
+    [Symbol.Coconut, coconut],
+    [Symbol.CoconutHalf, coconut_half],
+    [Symbol.Coin, coin],
+    [Symbol.Comedian, comedian],
+    [Symbol.Cow, cow],
+    [Symbol.Crab, crab],
+    [Symbol.Crow, crow],
+    [Symbol.Cultist, cultist],
+    [Symbol.Dame, dame],
+    [Symbol.Diamond, diamond],
+    [Symbol.Diamonds, diamonds],
+    [Symbol.Diver, diver],
+    [Symbol.Dog, dog],
+    [Symbol.Dove, dove],
+    [Symbol.Dud, dud],
+    [Symbol.Dwarf, dwarf],
+    [Symbol.Egg, egg],
+    [Symbol.EldritchCreature, eldritch_beast],
+    [Symbol.Emerald, emerald],
+    [Symbol.Empty, empty],
+    [Symbol.EssenceCapsule, essence_capsule],
+    [Symbol.Farmer, farmer],
+    [Symbol.FiveSidedDie, d5],
+    [Symbol.Flower, flower],
+    [Symbol.FrozenFossil, frozen_fossil],
+    [Symbol.Gambler, gambler],
+    [Symbol.GeneralZaroff, general_zaroff],
+    [Symbol.Geologist, archaeologist],
+    [Symbol.GoldenArrow, golden_arrow],
+    [Symbol.GoldenEgg, golden_egg],
+    [Symbol.Goldfish, goldfish],
+    [Symbol.Golem, golem],
+    [Symbol.Goose, goose],
+    [Symbol.Hearts, hearts],
+    [Symbol.HexOfDestruction, hex_of_destruction],
+    [Symbol.HexOfDraining, hex_of_draining],
+    [Symbol.HexOfEmptiness, hex_of_emptiness],
+    [Symbol.HexOfHoarding, hex_of_hoarding],
+    [Symbol.HexOfMidas, hex_of_midas],
+    [Symbol.HexOfTedium, hex_of_tedium],
+    [Symbol.HexOfThievery, hex_of_thievery],
+    [Symbol.Highlander, highlander],
+    [Symbol.Honey, honey],
+    [Symbol.Hooligan, hooligan],
+    [Symbol.HustlingCapsule, hustler],
+    [Symbol.ItemCapsule, item_capsule],
+    [Symbol.Jellyfish, jellyfish],
+    [Symbol.Joker, joker],
+    [Symbol.Key, key],
+    [Symbol.KingMidas, king_midas],
+    [Symbol.LightBulb, light_bulb],
+    [Symbol.Lockbox, lockbox],
+    [Symbol.LuckyCapsule, rarity_capsule],
+    [Symbol.MagicKey, magic_key],
+    [Symbol.Magpie, magpie],
+    [Symbol.Martini, martini],
+    [Symbol.MatryoshkaDoll1, matryoshka_doll_1],
+    [Symbol.MatryoshkaDoll1, matryoshka_doll_2],
+    [Symbol.MatryoshkaDoll1, matryoshka_doll_3],
+    [Symbol.MatryoshkaDoll1, matryoshka_doll_4],
+    [Symbol.MatryoshkaDoll1, matryoshka_doll_5],
+    [Symbol.MegaChest, mega_chest],
+    [Symbol.MidasBomb, midas_bomb],
+    [Symbol.Milk, milk],
+    [Symbol.Mine, mine],
+    [Symbol.Miner, miner],
+    [Symbol.Monkey, monkey],
+    [Symbol.Moon, moon],
+    [Symbol.Mouse, mouse],
+    [Symbol.MrsFruit, mrs_fruit],
+    [Symbol.Ninja, ninja],
+    [Symbol.Omelette, omelette],
+    [Symbol.Orange, orange],
+    [Symbol.Ore, ore],
+    [Symbol.Owl, owl],
+    [Symbol.Oyster, oyster],
+    [Symbol.Peach, peach],
+    [Symbol.Pear, pear],
+    [Symbol.Pearl, pearl],
+    [Symbol.Pirate, pirate],
+    [Symbol.Pinata, pinata],
+    [Symbol.Present, present],
+    [Symbol.Pufferfish, pufferfish],
+    [Symbol.Rabbit, rabbit],
+    [Symbol.RabbitFluff, rabbit_fluff],
+    [Symbol.Rain, rain],
+    [Symbol.RemovalCapsule, removal_capsule],
+    [Symbol.RerollCapsule, reroll_capsule],
+    [Symbol.RobinHood, robin_hood],
+    [Symbol.Ruby, ruby],
+    [Symbol.Safe, safe],
+    [Symbol.SandDollar, sand_dollar],
+    [Symbol.Sapphire, sapphire],
+    [Symbol.Seed, seed],
+    [Symbol.ShinyPebble, shiny_pebble],
+    [Symbol.SilverArrow, silver_arrow],
+    [Symbol.Sloth, sloth],
+    [Symbol.Snail, snail],
+    [Symbol.Spades, spades],
+    [Symbol.Spirit, spirit],
+    [Symbol.Strawberry, strawberry],
+    [Symbol.Sun, sun],
+    [Symbol.Target, target],
+    [Symbol.TediumCapsule, tedium_capsule],
+    [Symbol.Thief, thief],
+    [Symbol.ThreeSidedDie, d3],
+    [Symbol.TimeCapsule, time_capsule],
+    [Symbol.Toddler, toddler],
+    [Symbol.Tomb, tomb],
+    [Symbol.TreasureChest, treasure_chest],
+    [Symbol.Turtle, turtle],
+    [Symbol.Urn, urn],
+    [Symbol.VoidCreature, void_creature],
+    [Symbol.VoidFruit, void_fruit],
+    [Symbol.VoidStone, void_stone],
+    [Symbol.Watermelon, watermelon],
+    [Symbol.WealthyCapsule, wealthy_capsule],
+    [Symbol.Wildcard, wildcard],
+    [Symbol.Wine, wine],
+    [Symbol.Witch, witch],
+    [Symbol.Wolf, wolf],
+])

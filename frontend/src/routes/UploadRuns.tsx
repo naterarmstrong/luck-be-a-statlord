@@ -4,7 +4,8 @@ import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snack
 import { v4 as uuidv4 } from "uuid";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { ProcessedRun, processRun } from "../utils/processRun";
+import { ProcessedRun, msToTime, processRun } from "../utils/processRun";
+import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -121,6 +122,10 @@ const UploadRuns: React.FC = () => {
                                 <TableCell>Run #</TableCell>
                                 <TableCell>Victory</TableCell>
                                 <TableCell>Date Played</TableCell>
+                                <TableCell>Duration</TableCell>
+                                <TableCell>Early</TableCell>
+                                <TableCell>Mid</TableCell>
+                                <TableCell>End</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -128,9 +133,41 @@ const UploadRuns: React.FC = () => {
                                 < TableRow role="checkbox" key={run.number} selected={run.victory} >
                                     <TableCell>{run.number}</TableCell>
                                     <TableCell>
-                                        <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
+                                        <Grid>
+                                            <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
+                                            {run.guillotine ? <Box width="100%" /> : null}
+                                            {run.guillotine ? <Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(Symbol.Billionaire) /* TODO: Change this to guillotine when I add item images. */} /> : null}
+                                        </Grid>
                                     </TableCell>
                                     <TableCell>{getRunDate(run.date)}</TableCell>
+                                    <TableCell>{msToTime(run.duration)}</TableCell>
+                                    <TableCell>
+                                        <Grid>
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[0])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[1])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[2])} />
+                                        </Grid>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Grid>
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[0])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[1])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[2])} />
+                                        </Grid>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Grid>
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[0])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[1])} />
+                                            <Box width="100%" />
+                                            <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[2])} />
+                                        </Grid>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

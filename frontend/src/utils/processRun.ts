@@ -5,17 +5,39 @@ export class ProcessedRun {
     UUID: string;
     number: number;
     victory: boolean;
+    guillotine: boolean;
     // The unix timestamp of the run's completion
     date: number;
+    // The length in milliseconds of the run
+    duration: number;
     // The version of luck be a landlord. Should this be 3 numbers?? or only major version?
     version: string;
+    // The most valuable earlygame symbols
+    earlySyms: Array<Symbol>;
+    midSyms: Array<Symbol>;
+    lateSyms: Array<Symbol>;
 
-    constructor(number: number, version: string, date: number, victory: boolean) {
+    constructor(
+        number: number,
+        version: string,
+        date: number,
+        duration: number,
+        victory: boolean,
+        guillotine: boolean,
+        earlySyms: Symbol[],
+        midSyms: Symbol[],
+        lateSyms: Symbol[]
+    ) {
         this.UUID = v4();
         this.number = number;
         this.version = version;
         this.date = date;
+        this.duration = duration;
         this.victory = victory;
+        this.guillotine = guillotine;
+        this.earlySyms = earlySyms;
+        this.midSyms = midSyms;
+        this.lateSyms = lateSyms;
     }
 }
 
@@ -82,13 +104,21 @@ export function processRun(text: string): ProcessedRun {
     // spins[0] is the information before the run starts
     const spins = text.split(/--- SPIN #/);
     const runNumber = Number(spins[0].split('\n')[0].match("--- STARTING RUN #(.*) ---")?.[1]);
+    const startDateString = spins[0].split('\n')[0].match(/\[(.*)\]/)?.[1]!;
+    const finishDateString = text.split("\n").slice(-2, -1)[0]!.match(/^\[([^\]^\n]*)\]/)?.[1]!;
+    const date = parseDate(startDateString);
+    const finishDate = parseDate(finishDateString);
     const version = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
     let isVictory = false;
     let isFloor20 = true;
+    let isGuillotine = false;
 
     const cumulativeSymbols = getSymbolAddedMap();
     const coinsPerSymbol = new Map<Symbol, number>();
     const appearancesPerSymbol = new Map<Symbol, number>();
+    let earlySyms: Array<Symbol> = [];
+    let midSyms: Array<Symbol> = [];
+    let lateSyms: Array<Symbol> = [];
 
     const start = performance.now();
 
@@ -134,9 +164,12 @@ export function processRun(text: string): ProcessedRun {
 
         if (spinNum === 30 || spinNum === 60) {
             const best = (new Array(...coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+
             if (spinNum === 30) {
+                earlySyms = best.map(x => x[0]);
                 console.log(`   Early game stats:`);
             } else if (spinNum === 60) {
+                midSyms = best.map(x => x[0]);
                 console.log(`   Mid game stats:`);
             }
             for (let i = 0; i < 3; i++) {
@@ -149,17 +182,21 @@ export function processRun(text: string): ProcessedRun {
         //console.log(symbolList);
     }
 
-    const best = (new Array(...coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 5);
-
+    let guillotineMatches = text.split("\n").slice(-2, -1)[0]!.match(/Coin total is now ([\d]*) after spinning/);
+    if (guillotineMatches != null && guillotineMatches.length == 2 && Number(guillotineMatches[1]) > 1000000000) {
+        isGuillotine = true;
+    }
 
     const end = performance.now();
-
     console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
-    for (let i = 0; i < 5; i++) {
+
+    const best = (new Array(...coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+    lateSyms = best.map(x => x[0]);
+    for (let i = 0; i < 3; i++) {
         console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / appearancesPerSymbol.get(best[i][0])!} average`);
     }
 
-    return new ProcessedRun(runNumber, version, 0, isVictory);
+    return new ProcessedRun(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms);
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {
@@ -171,4 +208,32 @@ function getSymbolAddedMap(): Map<Symbol, number> {
     ret.set(Symbol.Cherry, 1);
     ret.set(Symbol.Pearl, 1);
     return ret;
+}
+
+// Parses a LBaL date and returns the approximate unix timestamp
+// Assumes the date takes the form MM/DD/YYYY HH:MM:SS
+// TODO: Is this consistent across all players? 
+function parseDate(dateString: string): number {
+    const dateParts = dateString.split(" ");
+    const largeParts = dateParts[0].split("/");
+    const smallParts = dateParts[1].split(":");
+    const month = Number(largeParts[0]);
+    const day = Number(largeParts[1]);
+    const year = Number(largeParts[2]);
+    const hour = Number(smallParts[0]);
+    const minute = Number(smallParts[1]);
+    const second = Number(smallParts[2]);
+    const date = new Date(year, month - 1, day, hour, minute, second);
+    return date.getTime();
+}
+
+export function msToTime(ms: number): string {
+    let seconds = (ms / 1000).toFixed(1);
+    let minutes = (ms / (1000 * 60)).toFixed(1);
+    let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+    let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+    if (Number(seconds) < 60) return seconds + " Sec";
+    else if (Number(minutes) < 60) return minutes + " Min";
+    else if (Number(hours) < 24) return hours + " Hrs";
+    else return days + " Days"
 }
