@@ -114,26 +114,28 @@ const UploadRuns: React.FC = () => {
             </Grid>
             <Box width="100%" />
             {processedRuns.length > 0 &&
-                <Table sx={{ maxWidth: "700px", maxHeight: "700px" }} stickyHeader>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Run #</TableCell>
-                            <TableCell>Victory</TableCell>
-                            <TableCell>Date Played</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {processedRuns.map((run: ProcessedRun, index) => (
-                            < TableRow role="checkbox" key={run.number} selected={run.victory} >
-                                <TableCell>{run.number}</TableCell>
-                                <TableCell>
-                                    <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
-                                </TableCell>
-                                <TableCell>{getRunDate(run.date)}</TableCell>
+                <Grid item sx={{ overflowY: "scroll", maxHeight: "400px" }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Run #</TableCell>
+                                <TableCell>Victory</TableCell>
+                                <TableCell>Date Played</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {processedRuns.map((run: ProcessedRun, index) => (
+                                < TableRow role="checkbox" key={run.number} selected={run.victory} >
+                                    <TableCell>{run.number}</TableCell>
+                                    <TableCell>
+                                        <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
+                                    </TableCell>
+                                    <TableCell>{getRunDate(run.date)}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Grid>
             }
         </Grid >
     );
