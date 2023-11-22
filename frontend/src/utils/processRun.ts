@@ -129,6 +129,9 @@ const postSpinSymbolRegex = /Spin layout after effects is:\n\[[^\]]*\] \[([^,]*)
 const spinValuesRegex = /Symbol values after effects are:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 
 export function processRun(text: string): ProcessedRun {
+    if (text === "" || !text) {
+        throw new Error("Empty run file")
+    }
     // spins[0] is the information before the run starts
     const spins = text.split(/--- SPIN #/);
     const runNumber = Number(spins[0].split('\n')[0].match("--- STARTING RUN #(.*) ---")?.[1]);
@@ -154,11 +157,17 @@ export function processRun(text: string): ProcessedRun {
     for (const spinText of spins.slice(1)) {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
-        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
+        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0]);
         // The final mapping is to ignore cases where something (a capsule) gives a removal token
         // (v), reroll token (r), or essence (e), which is denoted like -12e1. We are only
         // interested in the essence token
-        const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]))!;
+        const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]));
+
+        // This can happen if you quit the game mid-spin, while effects are ongoing
+        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20) {
+            console.error("Quit mid-spin");
+            break;
+        }
 
         let symbols: Symbol[] = [];
 
@@ -175,7 +184,7 @@ export function processRun(text: string): ProcessedRun {
         // TODO: Capturing transformations (coal -> diamond, egg -> chick -> chicken, dog -> wolf) needs to go into effects
         // Looks like value_to_change:type is what transforms symbols. tiles_to_add is when something being destroyed added something else
 
-        //console.log(`Spin number ${spinNum}`);
+        console.log(`Spin number ${spinNum}`);
         //console.log(symbols);
         for (let i = 0; i < 20; i++) {
             const symbolStr = symbolStrs[i];
@@ -220,9 +229,12 @@ export function processRun(text: string): ProcessedRun {
         //console.log(symbolList);
     }
 
-    let guillotineMatches = text.split("\n").slice(-2, -1)[0]!.match(/Coin total is now ([\d]*) after spinning/);
-    if (guillotineMatches != null && guillotineMatches.length == 2 && Number(guillotineMatches[1]) > 1000000000) {
+    if (text.includes("guillotine_essence") && Array(...coinsPerSymbol.values()).reduce((a, b) => a + b, 0) > 1000000000) {
         isGuillotine = true;
+    }
+
+    if (Math.max(...coinsPerSymbol.values()) > 800000000 && !isGuillotine) {
+        console.error(`Seemed to miss a guillotine run!`)
     }
 
     const end = performance.now();

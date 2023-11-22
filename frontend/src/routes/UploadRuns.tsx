@@ -125,7 +125,7 @@ const UploadRuns: React.FC = () => {
                                 <TableCell>Duration</TableCell>
                                 <TableCell>Early</TableCell>
                                 <TableCell>Mid</TableCell>
-                                <TableCell>End</TableCell>
+                                <TableCell>Final</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
