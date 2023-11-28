@@ -1,8 +1,9 @@
 import { v4 } from "uuid";
 import { IIDToSymbol, Symbol } from "./symbol";
+import { Item } from "./item";
 
 // Rename to RunSummary?
-export class ProcessedRun {
+export class RunInfo {
     UUID: string;
     number: number;
     victory: boolean;
@@ -17,6 +18,8 @@ export class ProcessedRun {
     earlySyms: Array<Symbol>;
     midSyms: Array<Symbol>;
     lateSyms: Array<Symbol>;
+
+    details?: RunDetails;
 
     // Maybe this is in optional run details?
     // So we have run summary, run details, etc
@@ -46,6 +49,27 @@ export class ProcessedRun {
         this.midSyms = midSyms;
         this.lateSyms = lateSyms;
         this.spins = spins;
+    }
+}
+
+export class RunDetails {
+    // The details on each spin
+    spins: SpinInfo[];
+    // Aggregated information on the coins earned per symbol
+    coinsPerSymbol: Map<Symbol, number>;
+    // How many times symbols appeared in total
+    showsPerSymbol: Map<Symbol, number>;
+
+
+    constructor() {
+        this.spins = [];
+        this.coinsPerSymbol = new Map();
+        this.showsPerSymbol = new Map();
+    }
+
+    recordSymbol(symbol: Symbol, value: number) {
+        this.showsPerSymbol.set(symbol, (this.showsPerSymbol.get(symbol) ?? 0) + 1);
+        this.coinsPerSymbol.set(symbol, (this.coinsPerSymbol.get(symbol) ?? 0) + value);
     }
 }
 
@@ -128,10 +152,11 @@ const preSpinSymbolRegex = /Spin layout before effects is:\n\[[^\]]*\] \[([^,]*)
 const postSpinSymbolRegex = /Spin layout after effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 const spinValuesRegex = /Symbol values after effects are:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 
-export function processRun(text: string): ProcessedRun {
+export function processRun(text: string): RunInfo {
     if (text === "" || !text) {
         throw new Error("Empty run file")
     }
+
     // spins[0] is the information before the run starts
     const spins = text.split(/--- SPIN #/);
     const runNumber = Number(spins[0].split('\n')[0].match("--- STARTING RUN #(.*) ---")?.[1]);
@@ -143,10 +168,11 @@ export function processRun(text: string): ProcessedRun {
     let isVictory = false;
     let isFloor20 = true;
     let isGuillotine = false;
+    const details = new RunDetails();
 
+    // Keeps track of inventory
     const cumulativeSymbols = getSymbolAddedMap();
-    const coinsPerSymbol = new Map<Symbol, number>();
-    const appearancesPerSymbol = new Map<Symbol, number>();
+
     let earlySyms: Array<Symbol> = [];
     let midSyms: Array<Symbol> = [];
     let lateSyms: Array<Symbol> = [];
@@ -183,20 +209,21 @@ export function processRun(text: string): ProcessedRun {
 
         // TODO: Capturing transformations (coal -> diamond, egg -> chick -> chicken, dog -> wolf) needs to go into effects
         // Looks like value_to_change:type is what transforms symbols. tiles_to_add is when something being destroyed added something else
+        // Also, later, capturing value multipliers should be added to the main symbols probably
 
-        console.log(`Spin number ${spinNum}`);
+        // console.log(`Spin number ${spinNum}`);
         //console.log(symbols);
         for (let i = 0; i < 20; i++) {
             const symbolStr = symbolStrs[i];
-            const val = values[i];
             const symbol = IIDToSymbol(symbolStr);
             if (symbol === Symbol.Unknown) {
                 console.error(`Found unknown symbol: ${symbolStr}`);
             }
-            appearancesPerSymbol.set(symbol, (appearancesPerSymbol.get(symbol) ?? 0) + 1);
-            coinsPerSymbol.set(symbol, (coinsPerSymbol.get(symbol) ?? 0) + val);
+            details.recordSymbol(symbol, values[i]);
             symbols.push(symbol);
         }
+
+        const info = new SpinInfo(0, 0);
 
         if (!isVictory) {
             // Skip keeping track of every single board once going for endless / guillotine essence
@@ -210,7 +237,7 @@ export function processRun(text: string): ProcessedRun {
         }
 
         if (spinNum === 30 || spinNum === 60) {
-            const best = (new Array(...coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+            const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
 
             if (spinNum === 30) {
                 earlySyms = best.map(x => x[0]);
@@ -220,7 +247,7 @@ export function processRun(text: string): ProcessedRun {
                 console.log(`   Mid game stats:`);
             }
             for (let i = 0; i < 3; i++) {
-                console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / appearancesPerSymbol.get(best[i][0])!} average`);
+                console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
             }
         }
 
@@ -229,24 +256,20 @@ export function processRun(text: string): ProcessedRun {
         //console.log(symbolList);
     }
 
-    if (text.includes("guillotine_essence") && Array(...coinsPerSymbol.values()).reduce((a, b) => a + b, 0) > 1000000000) {
+    if (text.includes("guillotine_essence") && Array(...details.coinsPerSymbol.values()).reduce((a, b) => a + b, 0) > 1000000000) {
         isGuillotine = true;
-    }
-
-    if (Math.max(...coinsPerSymbol.values()) > 800000000 && !isGuillotine) {
-        console.error(`Seemed to miss a guillotine run!`)
     }
 
     const end = performance.now();
     console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
 
-    const best = (new Array(...coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+    const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
     lateSyms = best.map(x => x[0]);
     for (let i = 0; i < 3; i++) {
-        console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / appearancesPerSymbol.get(best[i][0])!} average`);
+        console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
     }
 
-    return new ProcessedRun(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms, processedSpins);
+    return new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms, processedSpins);
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {

@@ -4,7 +4,7 @@ import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snack
 import { v4 as uuidv4 } from "uuid";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { ProcessedRun, msToTime, processRun } from "../utils/processRun";
+import { RunInfo, msToTime, processRun } from "../utils/processRun";
 import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 
@@ -26,7 +26,7 @@ const VisuallyHiddenInput = styled('input')({
 const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
     const [selectedFiles, setSelectedFiles] = useState<Array<File>>([]);
-    const [processedRuns, setProcessedRuns] = useState<Array<ProcessedRun>>([]);
+    const [processedRuns, setProcessedRuns] = useState<Array<RunInfo>>([]);
 
     const os = getOperatingSystem();
 
@@ -134,7 +134,7 @@ const UploadRuns: React.FC = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {processedRuns.map((run: ProcessedRun, index) => (
+                            {processedRuns.map((run: RunInfo, index) => (
                                 < TableRow role="checkbox" key={run.number} selected={run.victory} >
                                     <TableCell>{run.number}</TableCell>
                                     <TableCell>
