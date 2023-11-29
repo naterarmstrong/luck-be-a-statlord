@@ -3,6 +3,7 @@ import { createContext } from 'react';
 export type UserData = {
     loggedIn: boolean,
     username?: string,
+    userId?: number,
     exp?: number,
 }
 

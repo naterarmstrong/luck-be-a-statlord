@@ -9,6 +9,7 @@ import Layout from "./components/Layout";
 import Login from "./routes/Login";
 import userContext, { UserData } from "./contexts/UserContext";
 import Cookies from "universal-cookie";
+import Profile from "./routes/Profile";
 
 const darkTheme = createTheme({
   palette: {
@@ -29,9 +30,10 @@ const App: React.FC = () => {
     // TODO: handle expiration
     const cookies = new Cookies();
     const username = cookies.get("username");
+    const userId = cookies.get("userId");
 
     if (username) {
-      setUser({ loggedIn: true, username: username });
+      setUser({ loggedIn: true, username: username, userId: userId });
     }
   }, []);
 
@@ -45,6 +47,7 @@ const App: React.FC = () => {
             <Route path="/create" element={<CreateSession />} />
             <Route path="/upload" element={<UploadRuns />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/watch/:sessionId" element={<WatchSession />} />
           </Routes>
         </Layout>

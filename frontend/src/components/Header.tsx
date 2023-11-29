@@ -8,7 +8,7 @@ import userContext from "../contexts/UserContext";
 const Header: React.FC = () => {
     const navigate = useNavigate();
 
-    const { username, loggedIn, setUser } = useContext(userContext);
+    const { username, loggedIn, userId, setUser } = useContext(userContext);
 
 
     return (
@@ -20,10 +20,9 @@ const Header: React.FC = () => {
                         Upload Runs
                     </Link>
                     <Box sx={{ flexGrow: 2 }} />
-                    {loggedIn ? username :
-                        <Link href="/login">
-                            Login
-                        </Link>}
+                    {loggedIn ?
+                        <Link href={`/profile/${userId}`}>{username}</Link> :
+                        <Link href="/login">Login</Link>}
                 </Toolbar>
             </Container>
         </AppBar>

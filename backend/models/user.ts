@@ -3,6 +3,13 @@ import { sequelize } from "../db/db"
 
 export class User extends Model { }
 
+export type UserModel = {
+    username: string,
+    password: string,
+    id: number,
+}
+
+// Using this to init includes an implicit ID for the user
 User.init({
     username: {
         type: DataTypes.STRING,

@@ -41,10 +41,11 @@ const Login: React.FC = () => {
             return
         }
         // TODO: expiration
-        setUser({ username: username, loggedIn: true });
+        const body = await response.json();
+        setUser({ username: username, loggedIn: true, userId: body.id });
         const cookies = new Cookies();
         cookies.set("username", username);
-        cookies.set("exp", 0);
+        cookies.set("userId", body.id);
         console.log(response);
         navigate('/upload');
     }
@@ -70,10 +71,11 @@ const Login: React.FC = () => {
             console.error("AHH GOT AN ERROR", response);
             return
         }
-        setUser({ username: username, loggedIn: true });
+        const body = await response.json();
+        setUser({ username: username, loggedIn: true, userId: body.id });
         const cookies = new Cookies();
         cookies.set("username", username);
-        cookies.set("exp", 0);
+        cookies.set("userId", body.id);
         console.log(response);
         navigate('/upload');
     }

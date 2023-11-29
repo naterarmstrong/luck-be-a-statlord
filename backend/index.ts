@@ -11,7 +11,7 @@ import { SessionController } from './controllers/sessionController';
 import { Server } from 'socket.io';
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
-import { User } from './models/user';
+import { User, UserModel } from './models/user';
 import { sequelize } from './db/db';
 
 const secrets = dotenv.config();
@@ -55,6 +55,9 @@ sequelize.sync({ force: true }).then(() => console.log("DB has been synced."));
 
 const DAY = 1 * 24 * 60 * 60 * 1000;
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// User Controls ///////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 app.post('/register', async (req: AuthorizedRequest, res) => {
     if (req.loggedIn && req.loggedIn !== req.body.username) {
         console.log(`Received registration request when user already logged in: username: ${req.loggedIn}`);
@@ -79,7 +82,7 @@ app.post('/register', async (req: AuthorizedRequest, res) => {
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
-        return res.status(201).send();
+        return res.status(201).send({ id: (user as any).id });
     }
 });
 
@@ -101,10 +104,24 @@ app.post('/login', async (req: AuthorizedRequest, res) => {
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User signed in: ${username}, ${token}`);
-        return res.status(200).send();
+        return res.status(200).send({ id: (userInDB as any).id });
     }
 });
 
+app.get('/user/:id', async (req, res) => {
+    const user = await User.findOne({ where: { id: req.params.id } }) as UserModel | null;
+
+    if (!user) {
+        return res.status(404).send();
+    }
+
+    return res.status(200).send({ username: user.username });
+})
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// Run Controls ////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 app.post('/session', (req, res) => {
     // Server should generate IDs

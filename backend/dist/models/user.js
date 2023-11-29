@@ -6,6 +6,7 @@ const db_1 = require("../db/db");
 class User extends sequelize_1.Model {
 }
 exports.User = User;
+// Using this to init includes an implicit ID for the user
 User.init({
     username: {
         type: sequelize_1.DataTypes.STRING,
