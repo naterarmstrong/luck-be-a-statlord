@@ -20,8 +20,6 @@ const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = __importDefault(require("cors"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const uuid_1 = require("uuid");
-const sessionController_1 = require("./controllers/sessionController");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const userAuth_1 = require("./middleware/userAuth");
 const user_1 = require("./models/user");
@@ -31,7 +29,6 @@ const secrets = dotenv_1.default.config();
 exports.JWT_SECRET = "asdf";
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3001;
-const sessionController = new sessionController_1.SessionController();
 const corsOptions = {
     // For now, this allows any request origin to send things in via browser. Once deployed, maybe
     // this should change or be set by an env variable.
@@ -108,35 +105,6 @@ app.get('/user/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* (
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Run Controls ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-app.post('/session', (req, res) => {
-    // Server should generate IDs
-    const sessionId = (0, uuid_1.v4)();
-    const session = Object.assign({ id: sessionId }, req.body);
-    sessionController.createSession(session);
-    sessionController.createLiveSession(session);
-    console.log("Creating session:\n", session);
-    res.status(201).json(session);
-});
-app.get('/sessions/:id', (req, res) => {
-    const id = req.params.id;
-    const sessionData = sessionController.getSession(id);
-    if (!!sessionData) {
-        console.log("Sending session data:\n", sessionData);
-        res.status(200).send(sessionData);
-    }
-    else {
-        console.log("Failed to find session data:\n", id);
-        res.status(404).send();
-    }
-});
-// app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-//     console.log("LOGGING ERROR")
-//     console.error(err);
-//     res.status(res.status || 500).json({
-//         message: err.message,
-//         errors: err.errors,
-//     });
-// });
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });

@@ -1,7 +1,5 @@
 import { Box, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { Routes, Route } from "react-router-dom";
-import WatchSession from "./routes/WatchSession";
-import CreateSession from "./routes/CreateSession";
 import UploadRuns from "./routes/UploadRuns";
 
 import React, { useEffect, useState } from "react";
@@ -43,12 +41,10 @@ const App: React.FC = () => {
         <CssBaseline />
         <Layout>
           <Routes>
-            <Route path="/" element={<CreateSession />} />
-            <Route path="/create" element={<CreateSession />} />
+            <Route path="/" element={<UploadRuns />} />
             <Route path="/upload" element={<UploadRuns />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/watch/:sessionId" element={<WatchSession />} />
           </Routes>
         </Layout>
       </userContext.Provider>

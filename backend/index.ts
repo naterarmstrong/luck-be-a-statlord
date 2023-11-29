@@ -6,9 +6,6 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from "uuid";
-import * as OpenApiValidator from 'express-openapi-validator';
-import { SessionController } from './controllers/sessionController';
-import { Server } from 'socket.io';
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
@@ -21,8 +18,6 @@ export const JWT_SECRET = "asdf";
 
 const app = express();
 const port = process.env.PORT || 3001;
-
-const sessionController = new SessionController();
 
 const corsOptions = {
     // For now, this allows any request origin to send things in via browser. Once deployed, maybe
@@ -122,38 +117,6 @@ app.get('/user/:id', async (req, res) => {
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Run Controls ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-
-app.post('/session', (req, res) => {
-    // Server should generate IDs
-    const sessionId = uuidv4();
-    const session = { id: sessionId, ...req.body };
-    sessionController.createSession(session);
-    sessionController.createLiveSession(session);
-    console.log("Creating session:\n", session);
-    res.status(201).json(session);
-});
-
-app.get('/sessions/:id', (req, res) => {
-    const id = req.params.id;
-    const sessionData = sessionController.getSession(id);
-
-    if (!!sessionData) {
-        console.log("Sending session data:\n", sessionData);
-        res.status(200).send(sessionData);
-    } else {
-        console.log("Failed to find session data:\n", id);
-        res.status(404).send();
-    }
-});
-
-// app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-//     console.log("LOGGING ERROR")
-//     console.error(err);
-//     res.status(res.status || 500).json({
-//         message: err.message,
-//         errors: err.errors,
-//     });
-// });
 
 
 app.listen(port, () => {
