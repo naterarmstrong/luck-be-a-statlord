@@ -7,14 +7,10 @@ class User extends sequelize_1.Model {
 }
 exports.User = User;
 User.init({
-    displayName: {
-        type: sequelize_1.DataTypes.STRING,
-        allowNull: false
-    },
-    email: {
+    username: {
         type: sequelize_1.DataTypes.STRING,
         unique: true,
-        allowNull: false,
+        allowNull: false
     },
     password: {
         type: sequelize_1.DataTypes.STRING,

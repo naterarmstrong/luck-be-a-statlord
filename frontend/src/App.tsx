@@ -5,6 +5,8 @@ import CreateSession from "./routes/CreateSession";
 import UploadRuns from "./routes/UploadRuns";
 
 import React from "react";
+import Layout from "./components/Layout";
+import Login from "./routes/Login";
 
 const darkTheme = createTheme({
   palette: {
@@ -21,22 +23,15 @@ const App = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Box
-        width="100vw"
-        height="100vh"
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        gap={1}
-      >
+      <Layout>
         <Routes>
           <Route path="/" element={<CreateSession />} />
           <Route path="/create" element={<CreateSession />} />
           <Route path="/upload" element={<UploadRuns />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/watch/:sessionId" element={<WatchSession />} />
         </Routes>
-      </Box>
+      </Layout>
     </ThemeProvider>
   );
 };

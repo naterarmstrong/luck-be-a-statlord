@@ -4,14 +4,10 @@ import { sequelize } from "../db/db"
 export class User extends Model { }
 
 User.init({
-    displayName: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    email: {
+    username: {
         type: DataTypes.STRING,
         unique: true,
-        allowNull: false,
+        allowNull: false
     },
     password: {
         type: DataTypes.STRING,

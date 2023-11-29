@@ -7,6 +7,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { RunInfo, msToTime, processRun } from "../utils/processRun";
 import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
+import Layout from "../components/Layout";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -67,22 +68,26 @@ const UploadRuns: React.FC = () => {
         // TODO: Actually send over processed run information to the server
     }
 
+    const showTips = () => (
+        <Grid item>
+            <Typography>
+                {os === "Unknown" ? "Runs are located at different locations on different operating systems." : null}
+                <Box width="100%" />
+                {os === "Windows" || os === "Unknown" ? "Windows runs are at `%USERPROFILE/AppData/Roaming/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
+                <Box width="100%" />
+                {os === "Mac" || os === "Unknown" ? "Mac runs are at `~/Library/Application Support/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
+                <Box width="100%" />
+                {os === "Mac" || os === "Unknown" ? "You will need hidden files visible (CMD+SHIFT+.) to see Library." : null}
+                <Box width="100%" />
+                {os === "Linux" || os === "Unknown" ? "Linux runs are at `~/.local/share/godot/app_userdata/Luck be a Landlord/run_logs`" : null}
+            </Typography>
+        </Grid>
+    );
+
 
     return (
         <Grid container spacing={2} alignItems="center" justifyContent="center" sx={{ overflowY: "scroll" }} >
-            <Grid item>
-                <Typography>
-                    {os === "Unknown" ? "Runs are located at different locations on different operating systems." : null}
-                    <Box width="100%" />
-                    {os === "Windows" || os === "Unknown" ? "Windows runs are at `%USERPROFILE/AppData/Roaming/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
-                    <Box width="100%" />
-                    {os === "Mac" || os === "Unknown" ? "Mac runs are at `~/Library/Application Support/Godot/app_userdata/Luck be a Landlord/run_logs`" : null}
-                    <Box width="100%" />
-                    {os === "Mac" || os === "Unknown" ? "You will need hidden files visible (CMD+SHIFT+.) to see Library." : null}
-                    <Box width="100%" />
-                    {os === "Linux" || os === "Unknown" ? "Linux runs are at `~/.local/share/godot/app_userdata/Luck be a Landlord/run_logs`" : null}
-                </Typography>
-            </Grid>
+            {showTips()}
             <Box width="100%" />
             <Grid item>
                 <Box width="100%" maxWidth={600} display="flex" gap={1} marginTop={1}>
