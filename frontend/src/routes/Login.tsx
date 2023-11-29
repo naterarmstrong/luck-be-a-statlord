@@ -1,8 +1,10 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, Card, CardContent, CardMedia, FormControl, Grid, IconButton, Input, InputAdornment, InputLabel, ListItem, OutlinedInput, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import Cookies from 'universal-cookie';
+import userContext from "../contexts/UserContext";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -13,6 +15,7 @@ const Login: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const { username: signedUser, loggedIn, setUser } = useContext(userContext);
 
     const handleClickShowPassword = () => setShowPassword((showPassword) => !showPassword);
 
@@ -37,8 +40,13 @@ const Login: React.FC = () => {
             console.error("AHH GOT AN ERROR", response);
             return
         }
+        // TODO: expiration
+        setUser({ username: username, loggedIn: true });
+        const cookies = new Cookies();
+        cookies.set("username", username);
+        cookies.set("exp", 0);
         console.log(response);
-        // navigate('/upload');
+        navigate('/upload');
     }
 
     const register = async () => {
@@ -62,8 +70,12 @@ const Login: React.FC = () => {
             console.error("AHH GOT AN ERROR", response);
             return
         }
+        setUser({ username: username, loggedIn: true });
+        const cookies = new Cookies();
+        cookies.set("username", username);
+        cookies.set("exp", 0);
         console.log(response);
-        // navigate('/upload');
+        navigate('/upload');
     }
 
 

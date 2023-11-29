@@ -4,9 +4,11 @@ import WatchSession from "./routes/WatchSession";
 import CreateSession from "./routes/CreateSession";
 import UploadRuns from "./routes/UploadRuns";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "./components/Layout";
 import Login from "./routes/Login";
+import userContext, { UserData } from "./contexts/UserContext";
+import Cookies from "universal-cookie";
 
 const darkTheme = createTheme({
   palette: {
@@ -19,21 +21,36 @@ const darkTheme = createTheme({
   },
 });
 
-const App = () => {
+const App: React.FC = () => {
+  const [user, setUser] = useState<UserData>({ loggedIn: false });
+
+  useEffect(() => {
+    // Extract login state with cookie by loading at app startup
+    // TODO: handle expiration
+    const cookies = new Cookies();
+    const username = cookies.get("username");
+
+    if (username) {
+      setUser({ loggedIn: true, username: username });
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<CreateSession />} />
-          <Route path="/create" element={<CreateSession />} />
-          <Route path="/upload" element={<UploadRuns />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/watch/:sessionId" element={<WatchSession />} />
-        </Routes>
-      </Layout>
-    </ThemeProvider>
+      <userContext.Provider value={{ setUser, ...user }} >
+        <CssBaseline />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<CreateSession />} />
+            <Route path="/create" element={<CreateSession />} />
+            <Route path="/upload" element={<UploadRuns />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/watch/:sessionId" element={<WatchSession />} />
+          </Routes>
+        </Layout>
+      </userContext.Provider>
+    </ThemeProvider >
   );
-};
+}
 
 export default App;

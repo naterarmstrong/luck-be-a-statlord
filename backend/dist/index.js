@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.JWT_SECRET = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const body_parser_1 = __importDefault(require("body-parser"));
@@ -26,6 +27,8 @@ const userAuth_1 = require("./middleware/userAuth");
 const user_1 = require("./models/user");
 const db_1 = require("./db/db");
 const secrets = dotenv_1.default.config();
+// Temporary secret for use in testing, later this should come from dotenv
+exports.JWT_SECRET = "asdf";
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3001;
 const sessionController = new sessionController_1.SessionController();
@@ -53,6 +56,10 @@ db_1.sequelize.sync({ force: true }).then(() => console.log("DB has been synced.
 // );
 const DAY = 1 * 24 * 60 * 60 * 1000;
 app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (req.loggedIn && req.loggedIn !== req.body.username) {
+        console.log(`Received registration request when user already logged in: username: ${req.loggedIn}`);
+        return res.status(403).send();
+    }
     const userInDB = yield user_1.User.findOne({ where: { username: req.body.username } });
     if (userInDB != null) {
         return res.status(409).send("User already exists");
@@ -65,7 +72,7 @@ app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     };
     const user = yield user_1.User.create(data);
     if (user) {
-        let token = jsonwebtoken_1.default.sign({ username: username }, "asdf", { expiresIn: DAY });
+        let token = jsonwebtoken_1.default.sign({ username: username }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
         return res.status(201).send();
@@ -82,7 +89,7 @@ app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (!isSame) {
             return res.status(401).send("Authentication failed");
         }
-        let token = jsonwebtoken_1.default.sign({ username: username }, "asdf", { expiresIn: DAY });
+        let token = jsonwebtoken_1.default.sign({ username: username }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User signed in: ${username}, ${token}`);
         return res.status(200).send();

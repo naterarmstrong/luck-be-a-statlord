@@ -10,11 +10,14 @@ import * as OpenApiValidator from 'express-openapi-validator';
 import { SessionController } from './controllers/sessionController';
 import { Server } from 'socket.io';
 import cookieParser from 'cookie-parser';
-import { checkLogin } from './middleware/userAuth'
+import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User } from './models/user';
 import { sequelize } from './db/db';
 
 const secrets = dotenv.config();
+
+// Temporary secret for use in testing, later this should come from dotenv
+export const JWT_SECRET = "asdf";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -52,7 +55,12 @@ sequelize.sync({ force: true }).then(() => console.log("DB has been synced."));
 
 const DAY = 1 * 24 * 60 * 60 * 1000;
 
-app.post('/register', async (req, res) => {
+app.post('/register', async (req: AuthorizedRequest, res) => {
+    if (req.loggedIn && req.loggedIn !== req.body.username) {
+        console.log(`Received registration request when user already logged in: username: ${req.loggedIn}`);
+        return res.status(403).send();
+    }
+
     const userInDB = await User.findOne({ where: { username: req.body.username } });
     if (userInDB != null) {
         return res.status(409).send("User already exists");
@@ -67,7 +75,7 @@ app.post('/register', async (req, res) => {
     const user = await User.create(data);
 
     if (user) {
-        let token = jwt.sign({ username: username }, "asdf", { expiresIn: DAY });
+        let token = jwt.sign({ username: username }, JWT_SECRET, { expiresIn: DAY });
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
@@ -75,7 +83,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req: AuthorizedRequest, res) => {
     const userInDB = await User.findOne({ where: { username: req.body.username } });
 
     const { username, password } = req.body;
@@ -89,7 +97,7 @@ app.post('/login', async (req, res) => {
             return res.status(401).send("Authentication failed");
         }
 
-        let token = jwt.sign({ username: username }, "asdf", { expiresIn: DAY });
+        let token = jwt.sign({ username: username }, JWT_SECRET, { expiresIn: DAY });
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User signed in: ${username}, ${token}`);
