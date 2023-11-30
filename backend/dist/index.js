@@ -23,6 +23,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const userAuth_1 = require("./middleware/userAuth");
 const user_1 = require("./models/user");
+const run_1 = require("./models/run");
 const db_1 = require("./db/db");
 const secrets = dotenv_1.default.config();
 // Temporary secret for use in testing, later this should come from dotenv
@@ -38,7 +39,7 @@ const corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use((0, cookie_parser_1.default)());
-app.use(body_parser_1.default.json());
+app.use(body_parser_1.default.json({ limit: '50mb' }));
 app.use((0, morgan_1.default)('combined'));
 app.use('/spec', express_1.default.static('./api.yaml'));
 app.use(userAuth_1.checkLogin);
@@ -56,8 +57,8 @@ const DAY = 1 * 24 * 60 * 60 * 1000;
 /////////////////////////////// User Controls ///////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (req.loggedIn && req.loggedIn !== req.body.username) {
-        console.log(`Received registration request when user already logged in: username: ${req.loggedIn}`);
+    if (req.username && req.username !== req.body.username) {
+        console.log(`Received registration request when user already logged in: username: ${req.username}`);
         return res.status(403).send();
     }
     const userInDB = yield user_1.User.findOne({ where: { username: req.body.username } });
@@ -72,7 +73,7 @@ app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     };
     const user = yield user_1.User.create(data);
     if (user) {
-        let token = jsonwebtoken_1.default.sign({ username: username }, exports.JWT_SECRET, { expiresIn: DAY });
+        let token = jsonwebtoken_1.default.sign({ username: username, id: user.id }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
         return res.status(201).send({ id: user.id });
@@ -105,6 +106,45 @@ app.get('/user/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* (
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Run Controls ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
+app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Make sure they are logged in
+    if (!req.userId) {
+        return res.status(401).send("Not logged in.");
+    }
+    console.log(req.body);
+    for (const run of req.body) {
+        console.log("Run attributes:", run_1.Run.getAttributes());
+        yield run_1.Run.create({
+            UserId: req.userId,
+            number: run.number,
+            victory: run.victory,
+            guillotine: run.guillotine,
+            date: run.date,
+            duration: run.duration,
+            version: run.version,
+            // If using postgres, this can be array
+            earlySyms: run.earlySyms.join(','),
+            midSyms: run.earlySyms.join(','),
+            lateSyms: run.earlySyms.join(','),
+        });
+        // TODO: Finish uploading runs
+    }
+    return res.status(201).send();
+}));
+app.get('/user/:id/runs', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const runs = yield user_1.User.findOne({
+        where: {
+            id: req.params.id
+        },
+        include: [{
+                model: run_1.Run,
+                // How to order by number descending and do paging etc
+                // separate: true,
+                // order: ['number', 'DESC']
+            }],
+    });
+    return res.status(200).send(runs);
+}));
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });

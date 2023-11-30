@@ -4,7 +4,6 @@ import { Item } from "./item";
 
 // Rename to RunSummary?
 export class RunInfo {
-    UUID: string;
     number: number;
     victory: boolean;
     guillotine: boolean;
@@ -21,11 +20,6 @@ export class RunInfo {
 
     details?: RunDetails;
 
-    // Maybe this is in optional run details?
-    // So we have run summary, run details, etc
-    // runDetails?: RunDetails;
-    spins: Array<Symbol[]>;
-
     constructor(
         number: number,
         version: string,
@@ -36,9 +30,7 @@ export class RunInfo {
         earlySyms: Symbol[],
         midSyms: Symbol[],
         lateSyms: Symbol[],
-        spins: Array<Symbol[]>
     ) {
-        this.UUID = v4();
         this.number = number;
         this.version = version;
         this.date = date;
@@ -48,7 +40,6 @@ export class RunInfo {
         this.earlySyms = earlySyms;
         this.midSyms = midSyms;
         this.lateSyms = lateSyms;
-        this.spins = spins;
     }
 }
 
@@ -93,25 +84,29 @@ export class RunDetails {
 
 */
 
+// This one should be modified after construction
 export class SpinInfo {
-    // TODO: how to handle doubles??
-    coinsPerSymbol: Map<string, number>;
-    // eaters eating happens later
+    symbols: Array<Symbol>;
+    values: Array<number>;
+
     coinsEarned: number;
     // This is _technically_ redundant
     totalCoins: number;
-    symbolsAdded: Array<string>;
+
+    symbolsAdded: Array<Symbol>;
     itemsAdded: Array<string>;
     itemsDisabled: Array<string>;
 
-    constructor(coinsEarned: number, totalCoins: number) {
-        this.coinsPerSymbol = new Map();
+    constructor(earned: number, total: number) {
+        this.symbols = [];
+        this.values = [];
+
         this.symbolsAdded = [];
         this.itemsAdded = [];
         this.itemsDisabled = [];
 
-        this.totalCoins = totalCoins;
-        this.coinsEarned = coinsEarned;
+        this.coinsEarned = earned;
+        this.totalCoins = total;
     }
 }
 
@@ -151,6 +146,9 @@ const RENT_F20_SPINS = {
 const preSpinSymbolRegex = /Spin layout before effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 const postSpinSymbolRegex = /Spin layout after effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 const spinValuesRegex = /Symbol values after effects are:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
+const coinsGainedRegex = /Gained ([\d]*) coins this spin/;
+const coinTotalRegex = /Coin total is now ([\d]*) after spinning/;
+const addedSymbolsRegex = /Added symbols: \[([^\^\n]*)\]/g
 
 export function processRun(text: string): RunInfo {
     if (text === "" || !text) {
@@ -176,26 +174,33 @@ export function processRun(text: string): RunInfo {
     let earlySyms: Array<Symbol> = [];
     let midSyms: Array<Symbol> = [];
     let lateSyms: Array<Symbol> = [];
-    const processedSpins: Array<Symbol[]> = [];
 
     const start = performance.now();
 
     for (const spinText of spins.slice(1)) {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
-        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0]);
+        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
         // The final mapping is to ignore cases where something (a capsule) gives a removal token
         // (v), reroll token (r), or essence (e), which is denoted like -12e1. We are only
         // interested in the essence token
-        const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]));
+        const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]))!;
+        const symbolsAdded = Array.from(spinText.matchAll(addedSymbolsRegex), (m) => m[1]).flatMap((x) => x.split(',')).map((x) => IIDToSymbol(x));
+
+        const coinsGainedMatch = spinText.match(coinsGainedRegex);
+        const coinsTotalMatch = spinText.match(coinTotalRegex);
 
         // This can happen if you quit the game mid-spin, while effects are ongoing
-        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20) {
+        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20 || !coinsGainedMatch || !coinsTotalMatch || coinsGainedMatch.length < 2 || coinsTotalMatch.length < 2) {
             console.error("Quit mid-spin");
             break;
         }
 
-        let symbols: Symbol[] = [];
+        const coinsEarned = Number(coinsTotalMatch[1])
+        const coinsTotal = Number(coinsTotalMatch[1])
+
+        const spinInfo = new SpinInfo(coinsEarned, coinsTotal);
+        spinInfo.symbolsAdded = symbolsAdded;
 
         // Note: Would have to keep track of inventory across spins by inferring based off of
         // symbols added, destroyed, removed. However, that is currently impossible because the logs
@@ -220,14 +225,14 @@ export function processRun(text: string): RunInfo {
                 console.error(`Found unknown symbol: ${symbolStr}`);
             }
             details.recordSymbol(symbol, values[i]);
-            symbols.push(symbol);
+            spinInfo.symbols.push(symbol);
+            spinInfo.values.push(values[i]);
         }
-
-        const info = new SpinInfo(0, 0);
 
         if (!isVictory) {
             // Skip keeping track of every single board once going for endless / guillotine essence
-            processedSpins.push(symbols);
+            details.spins.push(spinInfo);
+            // TODO: Also push last spin if it is a guillotine essence win..
         }
 
         if (spinText.includes("VICTORY")) {
@@ -250,10 +255,6 @@ export function processRun(text: string): RunInfo {
                 console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
             }
         }
-
-        //console.log(`Symbol text: ${symbols}`);
-        //const symbolList = symbols.split(",").map((s: string) => s.trim());
-        //console.log(symbolList);
     }
 
     if (text.includes("guillotine_essence") && Array(...details.coinsPerSymbol.values()).reduce((a, b) => a + b, 0) > 1000000000) {
@@ -269,7 +270,10 @@ export function processRun(text: string): RunInfo {
         console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
     }
 
-    return new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms, processedSpins);
+    const run = new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms);
+    run.details = details;
+
+    return run;
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {

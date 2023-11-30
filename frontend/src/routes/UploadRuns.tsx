@@ -8,6 +8,7 @@ import { RunInfo, msToTime, processRun } from "../utils/processRun";
 import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import Layout from "../components/Layout";
+import { replacer } from "../utils/mapStringify"
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -65,6 +66,17 @@ const UploadRuns: React.FC = () => {
             }
         }
         setProcessedRuns(runs);
+
+        const fetchArgs = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(runs, replacer),
+            credentials: "include" as RequestCredentials,
+            mode: "cors" as RequestMode
+        };
+        fetch('http://localhost:3001/uploadRuns', fetchArgs).catch((e) => console.log(`request rejected: ${e}`));
         // TODO: Actually send over processed run information to the server
     }
 

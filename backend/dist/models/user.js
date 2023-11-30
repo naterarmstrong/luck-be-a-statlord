@@ -21,3 +21,4 @@ User.init({
     sequelize: db_1.sequelize,
     modelName: 'User'
 });
+exports.default = User;

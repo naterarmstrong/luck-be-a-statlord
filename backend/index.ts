@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
+import { Run, Spin, SpinSymbol } from './models/run';
 import { sequelize } from './db/db';
 
 const secrets = dotenv.config();
@@ -30,7 +31,7 @@ app.use(cors(corsOptions))
 
 
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(morgan('combined'))
 
 app.use('/spec', express.static('./api.yaml'));
@@ -54,8 +55,8 @@ const DAY = 1 * 24 * 60 * 60 * 1000;
 /////////////////////////////// User Controls ///////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 app.post('/register', async (req: AuthorizedRequest, res) => {
-    if (req.loggedIn && req.loggedIn !== req.body.username) {
-        console.log(`Received registration request when user already logged in: username: ${req.loggedIn}`);
+    if (req.username && req.username !== req.body.username) {
+        console.log(`Received registration request when user already logged in: username: ${req.username}`);
         return res.status(403).send();
     }
 
@@ -73,7 +74,7 @@ app.post('/register', async (req: AuthorizedRequest, res) => {
     const user = await User.create(data);
 
     if (user) {
-        let token = jwt.sign({ username: username }, JWT_SECRET, { expiresIn: DAY });
+        let token = jwt.sign({ username: username, id: (user as any).id }, JWT_SECRET, { expiresIn: DAY });
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
@@ -118,6 +119,49 @@ app.get('/user/:id', async (req, res) => {
 /////////////////////////////// Run Controls ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
+app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
+    // Make sure they are logged in
+    if (!req.userId) {
+        return res.status(401).send("Not logged in.");
+    }
+
+    console.log(req.body)
+    for (const run of req.body) {
+        console.log("Run attributes:", Run.getAttributes());
+        await Run.create({
+            UserId: req.userId,
+            number: run.number,
+            victory: run.victory,
+            guillotine: run.guillotine,
+            date: run.date,
+            duration: run.duration,
+            version: run.version,
+            // If using postgres, this can be array
+            earlySyms: run.earlySyms.join(','),
+            midSyms: run.earlySyms.join(','),
+            lateSyms: run.earlySyms.join(','),
+        });
+        // TODO: Finish uploading runs
+    }
+
+    return res.status(201).send();
+});
+
+app.get('/user/:id/runs', async (req, res) => {
+    const runs = await User.findOne({
+        where: {
+            id: req.params.id
+        },
+        include: [{
+            model: Run,
+            // How to order by number descending and do paging etc
+            // separate: true,
+            // order: ['number', 'DESC']
+        }],
+    });
+
+    return res.status(200).send(runs);
+})
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)

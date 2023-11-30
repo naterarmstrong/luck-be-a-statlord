@@ -15,9 +15,9 @@ const checkLogin = (req, res, next) => {
             console.log("Expired token");
             return next();
         }
-        req.loggedIn = jwtData.username;
+        req.userId = jwtData.id;
+        req.username = jwtData.username;
         console.log(jwtData);
-        console.log(req.loggedIn);
     }
     else {
         console.log("No auth cookie attached to request");

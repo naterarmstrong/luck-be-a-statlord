@@ -24,3 +24,5 @@ User.init({
     sequelize,
     modelName: 'User'
 });
+
+export default User;
