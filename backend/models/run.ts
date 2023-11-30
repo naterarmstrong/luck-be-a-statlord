@@ -52,6 +52,8 @@ export const CoinsPerSymbol = sequelize.define('CoinsPerSymbol', {
         type: DataTypes.INTEGER,
         allowNull: false
     }
+}, {
+    timestamps: false
 });
 
 Run.hasMany(CoinsPerSymbol);
@@ -66,6 +68,8 @@ export const ShowsPerSymbol = sequelize.define('ShowsPerSymbol', {
         type: DataTypes.INTEGER,
         allowNull: false
     }
+}, {
+    timestamps: false
 });
 
 Run.hasMany(ShowsPerSymbol);
@@ -84,6 +88,8 @@ export const Spin = sequelize.define('Spin', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+}, {
+    timestamps: false
 });
 
 Run.hasMany(Spin);
@@ -115,4 +121,9 @@ export const SpinSymbol = sequelize.define('SpinSymbol', {
         },
         primaryKey: true,
     }
+}, {
+    timestamps: false
 });
+
+Spin.hasMany(SpinSymbol);
+SpinSymbol.belongsTo(Spin);

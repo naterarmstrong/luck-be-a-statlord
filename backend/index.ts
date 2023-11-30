@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
-import { Run, Spin, SpinSymbol } from './models/run';
+import { CoinsPerSymbol, Run, ShowsPerSymbol, Spin, SpinSymbol } from './models/run';
 import { sequelize } from './db/db';
 
 const secrets = dotenv.config();
@@ -140,6 +140,10 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
             earlySyms: run.earlySyms.join(','),
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
+            CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a: any) => { return { symbol: a[0], value: a[1] }; }),
+            ShowsPerSymbols: run.details.showsPerSymbol.value.map((a: any) => { return { symbol: a[0], count: a[1] }; }),
+        }, {
+            include: [CoinsPerSymbol, ShowsPerSymbol]
         });
         // TODO: Finish uploading runs
     }
@@ -158,6 +162,27 @@ app.get('/user/:id/runs', async (req, res) => {
 
     return res.status(200).send(runs);
 });
+
+app.get('/run/:id', async (req, res) => {
+    if (isNaN(parseInt(req.params.id, 10))) {
+        return res.status(400).send("Bad run ID");
+    }
+
+    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
+    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
+    // TODO: rehydrate all the spins, get into the correct format, and then send back
+
+    const runDetails = await Run.findOne({
+        where: {
+            id: parseInt(req.params.id, 10),
+        },
+        include: [CoinsPerSymbol, ShowsPerSymbol, { model: Spin, include: [SpinSymbol] }]
+    });
+
+
+
+    return res.status(200).send(runDetails);
+})
 
 app.get('/user/:id/stats', async (req, res) => {
     if (isNaN(parseInt(req.params.id, 10))) {
@@ -185,7 +210,7 @@ app.get('/user/:id/stats', async (req, res) => {
     WHERE Runs.UserId = ${parseInt(req.params.id)}`);
 
     return res.status(200).send(stats);
-})
+});
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)

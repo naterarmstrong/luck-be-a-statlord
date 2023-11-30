@@ -55,6 +55,8 @@ exports.CoinsPerSymbol = db_1.sequelize.define('CoinsPerSymbol', {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false
     }
+}, {
+    timestamps: false
 });
 exports.Run.hasMany(exports.CoinsPerSymbol);
 exports.CoinsPerSymbol.belongsTo(exports.Run);
@@ -67,6 +69,8 @@ exports.ShowsPerSymbol = db_1.sequelize.define('ShowsPerSymbol', {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false
     }
+}, {
+    timestamps: false
 });
 exports.Run.hasMany(exports.ShowsPerSymbol);
 exports.ShowsPerSymbol.belongsTo(exports.Run);
@@ -83,6 +87,8 @@ exports.Spin = db_1.sequelize.define('Spin', {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
     },
+}, {
+    timestamps: false
 });
 exports.Run.hasMany(exports.Spin);
 exports.Spin.belongsTo(exports.Run);
@@ -112,4 +118,8 @@ exports.SpinSymbol = db_1.sequelize.define('SpinSymbol', {
         },
         primaryKey: true,
     }
+}, {
+    timestamps: false
 });
+exports.Spin.hasMany(exports.SpinSymbol);
+exports.SpinSymbol.belongsTo(exports.Spin);

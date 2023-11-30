@@ -126,6 +126,10 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
             earlySyms: run.earlySyms.join(','),
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
+            CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a) => { return { symbol: a[0], value: a[1] }; }),
+            ShowsPerSymbols: run.details.showsPerSymbol.value.map((a) => { return { symbol: a[0], count: a[1] }; }),
+        }, {
+            include: [run_1.CoinsPerSymbol, run_1.ShowsPerSymbol]
         });
         // TODO: Finish uploading runs
     }
@@ -139,6 +143,21 @@ app.get('/user/:id/runs', (req, res) => __awaiter(void 0, void 0, void 0, functi
     const [runs, _] = yield db_1.sequelize.query(`SELECT * FROM Runs WHERE Runs.UserId = ${parseInt(req.params.id, 10)}`);
     console.log(runs);
     return res.status(200).send(runs);
+}));
+app.get('/run/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (isNaN(parseInt(req.params.id, 10))) {
+        return res.status(400).send("Bad run ID");
+    }
+    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
+    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
+    // TODO: rehydrate all the spins, get into the correct format, and then send back
+    const runDetails = yield run_1.Run.findOne({
+        where: {
+            id: parseInt(req.params.id, 10),
+        },
+        include: [run_1.CoinsPerSymbol, run_1.ShowsPerSymbol, { model: run_1.Spin, include: [run_1.SpinSymbol] }]
+    });
+    return res.status(200).send(runDetails);
 }));
 app.get('/user/:id/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (isNaN(parseInt(req.params.id, 10))) {

@@ -278,10 +278,6 @@ export function processRun(text: string): RunInfo {
     const run = new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
-    if (run.spins > 9 && run.spins < 12) {
-        console.error(`   Run had only ${run.spins} spins.`);
-    }
-
     return run;
 }
 
