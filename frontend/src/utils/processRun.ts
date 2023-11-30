@@ -7,6 +7,7 @@ export class RunInfo {
     number: number;
     victory: boolean;
     guillotine: boolean;
+    spins: number;
     // The unix timestamp of the run's completion
     date: number;
     // The length in milliseconds of the run
@@ -27,6 +28,7 @@ export class RunInfo {
         duration: number,
         victory: boolean,
         guillotine: boolean,
+        spins: number,
         earlySyms: Symbol[],
         midSyms: Symbol[],
         lateSyms: Symbol[],
@@ -37,6 +39,7 @@ export class RunInfo {
         this.duration = duration;
         this.victory = victory;
         this.guillotine = guillotine;
+        this.spins = spins;
         this.earlySyms = earlySyms;
         this.midSyms = midSyms;
         this.lateSyms = lateSyms;
@@ -126,21 +129,21 @@ export class SpinInfo {
 // The spin count on which, and the amount which is due on each rent payment. Note that this might
 // end up incorrect due to comfy pillow / comfy pillow essence / coffee cup / coffee cup essence.
 const RENT_F20_SPINS = {
-    5: 25,
-    10: 50,
-    16: 100,
-    22: 150,
-    29: 225,
-    36: 300,
-    44: 375,
-    52: 450,
-    61: 600,
-    70: 650,
-    80: 700,
-    90: 777,
-    100: 1000,
-    110: 1500,
-    120: 2000,
+    5: 25, // Rent 1
+    10: 50, // Rent 2
+    16: 100, // Rent 3
+    22: 150, // Rent 4
+    29: 225, // Rent 5
+    36: 300, // Rent 6
+    44: 375, // Rent 7
+    52: 450, // Rent 8
+    61: 600, // Rent 9
+    70: 650, // Rent 10
+    80: 700, // Rent 11
+    90: 777, // Rent 12
+    100: 1000, // Rent 13 - first landlord rent
+    110: 1500, // Rent 14 - second landlord rent
+    120: 2000, // Rent 15 - third landlord rent
 }
 
 const preSpinSymbolRegex = /Spin layout before effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
@@ -167,6 +170,8 @@ export function processRun(text: string): RunInfo {
     let isFloor20 = true;
     let isGuillotine = false;
     const details = new RunDetails();
+
+    const logRuns = false;
 
     // Keeps track of inventory
     const cumulativeSymbols = getSymbolAddedMap();
@@ -246,13 +251,13 @@ export function processRun(text: string): RunInfo {
 
             if (spinNum === 30) {
                 earlySyms = best.map(x => x[0]);
-                console.log(`   Early game stats:`);
+                logRuns && console.log(`   Early game stats:`);
             } else if (spinNum === 60) {
                 midSyms = best.map(x => x[0]);
-                console.log(`   Mid game stats:`);
+                logRuns && console.log(`   Mid game stats:`);
             }
             for (let i = 0; i < 3; i++) {
-                console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
+                logRuns && console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
             }
         }
     }
@@ -262,16 +267,20 @@ export function processRun(text: string): RunInfo {
     }
 
     const end = performance.now();
-    console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
+    logRuns && console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
 
     const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
     lateSyms = best.map(x => x[0]);
     for (let i = 0; i < 3; i++) {
-        console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
+        logRuns && console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
     }
 
-    const run = new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, earlySyms, midSyms, lateSyms);
+    const run = new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
+
+    if (run.spins > 9 && run.spins < 12) {
+        console.error(`   Run had only ${run.spins} spins.`);
+    }
 
     return run;
 }

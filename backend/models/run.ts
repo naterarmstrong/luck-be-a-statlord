@@ -15,6 +15,11 @@ export const Run = sequelize.define('Run', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
     },
+    // TODO: include total number of spins
+    spins: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     date: {
         type: DataTypes.INTEGER,
     },

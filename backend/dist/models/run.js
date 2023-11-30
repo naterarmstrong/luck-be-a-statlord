@@ -20,6 +20,11 @@ exports.Run = db_1.sequelize.define('Run', {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
     },
+    // TODO: include total number of spins
+    spins: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+    },
     date: {
         type: sequelize_1.DataTypes.INTEGER,
     },

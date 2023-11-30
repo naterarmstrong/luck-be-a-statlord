@@ -59,7 +59,7 @@ const UploadRuns: React.FC = () => {
                     outcome = "failure";
                 }
                 runs.push(processed);
-                console.log(`Run ${processed.number} was a ${outcome}`);
+                // console.log(`Run ${processed.number} was a ${outcome}`);
             } catch (error) {
                 console.error(`Failed to process run ${file.name} for reason ${error}`)
                 continue
@@ -67,6 +67,7 @@ const UploadRuns: React.FC = () => {
         }
         setProcessedRuns(runs);
 
+        // TODO: chunk upload in groups of 100, have server send back how many were new
         const fetchArgs = {
             method: 'POST',
             headers: {
