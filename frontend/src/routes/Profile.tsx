@@ -62,7 +62,7 @@ const Profile: React.FC = () => {
     return (
         <Box>
             {name}<br />
-            {stats ? `${stats.total_games} total wins` : null}
+            {stats ? `${stats.total_games} games played` : null}
             {stats ?
                 <Typography>
                     Overall win rate: {(100 * stats.wins / stats.total_games).toFixed(0)}%<br />

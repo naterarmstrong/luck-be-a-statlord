@@ -25,7 +25,7 @@ const userAuth_1 = require("./middleware/userAuth");
 const user_1 = require("./models/user");
 const run_1 = require("./models/run");
 const db_1 = require("./db/db");
-const mapStringify_1 = require("../common/utils/mapStringify");
+const mapStringify_1 = require("../frontend/src/common/utils/mapStringify");
 const secrets = dotenv_1.default.config();
 // Temporary secret for use in testing, later this should come from dotenv
 exports.JWT_SECRET = "asdf";

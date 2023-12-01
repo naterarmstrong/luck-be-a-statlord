@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { IIDToSymbol } from "./symbol";
-import { Symbol } from "../../../common/models/symbol"
-import { RunInfo, RunDetails, SpinInfo } from "../../../common/models/run"
+import { Symbol } from "../common/models/symbol"
+import { RunInfo, RunDetails, SpinInfo } from "../common/models/run"
 import { Item } from "./item";
 
 /*

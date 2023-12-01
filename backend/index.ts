@@ -11,7 +11,7 @@ import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { CoinsPerSymbol, Run, ShowsPerSymbol, Spin, SpinSymbol, SymbolDetails } from './models/run';
 import { sequelize } from './db/db';
-import { reviver } from '../common/utils/mapStringify';
+import { reviver } from '../frontend/src/common/utils/mapStringify';
 
 const secrets = dotenv.config();
 

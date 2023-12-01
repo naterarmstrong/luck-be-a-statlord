@@ -1,4 +1,4 @@
-import { Symbol } from "../../../common/models/symbol"
+import { Symbol } from "../common/models/symbol"
 
 const amethyst = require("../img/amethyst.png");
 const anchor = require("../img/anchor.png");

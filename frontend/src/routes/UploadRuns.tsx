@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { Symbol } from "../../../common/models/symbol"
-import { RunInfo } from "../../../common/models/run"
+import { Symbol } from "../common/models/symbol"
+import { RunInfo } from "../common/models/run"
 import { msToTime, processRun } from "../utils/processRun";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
-import { replacer } from "../../../common/utils/mapStringify"
+import { replacer } from "../common/utils/mapStringify"
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
