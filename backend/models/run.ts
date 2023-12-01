@@ -43,14 +43,53 @@ export const Run = sequelize.define('Run', {
 User.hasMany(Run);
 Run.belongsTo(User);
 
-export const CoinsPerSymbol = sequelize.define('CoinsPerSymbol', {
+export const SymbolDetails = sequelize.define('SymbolDetails', {
     symbol: {
         type: DataTypes.STRING,
         allowNull: false,
+        primaryKey: true,
     },
     value: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    count: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    RunId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: "runs",
+            key: "id",
+        },
+        primaryKey: true
+    }
+}, {
+    timestamps: false
+});
+
+Run.hasMany(SymbolDetails);
+SymbolDetails.belongsTo(Run);
+
+// TODO: Is it better to combine these two into SymbolStats?? And have it per-run? probably..
+export const CoinsPerSymbol = sequelize.define('CoinsPerSymbol', {
+    symbol: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
+    },
+    value: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    RunId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: "runs",
+            key: "id",
+        },
+        primaryKey: true
     }
 }, {
     timestamps: false
@@ -63,10 +102,19 @@ export const ShowsPerSymbol = sequelize.define('ShowsPerSymbol', {
     symbol: {
         type: DataTypes.STRING,
         allowNull: false,
+        primaryKey: true,
     },
     count: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    RunId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: "runs",
+            key: "id",
+        },
+        primaryKey: true
     }
 }, {
     timestamps: false
@@ -76,6 +124,8 @@ Run.hasMany(ShowsPerSymbol);
 ShowsPerSymbol.belongsTo(Run);
 
 export const Spin = sequelize.define('Spin', {
+    // We cannot use a composite primary key on (number, run) because sequelize doesn't really
+    // support composite foreign keys. It results in an error when trying to insert
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -87,7 +137,7 @@ export const Spin = sequelize.define('Spin', {
     totalCoins: {
         type: DataTypes.INTEGER,
         allowNull: false,
-    },
+    }
 }, {
     timestamps: false
 });
@@ -113,11 +163,11 @@ export const SpinSymbol = sequelize.define('SpinSymbol', {
         },
         primaryKey: true,
     },
-    spin: {
+    SpinId: {
         type: DataTypes.INTEGER,
         references: {
             model: "spins",
-            key: "id"
+            key: "id",
         },
         primaryKey: true,
     }

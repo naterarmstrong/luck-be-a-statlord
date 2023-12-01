@@ -25,6 +25,7 @@ const userAuth_1 = require("./middleware/userAuth");
 const user_1 = require("./models/user");
 const run_1 = require("./models/run");
 const db_1 = require("./db/db");
+const mapStringify_1 = require("./utils/mapStringify");
 const secrets = dotenv_1.default.config();
 // Temporary secret for use in testing, later this should come from dotenv
 exports.JWT_SECRET = "asdf";
@@ -39,7 +40,7 @@ const corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use((0, cookie_parser_1.default)());
-app.use(body_parser_1.default.json({ limit: '50mb' }));
+app.use(body_parser_1.default.json({ limit: '50mb', reviver: mapStringify_1.reviver }));
 app.use((0, morgan_1.default)('combined'));
 app.use('/spec', express_1.default.static('./api.yaml'));
 app.use(userAuth_1.checkLogin);
@@ -113,6 +114,13 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
     }
     console.log(req.body);
     for (const run of req.body) {
+        const symbolDetails = [];
+        for (const symbol of run.details.showsPerSymbol.keys()) {
+            const count = run.details.showsPerSymbol.get(symbol);
+            const value = run.details.coinsPerSymbol.get(symbol);
+            symbolDetails.push({ symbol, value, count });
+        }
+        const spinSymbols = [];
         yield run_1.Run.create({
             UserId: req.userId,
             number: run.number,
@@ -126,12 +134,29 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
             earlySyms: run.earlySyms.join(','),
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
-            CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a) => { return { symbol: a[0], value: a[1] }; }),
-            ShowsPerSymbols: run.details.showsPerSymbol.value.map((a) => { return { symbol: a[0], count: a[1] }; }),
+            // CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a: any) => { return { symbol: a[0], value: a[1] }; }),
+            // ShowsPerSymbols: run.details.showsPerSymbol.value.map((a: any) => { return { symbol: a[0], count: a[1] }; }),
+            SymbolDetails: symbolDetails,
+            Spins: run.details.spins.map((spin, idx) => {
+                const spinSymbols = [];
+                for (let i = 0; i < 20; i++) {
+                    spinSymbols.push({
+                        symbol: spin.symbols[i],
+                        value: spin.values[i],
+                        index: i,
+                    });
+                }
+                return {
+                    coinsEarned: spin.coinsEarned,
+                    totalCoins: spin.totalCoins,
+                    number: idx,
+                    SpinSymbols: spinSymbols,
+                };
+            }),
         }, {
-            include: [run_1.CoinsPerSymbol, run_1.ShowsPerSymbol]
+            include: [run_1.SymbolDetails, { model: run_1.Spin, include: [run_1.SpinSymbol] }]
         });
-        // TODO: Finish uploading runs
+        // TODO: Finish uploading runs by uploading the actual symbols of each spin
     }
     return res.status(201).send();
 }));
@@ -148,14 +173,17 @@ app.get('/run/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad run ID");
     }
-    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
-    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`);
+    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
+    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
+    // const [spins, _spinMeta] = await sequelize.query(`SELECT * FROM Spins WHERE Spins.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
     // TODO: rehydrate all the spins, get into the correct format, and then send back
+    // 3.7 SECONDS TO RUN THIS QUERY if not separate
     const runDetails = yield run_1.Run.findOne({
         where: {
             id: parseInt(req.params.id, 10),
         },
-        include: [run_1.CoinsPerSymbol, run_1.ShowsPerSymbol, { model: run_1.Spin, include: [run_1.SpinSymbol] }]
+        include: [{ model: run_1.CoinsPerSymbol, separate: true }, { model: run_1.ShowsPerSymbol, separate: true }, { model: run_1.Spin, separate: true, include: [{ model: run_1.SpinSymbol, separate: true }] }, { model: run_1.SymbolDetails, separate: true }],
+        benchmark: true
     });
     return res.status(200).send(runDetails);
 }));
@@ -182,6 +210,7 @@ app.get('/user/:id/stats', (req, res) => __awaiter(void 0, void 0, void 0, funct
         SUM(CASE WHEN spins > 100 THEN 1 ELSE 0 END) as beat_rent_13_count
     FROM Runs
     WHERE Runs.UserId = ${parseInt(req.params.id)}`);
+    console.log('asdf');
     return res.status(200).send(stats);
 }));
 app.listen(port, () => {

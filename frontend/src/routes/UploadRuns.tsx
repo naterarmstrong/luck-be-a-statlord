@@ -1,14 +1,14 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
-import { v4 as uuidv4 } from "uuid";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { RunInfo, msToTime, processRun } from "../utils/processRun";
-import { IIDToSymbol, SYMBOL_TO_IMG, Symbol } from "../utils/symbol";
+import { Symbol } from "../../../common/models/symbol"
+import { RunInfo } from "../../../common/models/run"
+import { msToTime, processRun } from "../utils/processRun";
+import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
-import Layout from "../components/Layout";
-import { replacer } from "../utils/mapStringify"
+import { replacer } from "../../../common/utils/mapStringify"
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
