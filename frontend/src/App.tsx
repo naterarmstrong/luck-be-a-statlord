@@ -8,6 +8,7 @@ import Login from "./routes/Login";
 import userContext, { UserData } from "./contexts/UserContext";
 import Cookies from "universal-cookie";
 import Profile from "./routes/Profile";
+import MainPage from "./routes/MainPage";
 
 const darkTheme = createTheme({
   palette: {
@@ -41,7 +42,7 @@ const App: React.FC = () => {
         <CssBaseline />
         <Layout>
           <Routes>
-            <Route path="/" element={<UploadRuns />} />
+            <Route path="/" element={<MainPage />} />
             <Route path="/upload" element={<UploadRuns />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />

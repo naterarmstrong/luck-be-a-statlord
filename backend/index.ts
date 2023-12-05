@@ -213,9 +213,10 @@ app.get('/run/:id', async (req, res) => {
 
 
     return res.status(200).send(runDetails);
-})
+});
 
 app.get('/user/:id/stats', async (req, res) => {
+    console.log("Router stack:", app._router);
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad user ID");
     }
@@ -242,6 +243,31 @@ app.get('/user/:id/stats', async (req, res) => {
 
     return res.status(200).send(stats);
 });
+
+app.get('/symbol/:id/stats', async (req, res) => {
+    const [stats, _] = await sequelize.query(`SELECT
+        SUM(CASE WHEN Runs.victory = true THEN 1 ELSE 0 END) as wins,
+        SUM(SymbolDetails.value) as total_coins,
+        SUM(SymbolDetails.count) as total_shows,
+        COUNT(*) as total_games
+    FROM
+        Runs JOIN SymbolDetails
+    WHERE
+        Runs.id = SymbolDetails.RunId
+        AND SymbolDetails.symbol = '${req.params.id}'`);
+
+    return res.status(200).send(stats);
+});
+
+var routes: any = [];
+
+app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) { // routes registered directly on the app
+        routes.push(middleware.route);
+    }
+});
+
+console.log("Routes:", routes);
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)

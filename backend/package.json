@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "scripts": {
         "build": "npx tsc",
-        "start": "node dist/index.js",
+        "start": "node dist/backend/index.js",
         "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
     },
     "dependencies": {
