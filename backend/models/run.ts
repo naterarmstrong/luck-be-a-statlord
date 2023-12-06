@@ -72,57 +72,6 @@ export const SymbolDetails = sequelize.define('SymbolDetails', {
 Run.hasMany(SymbolDetails);
 SymbolDetails.belongsTo(Run);
 
-// TODO: Is it better to combine these two into SymbolStats?? And have it per-run? probably..
-export const CoinsPerSymbol = sequelize.define('CoinsPerSymbol', {
-    symbol: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        primaryKey: true,
-    },
-    value: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    RunId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: "runs",
-            key: "id",
-        },
-        primaryKey: true
-    }
-}, {
-    timestamps: false
-});
-
-Run.hasMany(CoinsPerSymbol);
-CoinsPerSymbol.belongsTo(Run);
-
-export const ShowsPerSymbol = sequelize.define('ShowsPerSymbol', {
-    symbol: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        primaryKey: true,
-    },
-    count: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    RunId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: "runs",
-            key: "id",
-        },
-        primaryKey: true
-    }
-}, {
-    timestamps: false
-});
-
-Run.hasMany(ShowsPerSymbol);
-ShowsPerSymbol.belongsTo(Run);
-
 export const Spin = sequelize.define('Spin', {
     // We cannot use a composite primary key on (number, run) because sequelize doesn't really
     // support composite foreign keys. It results in an error when trying to insert
@@ -145,6 +94,8 @@ export const Spin = sequelize.define('Spin', {
 Run.hasMany(Spin);
 Spin.belongsTo(Run);
 
+// TODO: Seriously consider cutting the spin symbols from the database, and just putting them in a
+// blob attached to the spin. I don't think we would ever need to query them for much
 export const SpinSymbol = sequelize.define('SpinSymbol', {
     symbol: {
         type: DataTypes.STRING,

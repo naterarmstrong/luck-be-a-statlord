@@ -15,7 +15,9 @@ const Header: React.FC = () => {
         <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar>
-                    <Box component="img" style={{ width: "80px" }} src={billionaire} />
+                    <Link href="/" sx={{ mr: 2, ml: 2, mb: 0 }}>
+                        <Box component="img" style={{ width: "80px" }} src={billionaire} />
+                    </Link>
                     <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
                         Upload Runs
                     </Link>
@@ -25,7 +27,7 @@ const Header: React.FC = () => {
                         <Link href="/login">Login</Link>}
                 </Toolbar>
             </Container>
-        </AppBar>
+        </AppBar >
     );
 };
 

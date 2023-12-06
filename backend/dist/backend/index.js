@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -26,6 +17,8 @@ const user_1 = require("./models/user");
 const run_1 = require("./models/run");
 const db_1 = require("./db/db");
 const mapStringify_1 = require("../frontend/src/common/utils/mapStringify");
+const symbol_1 = require("./models/symbol");
+const sequelize_1 = require("sequelize");
 const secrets = dotenv_1.default.config();
 // Temporary secret for use in testing, later this should come from dotenv
 exports.JWT_SECRET = "asdf";
@@ -44,7 +37,11 @@ app.use(body_parser_1.default.json({ limit: '50mb', reviver: mapStringify_1.revi
 app.use((0, morgan_1.default)('combined'));
 app.use('/spec', express_1.default.static('./api.yaml'));
 app.use(userAuth_1.checkLogin);
-db_1.sequelize.sync({ force: true }).then(() => console.log("DB has been synced."));
+db_1.sequelize.sync().then(async () => {
+    console.log("DB has been synced.");
+    await (0, symbol_1.initializeSymbols)();
+    console.log("Symbols have been initialized.");
+});
 // app.use(
 //     OpenApiValidator.middleware({
 //         apiSpec: './api.yaml',
@@ -57,57 +54,57 @@ const DAY = 1 * 24 * 60 * 60 * 1000;
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// User Controls ///////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post('/register', async (req, res) => {
     if (req.username && req.username !== req.body.username) {
         console.log(`Received registration request when user already logged in: username: ${req.username}`);
         return res.status(403).send();
     }
-    const userInDB = yield user_1.User.findOne({ where: { username: req.body.username } });
+    const userInDB = await user_1.User.findOne({ where: { username: req.body.username } });
     if (userInDB != null) {
         return res.status(409).send("User already exists");
     }
     const { username, password } = req.body;
-    const safePass = yield bcrypt_1.default.hash(password, 10);
+    const safePass = await bcrypt_1.default.hash(password, 10);
     const data = {
         username,
         password: safePass
     };
-    const user = yield user_1.User.create(data);
+    const user = await user_1.User.create(data);
     if (user) {
         let token = jsonwebtoken_1.default.sign({ username: username, id: user.id }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User registered: ${username}, ${token}`);
         return res.status(201).send({ id: user.id });
     }
-}));
-app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userInDB = yield user_1.User.findOne({ where: { username: req.body.username } });
+});
+app.post('/login', async (req, res) => {
+    const userInDB = await user_1.User.findOne({ where: { username: req.body.username } });
     const { username, password } = req.body;
     if (userInDB === null) {
         return res.status(401).send("Authentication failed");
     }
     else {
-        const isSame = yield bcrypt_1.default.compare(password, userInDB.password);
+        const isSame = await bcrypt_1.default.compare(password, userInDB.password);
         if (!isSame) {
             return res.status(401).send("Authentication failed");
         }
-        let token = jsonwebtoken_1.default.sign({ username: username }, exports.JWT_SECRET, { expiresIn: DAY });
+        let token = jsonwebtoken_1.default.sign({ username: username, id: userInDB.id }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User signed in: ${username}, ${token}`);
         return res.status(200).send({ id: userInDB.id });
     }
-}));
-app.get('/user/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_1.User.findOne({ where: { id: req.params.id } });
+});
+app.get('/user/:id', async (req, res) => {
+    const user = await user_1.User.findOne({ where: { id: req.params.id } });
     if (!user) {
         return res.status(404).send();
     }
     return res.status(200).send({ username: user.username });
-}));
+});
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Run Controls ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post('/uploadRuns', async (req, res) => {
     // Make sure they are logged in
     if (!req.userId) {
         return res.status(401).send("Not logged in.");
@@ -121,7 +118,7 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
             symbolDetails.push({ symbol, value, count });
         }
         const spinSymbols = [];
-        yield run_1.Run.create({
+        await run_1.Run.create({
             UserId: req.userId,
             number: run.number,
             victory: run.victory,
@@ -134,8 +131,6 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
             earlySyms: run.earlySyms.join(','),
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
-            // CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a: any) => { return { symbol: a[0], value: a[1] }; }),
-            // ShowsPerSymbols: run.details.showsPerSymbol.value.map((a: any) => { return { symbol: a[0], count: a[1] }; }),
             SymbolDetails: symbolDetails,
             Spins: run.details.spins.map((spin, idx) => {
                 const spinSymbols = [];
@@ -159,74 +154,49 @@ app.post('/uploadRuns', (req, res) => __awaiter(void 0, void 0, void 0, function
         // TODO: Finish uploading runs by uploading the actual symbols of each spin
     }
     return res.status(201).send();
-}));
-app.get('/user/:id/runs', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+app.get('/user/:id/runs', async (req, res) => {
     // TODO: paginate this based on query params
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad user ID");
     }
-    const [runs, _] = yield db_1.sequelize.query(`SELECT * FROM Runs WHERE Runs.UserId = ${parseInt(req.params.id, 10)}`);
+    const runs = await db_1.sequelize.query(`SELECT * FROM Runs WHERE Runs.UserId = ${parseInt(req.params.id, 10)}`, { type: sequelize_1.QueryTypes.SELECT });
     console.log(runs);
     return res.status(200).send(runs);
-}));
-app.get('/run/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+app.get('/run/:id', async (req, res) => {
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad run ID");
     }
-    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
-    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
-    // const [spins, _spinMeta] = await sequelize.query(`SELECT * FROM Spins WHERE Spins.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
     // TODO: rehydrate all the spins, get into the correct format, and then send back
     // 3.7 SECONDS TO RUN THIS QUERY if not separate
     // This does grab everything. Now just need to reformat it into a nicer style.
-    const runDetails = yield run_1.Run.findOne({
+    const runDetails = await run_1.Run.findOne({
         where: {
             id: parseInt(req.params.id, 10),
         },
-        include: [{ model: run_1.CoinsPerSymbol, separate: true }, { model: run_1.ShowsPerSymbol, separate: true }, { model: run_1.Spin, separate: true, include: [{ model: run_1.SpinSymbol, separate: true }] }, { model: run_1.SymbolDetails, separate: true }],
+        include: [{ model: run_1.Spin, separate: true, include: [{ model: run_1.SpinSymbol, separate: true }] }, { model: run_1.SymbolDetails, separate: true }],
         benchmark: true
     });
     return res.status(200).send(runDetails);
-}));
-app.get('/user/:id/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Router stack:", app._router);
+});
+app.get('/user/:id/stats', async (req, res) => {
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad user ID");
     }
-    const [stats, _] = yield db_1.sequelize.query(`SELECT
-        COUNT(*) AS total_games,
-        SUM(CASE WHEN victory = true THEN 1 ELSE 0 END) AS wins,
-        SUM(CASE WHEN guillotine = true THEN 1 ELSE 0 END) as guillotines,
-        SUM(CASE WHEN spins > 5 THEN 1 ELSE 0 END) as beat_rent_1_count,
-        SUM(CASE WHEN spins > 10 THEN 1 ELSE 0 END) as beat_rent_2_count,
-        SUM(CASE WHEN spins > 16 THEN 1 ELSE 0 END) as beat_rent_3_count,
-        SUM(CASE WHEN spins > 22 THEN 1 ELSE 0 END) as beat_rent_4_count,
-        SUM(CASE WHEN spins > 29 THEN 1 ELSE 0 END) as beat_rent_5_count,
-        SUM(CASE WHEN spins > 36 THEN 1 ELSE 0 END) as beat_rent_6_count,
-        SUM(CASE WHEN spins > 44 THEN 1 ELSE 0 END) as beat_rent_7_count,
-        SUM(CASE WHEN spins > 52 THEN 1 ELSE 0 END) as beat_rent_8_count,
-        SUM(CASE WHEN spins > 61 THEN 1 ELSE 0 END) as beat_rent_9_count,
-        SUM(CASE WHEN spins > 70 THEN 1 ELSE 0 END) as beat_rent_10_count,
-        SUM(CASE WHEN spins > 80 THEN 1 ELSE 0 END) as beat_rent_11_count,
-        SUM(CASE WHEN spins > 90 THEN 1 ELSE 0 END) as beat_rent_12_count,
-        SUM(CASE WHEN spins > 100 THEN 1 ELSE 0 END) as beat_rent_13_count
-    FROM Runs
-    WHERE Runs.UserId = ${parseInt(req.params.id)}`);
+    const stats = await db_1.sequelize.query(db_1.userStatsQuery, {
+        type: sequelize_1.QueryTypes.SELECT,
+        replacements: { userId: req.params.id }
+    });
     return res.status(200).send(stats);
-}));
-app.get('/symbol/:id/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const [stats, _] = yield db_1.sequelize.query(`SELECT
-        SUM(CASE WHEN Runs.victory = true THEN 1 ELSE 0 END) as wins,
-        SUM(SymbolDetails.value) as total_coins,
-        SUM(SymbolDetails.count) as total_shows,
-        COUNT(*) as total_games
-    FROM
-        Runs JOIN SymbolDetails
-    WHERE
-        Runs.id = SymbolDetails.RunId
-        AND SymbolDetails.symbol = '${req.params.id}'`);
+});
+app.get('/symbolStats', async (req, res) => {
+    const stats = await db_1.sequelize.query(db_1.symbolWinratesQuery, { type: sequelize_1.QueryTypes.SELECT });
     return res.status(200).send(stats);
-}));
+});
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// Route Info //////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 var routes = [];
 app._router.stack.forEach((middleware) => {
     if (middleware.route) { // routes registered directly on the app
@@ -236,4 +206,11 @@ app._router.stack.forEach((middleware) => {
 console.log("Routes:", routes);
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
+});
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// DEV ONLY ////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+app.delete('/resetDB', async (req, res) => {
+    await db_1.sequelize.sync({ force: true });
+    return res.status(200).send();
 });

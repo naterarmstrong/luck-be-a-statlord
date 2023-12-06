@@ -9,9 +9,11 @@ import { v4 as uuidv4 } from "uuid";
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
-import { CoinsPerSymbol, Run, ShowsPerSymbol, Spin, SpinSymbol, SymbolDetails } from './models/run';
-import { sequelize } from './db/db';
+import { Run, Spin, SpinSymbol, SymbolDetails } from './models/run';
+import { sequelize, symbolWinratesQuery, userStatsQuery } from './db/db';
 import { reviver } from '../frontend/src/common/utils/mapStringify';
+import { initializeSymbols } from './models/symbol';
+import { QueryTypes } from 'sequelize';
 
 const secrets = dotenv.config();
 
@@ -39,7 +41,12 @@ app.use('/spec', express.static('./api.yaml'));
 
 app.use(checkLogin);
 
-sequelize.sync({ force: true }).then(() => console.log("DB has been synced."));
+sequelize.sync().then(async () => {
+    console.log("DB has been synced.");
+    await initializeSymbols();
+    console.log("Symbols have been initialized.");
+}
+);
 
 // app.use(
 //     OpenApiValidator.middleware({
@@ -97,7 +104,7 @@ app.post('/login', async (req: AuthorizedRequest, res) => {
             return res.status(401).send("Authentication failed");
         }
 
-        let token = jwt.sign({ username: username }, JWT_SECRET, { expiresIn: DAY });
+        let token = jwt.sign({ username: username, id: (userInDB as any).id }, JWT_SECRET, { expiresIn: DAY });
 
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });
         console.log(`User signed in: ${username}, ${token}`);
@@ -150,8 +157,6 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
             earlySyms: run.earlySyms.join(','),
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
-            // CoinsPerSymbols: run.details.coinsPerSymbol.value.map((a: any) => { return { symbol: a[0], value: a[1] }; }),
-            // ShowsPerSymbols: run.details.showsPerSymbol.value.map((a: any) => { return { symbol: a[0], count: a[1] }; }),
             SymbolDetails: symbolDetails,
             Spins: run.details.spins.map((spin: any, idx: number) => {
                 const spinSymbols = [];
@@ -184,7 +189,7 @@ app.get('/user/:id/runs', async (req, res) => {
         return res.status(400).send("Bad user ID");
     }
 
-    const [runs, _] = await sequelize.query(`SELECT * FROM Runs WHERE Runs.UserId = ${parseInt(req.params.id, 10)}`);
+    const runs = await sequelize.query(`SELECT * FROM Runs WHERE Runs.UserId = ${parseInt(req.params.id, 10)}`, { type: QueryTypes.SELECT });
     console.log(runs);
 
     return res.status(200).send(runs);
@@ -195,9 +200,6 @@ app.get('/run/:id', async (req, res) => {
         return res.status(400).send("Bad run ID");
     }
 
-    // const [coins, _coinMeta] = await sequelize.query(`SELECT * FROM CoinsPerSymbols WHERE CoinsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
-    // const [shows, _showMeta] = await sequelize.query(`SELECT * FROM ShowsPerSymbols WHERE ShowsPerSymbols.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
-    // const [spins, _spinMeta] = await sequelize.query(`SELECT * FROM Spins WHERE Spins.RunId = ${parseInt(req.params.id, 10)}`, { benchmark: true });
     // TODO: rehydrate all the spins, get into the correct format, and then send back
 
     // 3.7 SECONDS TO RUN THIS QUERY if not separate
@@ -206,58 +208,35 @@ app.get('/run/:id', async (req, res) => {
         where: {
             id: parseInt(req.params.id, 10),
         },
-        include: [{ model: CoinsPerSymbol, separate: true }, { model: ShowsPerSymbol, separate: true }, { model: Spin, separate: true, include: [{ model: SpinSymbol, separate: true }] }, { model: SymbolDetails, separate: true }],
+        include: [{ model: Spin, separate: true, include: [{ model: SpinSymbol, separate: true }] }, { model: SymbolDetails, separate: true }],
         benchmark: true
     });
-
-
 
     return res.status(200).send(runDetails);
 });
 
 app.get('/user/:id/stats', async (req, res) => {
-    console.log("Router stack:", app._router);
     if (isNaN(parseInt(req.params.id, 10))) {
         return res.status(400).send("Bad user ID");
     }
 
-    const [stats, _] = await sequelize.query(`SELECT
-        COUNT(*) AS total_games,
-        SUM(CASE WHEN victory = true THEN 1 ELSE 0 END) AS wins,
-        SUM(CASE WHEN guillotine = true THEN 1 ELSE 0 END) as guillotines,
-        SUM(CASE WHEN spins > 5 THEN 1 ELSE 0 END) as beat_rent_1_count,
-        SUM(CASE WHEN spins > 10 THEN 1 ELSE 0 END) as beat_rent_2_count,
-        SUM(CASE WHEN spins > 16 THEN 1 ELSE 0 END) as beat_rent_3_count,
-        SUM(CASE WHEN spins > 22 THEN 1 ELSE 0 END) as beat_rent_4_count,
-        SUM(CASE WHEN spins > 29 THEN 1 ELSE 0 END) as beat_rent_5_count,
-        SUM(CASE WHEN spins > 36 THEN 1 ELSE 0 END) as beat_rent_6_count,
-        SUM(CASE WHEN spins > 44 THEN 1 ELSE 0 END) as beat_rent_7_count,
-        SUM(CASE WHEN spins > 52 THEN 1 ELSE 0 END) as beat_rent_8_count,
-        SUM(CASE WHEN spins > 61 THEN 1 ELSE 0 END) as beat_rent_9_count,
-        SUM(CASE WHEN spins > 70 THEN 1 ELSE 0 END) as beat_rent_10_count,
-        SUM(CASE WHEN spins > 80 THEN 1 ELSE 0 END) as beat_rent_11_count,
-        SUM(CASE WHEN spins > 90 THEN 1 ELSE 0 END) as beat_rent_12_count,
-        SUM(CASE WHEN spins > 100 THEN 1 ELSE 0 END) as beat_rent_13_count
-    FROM Runs
-    WHERE Runs.UserId = ${parseInt(req.params.id)}`);
+    const stats = await sequelize.query(userStatsQuery, {
+        type: QueryTypes.SELECT,
+        replacements: { userId: req.params.id }
+    });
 
     return res.status(200).send(stats);
 });
 
-app.get('/symbol/:id/stats', async (req, res) => {
-    const [stats, _] = await sequelize.query(`SELECT
-        SUM(CASE WHEN Runs.victory = true THEN 1 ELSE 0 END) as wins,
-        SUM(SymbolDetails.value) as total_coins,
-        SUM(SymbolDetails.count) as total_shows,
-        COUNT(*) as total_games
-    FROM
-        Runs JOIN SymbolDetails
-    WHERE
-        Runs.id = SymbolDetails.RunId
-        AND SymbolDetails.symbol = '${req.params.id}'`);
+app.get('/symbolStats', async (req, res) => {
+    const stats = await sequelize.query(symbolWinratesQuery, { type: QueryTypes.SELECT });
 
     return res.status(200).send(stats);
-});
+})
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// Route Info //////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 var routes: any = [];
 
@@ -272,3 +251,13 @@ console.log("Routes:", routes);
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)
 });
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// DEV ONLY ////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+app.delete('/resetDB', async (req, res) => {
+    await sequelize.sync({ force: true });
+
+    return res.status(200).send();
+})

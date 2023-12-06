@@ -5,10 +5,11 @@ import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Symbol } from "../common/models/symbol"
 import { RunInfo } from "../common/models/run"
-import { msToTime, processRun } from "../utils/processRun";
+import { processRun } from "../utils/processRun";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"
+import { msToTime } from "../common/utils/time";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');

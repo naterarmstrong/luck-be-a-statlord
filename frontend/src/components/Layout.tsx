@@ -1,11 +1,12 @@
+import { Box } from '@mui/material';
 import Header from './Header';
 
 const Layout: React.FC = (props) => {
 
-    return <div>
+    return <Box>
         <Header />
         {props.children}
-    </div>;
+    </Box>;
 }
 
 export default Layout;
