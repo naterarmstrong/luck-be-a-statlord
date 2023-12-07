@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Symbol } from "../common/models/symbol";
 import SymbolStatDisplay from "../components/SymbolStatDisplay";
 import { SymbolStats } from "../components/SymbolStatDisplay";
+import AllSymbolStats from "../components/AllSymbolStats";
 
 const MainPage: React.FC = () => {
     const [stats, setStats] = useState<Array<SymbolStats>>([]);
@@ -22,24 +23,7 @@ const MainPage: React.FC = () => {
         fetchSymbolStats().catch(console.error);
     }, [])
 
-    return (
-        <Table>
-            <TableHead>
-                <TableRow>
-                    <TableCell>Symbol</TableCell>
-                    <TableCell>Rarity</TableCell>
-                    <TableCell>Win Rate</TableCell>
-                    <TableCell>Total Games</TableCell>
-                    <TableCell>Shows per game</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {
-                    stats.map((v) => <SymbolStatDisplay {...v} />)
-                }
-            </TableBody>
-        </Table>
-    )
+    return <AllSymbolStats stats={stats} />
 }
 
 export default MainPage;

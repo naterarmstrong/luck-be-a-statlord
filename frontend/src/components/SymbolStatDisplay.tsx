@@ -3,10 +3,6 @@ import { useEffect, useState } from "react";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Rarity, SYMBOL_RARITIES, Symbol } from "../common/models/symbol";
 
-interface SymbolStatsDisplayProps {
-    symbol: Symbol
-}
-
 export interface SymbolStats {
     name: Symbol,
     rarity: Rarity,

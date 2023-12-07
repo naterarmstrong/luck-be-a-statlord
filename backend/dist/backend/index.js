@@ -17,6 +17,7 @@ const user_1 = require("./models/user");
 const run_1 = require("./models/run");
 const db_1 = require("./db/db");
 const mapStringify_1 = require("../frontend/src/common/utils/mapStringify");
+const time_1 = require("../frontend/src/common/utils/time");
 const symbol_1 = require("./models/symbol");
 const sequelize_1 = require("sequelize");
 const secrets = dotenv_1.default.config();
@@ -109,6 +110,7 @@ app.post('/uploadRuns', async (req, res) => {
     if (!req.userId) {
         return res.status(401).send("Not logged in.");
     }
+    const sStart = Date.now();
     console.log(req.body);
     for (const run of req.body) {
         const symbolDetails = [];
@@ -117,7 +119,7 @@ app.post('/uploadRuns', async (req, res) => {
             const value = run.details.coinsPerSymbol.get(symbol);
             symbolDetails.push({ symbol, value, count });
         }
-        const spinSymbols = [];
+        const start = Date.now();
         await run_1.Run.create({
             UserId: req.userId,
             number: run.number,
@@ -133,26 +135,25 @@ app.post('/uploadRuns', async (req, res) => {
             lateSyms: run.earlySyms.join(','),
             SymbolDetails: symbolDetails,
             Spins: run.details.spins.map((spin, idx) => {
-                const spinSymbols = [];
-                for (let i = 0; i < 20; i++) {
-                    spinSymbols.push({
-                        symbol: spin.symbols[i],
-                        value: spin.values[i],
-                        index: i,
-                    });
-                }
                 return {
                     coinsEarned: spin.coinsEarned,
                     totalCoins: spin.totalCoins,
                     number: idx,
-                    SpinSymbols: spinSymbols,
+                    Symbols: spin.symbols.join(','),
+                    Values: spin.values.join(','),
                 };
             }),
         }, {
-            include: [run_1.SymbolDetails, { model: run_1.Spin, include: [run_1.SpinSymbol] }]
+            include: [run_1.SymbolDetails, run_1.Spin],
+            benchmark: true,
+            logging: false,
         });
+        const end = Date.now();
+        console.log(`Time uploading run: ${(0, time_1.msToTime)(end - start)}`);
         // TODO: Finish uploading runs by uploading the actual symbols of each spin
     }
+    const sEnd = Date.now();
+    console.log(`Time uploading ${req.body.length} runs: ${(0, time_1.msToTime)(sEnd - sStart)}`);
     return res.status(201).send();
 });
 app.get('/user/:id/runs', async (req, res) => {
@@ -212,5 +213,6 @@ app.listen(port, () => {
 /////////////////////////////////////////////////////////////////////////////////////////
 app.delete('/resetDB', async (req, res) => {
     await db_1.sequelize.sync({ force: true });
+    await (0, symbol_1.initializeSymbols)();
     return res.status(200).send();
 });

@@ -87,6 +87,14 @@ exports.Spin = db_1.sequelize.define('Spin', {
     totalCoins: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
+    },
+    Symbols: {
+        // Comma-separated list of symbols
+        type: sequelize_1.DataTypes.STRING(800)
+    },
+    Values: {
+        // Comma-separated list of numbers
+        type: sequelize_1.DataTypes.STRING(400)
     }
 }, {
     timestamps: false

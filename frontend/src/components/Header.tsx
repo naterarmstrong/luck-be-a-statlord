@@ -12,7 +12,7 @@ const Header: React.FC = () => {
 
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" style={{ fontSize: 40 }}>
             <Container maxWidth="xl">
                 <Toolbar>
                     <Link href="/" sx={{ mr: 2, ml: 2, mb: 0 }}>

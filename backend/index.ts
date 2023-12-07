@@ -10,8 +10,10 @@ import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { Run, Spin, SpinSymbol, SymbolDetails } from './models/run';
+import { SpinInfo } from '../frontend/src/common/models/run'
 import { sequelize, symbolWinratesQuery, userStatsQuery } from './db/db';
 import { reviver } from '../frontend/src/common/utils/mapStringify';
+import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
 import { QueryTypes } from 'sequelize';
 
@@ -133,6 +135,8 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
         return res.status(401).send("Not logged in.");
     }
 
+    const sStart = Date.now()
+
     console.log(req.body)
     for (const run of req.body) {
         const symbolDetails = [];
@@ -142,7 +146,7 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
             symbolDetails.push({ symbol, value, count });
         }
 
-        const spinSymbols = [];
+        const start = Date.now()
 
         await Run.create({
             UserId: req.userId,
@@ -158,27 +162,29 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
             midSyms: run.earlySyms.join(','),
             lateSyms: run.earlySyms.join(','),
             SymbolDetails: symbolDetails,
-            Spins: run.details.spins.map((spin: any, idx: number) => {
-                const spinSymbols = [];
-                for (let i = 0; i < 20; i++) {
-                    spinSymbols.push({
-                        symbol: spin.symbols[i],
-                        value: spin.values[i],
-                        index: i,
-                    });
-                }
+            Spins: run.details.spins.map((spin: SpinInfo, idx: number) => {
                 return {
                     coinsEarned: spin.coinsEarned,
                     totalCoins: spin.totalCoins,
                     number: idx,
-                    SpinSymbols: spinSymbols,
+                    Symbols: spin.symbols.join(','),
+                    Values: spin.values.join(','),
                 };
             }),
         }, {
-            include: [SymbolDetails, { model: Spin, include: [SpinSymbol] }]
+            include: [SymbolDetails, Spin],
+            benchmark: true,
+            logging: false,
         });
+
+        const end = Date.now();
+
+        console.log(`Time uploading run: ${msToTime(end - start)}`)
         // TODO: Finish uploading runs by uploading the actual symbols of each spin
     }
+
+    const sEnd = Date.now();
+    console.log(`Time uploading ${req.body.length} runs: ${msToTime(sEnd - sStart)}`)
 
     return res.status(201).send();
 });
@@ -211,6 +217,7 @@ app.get('/run/:id', async (req, res) => {
         include: [{ model: Spin, separate: true, include: [{ model: SpinSymbol, separate: true }] }, { model: SymbolDetails, separate: true }],
         benchmark: true
     });
+
 
     return res.status(200).send(runDetails);
 });
@@ -258,6 +265,7 @@ app.listen(port, () => {
 
 app.delete('/resetDB', async (req, res) => {
     await sequelize.sync({ force: true });
+    await initializeSymbols();
 
     return res.status(200).send();
 })

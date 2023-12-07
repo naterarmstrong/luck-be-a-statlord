@@ -2,42 +2,41 @@ import { Box } from "@mui/material";
 import { Symbol } from "../common/models/symbol";
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { SYMBOL_TO_IMG } from "../utils/symbol";
+import { SymbolStats } from "./SymbolStatDisplay";
 
 const columns: GridColDef[] = [
     {
-        field: 'icon',
+        field: 'name',
         headerName: 'Icon',
-        sortable: false,
-        renderCell: (params: any) => (<Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(params.value)} />) // TODO: put name here too
+        renderCell: (params: any) => (
+            <Box>
+                <Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(params.value)} />
+                {params.value}
+            </Box>
+        ) // TODO: put name here too
+        , minWidth: 250
     },
-    {
-        field: 'symbol',
-        headerName: 'Symbol'
-    },
-    { field: 'rarity', headerName: 'Rarity' },
-    { field: 'winRate', headerName: 'Win Rate' },
-    { field: 'totalGames', headerName: 'Total Games' }
+    { field: 'rarity', headerName: 'Rarity', minWidth: 150 },
+    { field: 'win_rate', headerName: 'Win Rate', minWidth: 150 },
+    { field: 'total_games', headerName: 'Total Games', minWidth: 150 },
+    { field: 'total_shows', headerName: 'Shows per Game', minWidth: 150 }
 ]
 
-interface AllSymbolStatsProps {
-    value: Array<SymbolStats>
-}
-
-interface SymbolStats {
-    icon: Symbol,
-    symbol: string,
-    wins: number,
-    total_coins: number,
-    total_shows: number,
-    total_games: number,
+type AllSymbolStatsProps = {
+    stats: Array<SymbolStats>
 }
 
 // TODO: get into workable state in combination with backend query
-const AllSymbolStats: React.FC<AllSymbolStatsProps> = ({ value }) => {
+export const AllSymbolStats: React.FC<AllSymbolStatsProps> = ({ stats }) => {
     return (
-        <DataGrid
-            rows={value}
-            columns={columns}
-        />
+        <div style={{ height: 400 }} >
+            <DataGrid
+                rows={stats}
+                columns={columns}
+                getRowId={(x: SymbolStats) => x.name}
+            />
+        </div>
     );
 }
+
+export default AllSymbolStats;
