@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, LinearProgress, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Symbol } from "../common/models/symbol"
@@ -12,6 +12,7 @@ import { replacer } from "../common/utils/mapStringify"
 import { msToTime } from "../common/utils/time";
 import { enqueueSnackbar } from "notistack";
 import DisplayRuns from "../components/DisplayRuns";
+import { pauseExecution } from "../utils/yield";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -28,11 +29,27 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
+interface ProgressInfo {
+    state: string,
+    done: number,
+    active: number,
+    total: number,
+}
+
+function getProgressValue(progress: ProgressInfo): number {
+    return (progress.state === "Uploading" ? 50 : 0) + 50 * progress.done / progress.total;
+}
+
+function getProgressBuffer(progress: ProgressInfo): number {
+    return (progress.state === "Uploading" ? 50 : 0) + 50 * (progress.done + progress.active) / progress.total;
+}
+
 const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
     const [selectedFiles, setSelectedFiles] = useState<Array<File>>([]);
     const [processedRuns, setProcessedRuns] = useState<Array<RunInfo>>([]);
     const [duplicates, setDuplicates] = useState<Array<string>>([]);
+    const [progress, setProgress] = useState<ProgressInfo | null>(null)
 
     const os = getOperatingSystem();
 
@@ -51,6 +68,7 @@ const UploadRuns: React.FC = () => {
 
     const processRuns = async () => {
         const runs = [];
+        let i = 0;
         for (const file of selectedFiles) {
             const text = await file.text();
             console.log(`Processing run ${file.name}`);
@@ -68,36 +86,72 @@ const UploadRuns: React.FC = () => {
                 console.error(`Failed to process run ${file.name} for reason ${error}`)
                 continue
             }
+
+            i += 1;
+            const chunk_size = 50;
+            if (i % chunk_size === 0) {
+                setProgress({
+                    state: "Processing",
+                    done: i,
+                    active: chunk_size,
+                    total: selectedFiles.length,
+                });
+                await pauseExecution();
+            }
         }
         setProcessedRuns(runs);
 
-        // TODO: chunk upload in groups of 100, have server send back how many were new
-        const fetchArgs = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(runs, replacer),
-            credentials: "include" as RequestCredentials,
-            mode: "cors" as RequestMode
-        };
-        const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
-        const body = await response.json();
+        let successes = 0;
+        let duplicateCount = 0;
+        let duplicateList: string[] = [];
 
-        if (body.successes > 0) {
-            enqueueSnackbar(`Uploaded ${body.successes} run${body.successes > 1 ? "s" : ""}!`, {
+        const chunk_size = 100;
+        const chunks = Math.ceil(runs.length / 100);
+        setProgress({
+            state: "Uploading",
+            done: successes,
+            active: chunk_size,
+            total: runs.length,
+        });
+        for (let i = 0; i < chunks; i++) {
+            const fetchArgs = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(runs.slice(chunk_size * i, chunk_size * (i + 1)), replacer),
+                credentials: "include" as RequestCredentials,
+                mode: "cors" as RequestMode
+            };
+            const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
+            const body = await response.json();
+            successes += body.successes;
+            duplicateCount += body.duplicateCount ?? 0;
+            if (body.duplicates) {
+                duplicateList.push(...body.duplicates);
+            }
+            setProgress({
+                state: "Uploading",
+                done: successes,
+                active: chunk_size,
+                total: runs.length,
+            });
+        }
+
+        setProgress(null);
+        if (successes > 0) {
+            enqueueSnackbar(`Uploaded ${successes} run${successes > 1 ? "s" : ""}!`, {
                 variant: "success",
                 style: { fontSize: 35 }
             });
         }
-        if (body.duplicateCount && body.duplicateCount > 0) {
-            enqueueSnackbar(`${body.duplicateCount} duplicate run${body.duplicateCount > 1 ? "s were" : " was"} ignored.`, {
+        if (duplicateCount && duplicateCount > 0) {
+            enqueueSnackbar(`${duplicateCount} duplicate run${duplicateCount > 1 ? "s were" : " was"} ignored.`, {
                 variant: "error",
                 style: { fontSize: 35 }
             });
-            setDuplicates(body.duplicates);
+            setDuplicates(duplicateList);
         }
-        // TODO: Actually send over processed run information to the server
     }
 
     const showTips = () => (
@@ -152,8 +206,13 @@ const UploadRuns: React.FC = () => {
                     onClick={processRuns}
                     disabled={selectedFiles.length === 0}
                 >
-                    Process Runs
+                    Process and Upload Runs
                 </Button>
+            </Grid>
+            <Box width="100%" />
+            <Grid xs item>
+                {progress !== null ? `${progress.state}: (${progress.done}/${progress.total})` : null}
+                {progress !== null ? <LinearProgress variant="buffer" value={getProgressValue(progress)} valueBuffer={getProgressBuffer(progress)} color={"warning"} /> : null}
             </Grid>
             <Box width="100%" />
             {processedRuns.length > 0 && <DisplayRuns runs={processedRuns} />}
