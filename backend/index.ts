@@ -10,12 +10,12 @@ import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { Run, Spin, SpinSymbol, SymbolDetails } from './models/run';
-import { SpinInfo } from '../frontend/src/common/models/run'
+import { RunInfo, SpinInfo } from '../frontend/src/common/models/run'
 import { sequelize, symbolWinratesQuery, userStatsQuery } from './db/db';
 import { reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
-import { QueryTypes } from 'sequelize';
+import { QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
 
 const secrets = dotenv.config();
 
@@ -135,58 +135,88 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
         return res.status(401).send("Not logged in.");
     }
 
+    let duplicateCount = 0;
+    let otherErrorCount = 0;
+    let successCount = 0;
+    let duplicates: string[] = [];
+    let otherErrors: string[] = [];
+
     const sStart = Date.now()
 
     console.log(req.body)
-    for (const run of req.body) {
+    for (const run of req.body as RunInfo[]) {
         const symbolDetails = [];
-        for (const symbol of run.details.showsPerSymbol.keys()) {
-            const count = run.details.showsPerSymbol.get(symbol);
-            const value = run.details.coinsPerSymbol.get(symbol);
+        for (const symbol of run.details!.showsPerSymbol.keys()) {
+            const count = run.details!.showsPerSymbol.get(symbol);
+            const value = run.details!.coinsPerSymbol.get(symbol);
             symbolDetails.push({ symbol, value, count });
         }
 
         const start = Date.now()
 
-        await Run.create({
-            UserId: req.userId,
-            number: run.number,
-            victory: run.victory,
-            guillotine: run.guillotine,
-            spins: run.spins,
-            date: run.date,
-            duration: run.duration,
-            version: run.version,
-            // If using postgres, this can be array
-            earlySyms: run.earlySyms.join(','),
-            midSyms: run.earlySyms.join(','),
-            lateSyms: run.earlySyms.join(','),
-            SymbolDetails: symbolDetails,
-            Spins: run.details.spins.map((spin: SpinInfo, idx: number) => {
-                return {
-                    coinsEarned: spin.coinsEarned,
-                    totalCoins: spin.totalCoins,
-                    number: idx,
-                    Symbols: spin.symbols.join(','),
-                    Values: spin.values.join(','),
-                };
-            }),
-        }, {
-            include: [SymbolDetails, Spin],
-            benchmark: true,
-            logging: false,
-        });
+        try {
 
-        const end = Date.now();
+            await Run.create({
+                UserId: req.userId,
+                hash: run.hash,
+                number: run.number,
+                victory: run.victory,
+                guillotine: run.guillotine,
+                spins: run.spins,
+                date: run.date,
+                duration: run.duration,
+                version: run.version,
+                // If using postgres, this can be array
+                earlySyms: run.earlySyms.join(','),
+                midSyms: run.earlySyms.join(','),
+                lateSyms: run.earlySyms.join(','),
+                SymbolDetails: symbolDetails,
+                Spins: run.details!.spins.map((spin: SpinInfo, idx: number) => {
+                    return {
+                        coinsEarned: spin.coinsEarned,
+                        totalCoins: spin.totalCoins,
+                        number: idx,
+                        Symbols: spin.symbols.join(','),
+                        Values: spin.values.join(','),
+                    };
+                }),
+            }, {
+                include: [SymbolDetails, Spin],
+                benchmark: true,
+                logging: false,
+            });
+            const end = Date.now();
+            successCount += 1;
 
-        console.log(`Time uploading run: ${msToTime(end - start)}`)
-        // TODO: Finish uploading runs by uploading the actual symbols of each spin
+            console.log(`Time uploading run: ${msToTime(end - start)}`)
+            // TODO: Finish uploading runs by uploading the actual symbols of each spin
+        } catch (error: any) {
+            if (error.errors && error.errors.length == 1 && error.errors[0].type === "unique violation") {
+                console.log("Got a duplicate!")
+                duplicateCount += 1;
+                duplicates.push(run.hash);
+            } else {
+                otherErrorCount += 1;
+                otherErrors.push(run.hash);
+            }
+            // console.log("Got an error: ", error)
+        }
     }
 
     const sEnd = Date.now();
     console.log(`Time uploading ${req.body.length} runs: ${msToTime(sEnd - sStart)}`)
 
-    return res.status(201).send();
+    let ret = { successes: successCount } as any;
+    if (duplicateCount > 0) {
+        ret.duplicateCount = duplicateCount
+        ret.duplicates = duplicates;
+    }
+    if (otherErrorCount > 0) {
+        ret.otherErrorCount = otherErrorCount;
+        ret.otherErrors = otherErrors;
+    }
+
+    return res.status(201).send(ret);
 });
 
 app.get('/user/:id/runs', async (req, res) => {

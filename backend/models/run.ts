@@ -3,6 +3,11 @@ import { sequelize } from '../db/db';
 import User from './user';
 
 export const Run = sequelize.define('Run', {
+    hash: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
     number: {
         type: DataTypes.NUMBER,
         allowNull: false,
@@ -15,7 +20,6 @@ export const Run = sequelize.define('Run', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
     },
-    // TODO: include total number of spins
     spins: {
         type: DataTypes.INTEGER,
         allowNull: false,

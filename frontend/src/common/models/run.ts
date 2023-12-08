@@ -2,6 +2,7 @@ import { Symbol } from "./symbol";
 
 // Rename to RunSummary?
 export class RunInfo {
+    hash: string;
     number: number;
     victory: boolean;
     guillotine: boolean;
@@ -20,6 +21,7 @@ export class RunInfo {
     details?: RunDetails;
 
     constructor(
+        hash: string,
         number: number,
         version: string,
         date: number,
@@ -31,6 +33,7 @@ export class RunInfo {
         midSyms: Symbol[],
         lateSyms: Symbol[],
     ) {
+        this.hash = hash;
         this.number = number;
         this.version = version;
         this.date = date;

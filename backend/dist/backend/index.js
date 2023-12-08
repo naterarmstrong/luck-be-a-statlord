@@ -110,6 +110,11 @@ app.post('/uploadRuns', async (req, res) => {
     if (!req.userId) {
         return res.status(401).send("Not logged in.");
     }
+    let duplicateCount = 0;
+    let otherErrorCount = 0;
+    let successCount = 0;
+    let duplicates = [];
+    let otherErrors = [];
     const sStart = Date.now();
     console.log(req.body);
     for (const run of req.body) {
@@ -120,41 +125,66 @@ app.post('/uploadRuns', async (req, res) => {
             symbolDetails.push({ symbol, value, count });
         }
         const start = Date.now();
-        await run_1.Run.create({
-            UserId: req.userId,
-            number: run.number,
-            victory: run.victory,
-            guillotine: run.guillotine,
-            spins: run.spins,
-            date: run.date,
-            duration: run.duration,
-            version: run.version,
-            // If using postgres, this can be array
-            earlySyms: run.earlySyms.join(','),
-            midSyms: run.earlySyms.join(','),
-            lateSyms: run.earlySyms.join(','),
-            SymbolDetails: symbolDetails,
-            Spins: run.details.spins.map((spin, idx) => {
-                return {
-                    coinsEarned: spin.coinsEarned,
-                    totalCoins: spin.totalCoins,
-                    number: idx,
-                    Symbols: spin.symbols.join(','),
-                    Values: spin.values.join(','),
-                };
-            }),
-        }, {
-            include: [run_1.SymbolDetails, run_1.Spin],
-            benchmark: true,
-            logging: false,
-        });
-        const end = Date.now();
-        console.log(`Time uploading run: ${(0, time_1.msToTime)(end - start)}`);
-        // TODO: Finish uploading runs by uploading the actual symbols of each spin
+        try {
+            await run_1.Run.create({
+                UserId: req.userId,
+                hash: run.hash,
+                number: run.number,
+                victory: run.victory,
+                guillotine: run.guillotine,
+                spins: run.spins,
+                date: run.date,
+                duration: run.duration,
+                version: run.version,
+                // If using postgres, this can be array
+                earlySyms: run.earlySyms.join(','),
+                midSyms: run.earlySyms.join(','),
+                lateSyms: run.earlySyms.join(','),
+                SymbolDetails: symbolDetails,
+                Spins: run.details.spins.map((spin, idx) => {
+                    return {
+                        coinsEarned: spin.coinsEarned,
+                        totalCoins: spin.totalCoins,
+                        number: idx,
+                        Symbols: spin.symbols.join(','),
+                        Values: spin.values.join(','),
+                    };
+                }),
+            }, {
+                include: [run_1.SymbolDetails, run_1.Spin],
+                benchmark: true,
+                logging: false,
+            });
+            const end = Date.now();
+            successCount += 1;
+            console.log(`Time uploading run: ${(0, time_1.msToTime)(end - start)}`);
+            // TODO: Finish uploading runs by uploading the actual symbols of each spin
+        }
+        catch (error) {
+            if (error.errors && error.errors.length == 1 && error.errors[0].type === "unique violation") {
+                console.log("Got a duplicate!");
+                duplicateCount += 1;
+                duplicates.push(run.hash);
+            }
+            else {
+                otherErrorCount += 1;
+                otherErrors.push(run.hash);
+            }
+            // console.log("Got an error: ", error)
+        }
     }
     const sEnd = Date.now();
     console.log(`Time uploading ${req.body.length} runs: ${(0, time_1.msToTime)(sEnd - sStart)}`);
-    return res.status(201).send();
+    let ret = { successes: successCount };
+    if (duplicateCount > 0) {
+        ret.duplicateCount = duplicateCount;
+        ret.duplicates = duplicates;
+    }
+    if (otherErrorCount > 0) {
+        ret.otherErrorCount = otherErrorCount;
+        ret.otherErrors = otherErrors;
+    }
+    return res.status(201).send(ret);
 });
 app.get('/user/:id/runs', async (req, res) => {
     // TODO: paginate this based on query params

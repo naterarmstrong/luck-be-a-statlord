@@ -3,6 +3,7 @@ import { IIDToSymbol } from "./symbol";
 import { Symbol } from "../common/models/symbol"
 import { RunInfo, RunDetails, SpinInfo } from "../common/models/run"
 import { Item } from "./item";
+import { sha256 } from 'hash.js';
 
 /*
 Thing to record:
@@ -42,14 +43,16 @@ const RENT_F20_SPINS = {
 const preSpinSymbolRegex = /Spin layout before effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 const postSpinSymbolRegex = /Spin layout after effects is:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
 const spinValuesRegex = /Symbol values after effects are:\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]\n\[[^\]]*\] \[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,^\n]*)\]/;
-const coinsGainedRegex = /Gained ([\d]*) coins this spin/;
-const coinTotalRegex = /Coin total is now ([\d]*) after spinning/;
+const coinsGainedRegex = /Gained (-?[\d]*) coins this spin/;
+const coinTotalRegex = /Coin total is now (-?[\d]*) after spinning/;
 const addedSymbolsRegex = /Added symbols: \[([^\^\n]*)\]/g
 
 export function processRun(text: string): RunInfo {
     if (text === "" || !text) {
         throw new Error("Empty run file")
     }
+
+    const hash = sha256().update(text).digest('hex');
 
     // spins[0] is the information before the run starts
     const spins = text.split(/--- SPIN #/);
@@ -90,7 +93,7 @@ export function processRun(text: string): RunInfo {
 
         // This can happen if you quit the game mid-spin, while effects are ongoing
         if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20 || !coinsGainedMatch || !coinsTotalMatch || coinsGainedMatch.length < 2 || coinsTotalMatch.length < 2) {
-            console.error("Quit mid-spin");
+            console.error(`Quit mid-spin during spin ${spinNum}`);
             break;
         }
 
@@ -168,7 +171,8 @@ export function processRun(text: string): RunInfo {
         logRuns && console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
     }
 
-    const run = new RunInfo(runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
+
+    const run = new RunInfo(hash, runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
     return run;
