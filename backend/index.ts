@@ -11,7 +11,7 @@ import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { Run, Spin, SpinSymbol, SymbolDetails } from './models/run';
 import { RunInfo, SpinInfo } from '../frontend/src/common/models/run'
-import { sequelize, symbolWinratesQuery, userStatsQuery } from './db/db';
+import { sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
 import { reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
@@ -266,7 +266,31 @@ app.get('/symbolStats', async (req, res) => {
     const stats = await sequelize.query(symbolWinratesQuery, { type: QueryTypes.SELECT });
 
     return res.status(200).send(stats);
-})
+});
+
+app.get('/symbol/:symbol/details', async (req, res) => {
+    return res.status(200).send();
+});
+
+app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
+    const statsTogether = await sequelize.query(symbolPairsQuery, {
+        type: QueryTypes.SELECT,
+        replacements: {
+            symbol1: req.params.symbol,
+            symbol2: req.params.symbol2,
+        }
+    });
+
+    const statsApart = await sequelize.query(symbolsApartQuery, {
+        type: QueryTypes.SELECT,
+        replacements: {
+            symbol1: req.params.symbol,
+            symbol2: req.params.symbol2,
+        }
+    });
+
+    return res.status(200).send({ together: statsTogether, apart: statsApart });
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Route Info //////////////////////////////////////////////
