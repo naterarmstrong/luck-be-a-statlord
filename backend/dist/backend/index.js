@@ -82,12 +82,12 @@ app.post('/login', async (req, res) => {
     const userInDB = await user_1.User.findOne({ where: { username: req.body.username } });
     const { username, password } = req.body;
     if (userInDB === null) {
-        return res.status(401).send("Authentication failed");
+        return res.status(404).send("User does not exist.");
     }
     else {
         const isSame = await bcrypt_1.default.compare(password, userInDB.password);
         if (!isSame) {
-            return res.status(401).send("Authentication failed");
+            return res.status(401).send("Wrong password.");
         }
         let token = jsonwebtoken_1.default.sign({ username: username, id: userInDB.id }, exports.JWT_SECRET, { expiresIn: DAY });
         res.cookie("jwt", token, { maxAge: DAY, httpOnly: true });

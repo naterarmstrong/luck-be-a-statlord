@@ -5,6 +5,7 @@ import React from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Cookies from 'universal-cookie';
 import userContext from "../contexts/UserContext";
+import { enqueueSnackbar } from "notistack";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -36,8 +37,19 @@ const Login: React.FC = () => {
             credentials: "include" as RequestCredentials,
         };
         const response = await fetch('http://localhost:3001/login', fetchArgs);
-        if (response.status !== 200 && response.status !== 201) {
-            console.error("AHH GOT AN ERROR", response);
+        if (!response.ok) {
+            if (response.status == 404) {
+                enqueueSnackbar(`User does not exist.`, {
+                    variant: "error",
+                    style: { fontSize: 35 }
+                });
+            }
+            if (response.status == 401) {
+                enqueueSnackbar(`Incorrect password`, {
+                    variant: "error",
+                    style: { fontSize: 35 }
+                });
+            }
             return
         }
         // TODO: expiration
@@ -47,6 +59,10 @@ const Login: React.FC = () => {
         cookies.set("username", username);
         cookies.set("userId", body.id);
         console.log(response);
+        enqueueSnackbar('Logged in!', {
+            variant: "success",
+            style: { fontSize: 35 }
+        })
         navigate('/upload');
     }
 
@@ -60,15 +76,19 @@ const Login: React.FC = () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // 'Access-Control-Allow-Origin': 'http://localho.st'
             },
             body: JSON.stringify(data),
             mode: "cors" as RequestMode,
             credentials: "include" as RequestCredentials,
         };
         const response = await fetch('http://localhost:3001/register', fetchArgs);
-        if (response.status !== 201) {
-            console.error("AHH GOT AN ERROR", response);
+        if (!response.ok) {
+            if (response.status == 409) {
+                enqueueSnackbar('Username already taken', {
+                    variant: "error",
+                    style: { fontSize: 35 }
+                });
+            }
             return
         }
         const body = await response.json();

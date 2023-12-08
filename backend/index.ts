@@ -99,11 +99,11 @@ app.post('/login', async (req: AuthorizedRequest, res) => {
 
 
     if (userInDB === null) {
-        return res.status(401).send("Authentication failed");
+        return res.status(404).send("User does not exist.");
     } else {
         const isSame = await bcrypt.compare(password, (userInDB as any).password)
         if (!isSame) {
-            return res.status(401).send("Authentication failed");
+            return res.status(401).send("Wrong password.");
         }
 
         let token = jwt.sign({ username: username, id: (userInDB as any).id }, JWT_SECRET, { expiresIn: DAY });
