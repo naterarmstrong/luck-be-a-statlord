@@ -40,7 +40,6 @@ export const AllSymbolStats: React.FC = () => {
             const response = await fetch(`http://localhost:3001/symbolStats`);
             if (!response.ok) {
                 console.log(`Error fetching symbol stats`);
-                // User didn't exist
             }
             const jsonData = await response.json();
             setStats(jsonData);

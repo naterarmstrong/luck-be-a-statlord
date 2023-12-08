@@ -179,6 +179,10 @@ export enum Symbol {
     Unknown = "Unknown",
 }
 
+export function isSymbol(s: string): boolean {
+    return Object.values(Symbol).includes(s as any);
+}
+
 export const SYMBOL_RARITIES: Record<Symbol, Rarity> = {
     [Symbol.Amethyst]: Rarity.Rare,
     [Symbol.Anchor]: Rarity.Common,

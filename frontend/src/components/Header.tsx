@@ -18,12 +18,24 @@ const Header: React.FC = () => {
                     <Link href="/" sx={{ mr: 2, ml: 2, mb: 0 }}>
                         <Box component="img" style={{ width: "80px" }} src={billionaire} />
                     </Link>
+                    <Link href="/" sx={{ mr: 2, ml: 2 }}>
+                        <Typography variant="h6">
+                            All Symbols
+                        </Typography>
+                    </Link>
+                    <Link href="/symbolDetails" sx={{ mr: 2, ml: 2 }}>
+                        <Typography variant="h6">
+                            Symbol Details
+                        </Typography>
+                    </Link>
                     <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
-                        Upload Runs
+                        <Typography variant="h6" color={"green"}>
+                            Upload Runs
+                        </Typography>
                     </Link>
                     <Box sx={{ flexGrow: 2 }} />
                     {loggedIn ?
-                        <Link href={`/profile/${userId}`}>{username}</Link> :
+                        <Link href={`/profile/${userId}`}><Typography variant="h5">{username}</Typography></Link> :
                         <Link href="/login">Login</Link>}
                 </Toolbar>
             </Container>
