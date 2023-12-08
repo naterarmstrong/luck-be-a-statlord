@@ -1,12 +1,13 @@
 import { Box } from '@mui/material';
 import Header from './Header';
+import { SnackbarProvider } from 'notistack';
 
 const Layout: React.FC = (props) => {
 
-    return <Box>
+    return (<SnackbarProvider maxSnack={3}>
         <Header />
         {props.children}
-    </Box>;
+    </SnackbarProvider>);
 }
 
 export default Layout;

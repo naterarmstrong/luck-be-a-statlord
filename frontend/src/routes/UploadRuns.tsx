@@ -10,6 +10,7 @@ import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"
 import { msToTime } from "../common/utils/time";
+import { enqueueSnackbar } from "notistack";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -30,6 +31,7 @@ const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
     const [selectedFiles, setSelectedFiles] = useState<Array<File>>([]);
     const [processedRuns, setProcessedRuns] = useState<Array<RunInfo>>([]);
+    const [duplicates, setDuplicates] = useState<Array<string>>([]);
 
     const os = getOperatingSystem();
 
@@ -78,7 +80,22 @@ const UploadRuns: React.FC = () => {
             credentials: "include" as RequestCredentials,
             mode: "cors" as RequestMode
         };
-        fetch('http://localhost:3001/uploadRuns', fetchArgs).catch((e) => console.log(`request rejected: ${e}`));
+        const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
+        const body = await response.json();
+
+        if (body.successes > 0) {
+            enqueueSnackbar(`Uploaded ${body.successes} run${body.successes > 1 ? "s" : ""}!`, {
+                variant: "success",
+                style: { fontSize: 35 }
+            });
+        }
+        if (body.duplicateCount && body.duplicateCount > 0) {
+            enqueueSnackbar(`${body.duplicateCount} duplicate run${body.duplicateCount > 1 ? "s were" : " was"} ignored.`, {
+                variant: "error",
+                style: { fontSize: 35 }
+            });
+            setDuplicates(body.duplicates);
+        }
         // TODO: Actually send over processed run information to the server
     }
 
