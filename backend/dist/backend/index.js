@@ -148,6 +148,7 @@ app.post('/uploadRuns', async (req, res) => {
                         number: idx,
                         Symbols: spin.symbols.join(','),
                         Values: spin.values.join(','),
+                        Extras: spin.symbolExtras.join(','),
                     };
                 }),
             }, {

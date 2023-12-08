@@ -98,6 +98,9 @@ export const Spin = sequelize.define('Spin', {
     Values: {
         // Comma-separated list of numbers
         type: DataTypes.STRING(400)
+    },
+    Extras: {
+        type: DataTypes.STRING
     }
 }, {
     timestamps: false

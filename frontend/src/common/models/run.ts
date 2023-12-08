@@ -72,6 +72,7 @@ export class RunDetails {
 export class SpinInfo {
     symbols: Array<Symbol>;
     values: Array<number>;
+    symbolExtras: Array<number | undefined>;
 
     coinsEarned: number;
     // This is _technically_ redundant
@@ -84,6 +85,7 @@ export class SpinInfo {
     constructor(earned: number, total: number) {
         this.symbols = [];
         this.values = [];
+        this.symbolExtras = [];
 
         this.symbolsAdded = [];
         this.itemsAdded = [];

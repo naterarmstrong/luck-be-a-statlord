@@ -8,12 +8,11 @@ import { sha256 } from 'hash.js';
 /*
 Thing to record:
 
-- coins per symbol
+- DONE(ish) coins per symbol
 - perma-eaters that ate
 - single-eaters that ate
-- total coins earned
-- total coins after spin
-- coins per symbol (rough first)
+- DONE total coins earned
+- DONE total coins after spin
 - symbol(s) added
 - item(s) added
 - which items were disabled ?
@@ -81,6 +80,7 @@ export function processRun(text: string): RunInfo {
     for (const spinText of spins.slice(1)) {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
+        const symbolExtras = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" ")[1]);
         const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
         // The final mapping is to ignore cases where something (a capsule) gives a removal token
         // (v), reroll token (r), or essence (e), which is denoted like -12e1. We are only
@@ -92,7 +92,7 @@ export function processRun(text: string): RunInfo {
         const coinsTotalMatch = spinText.match(coinTotalRegex);
 
         // This can happen if you quit the game mid-spin, while effects are ongoing
-        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20 || !coinsGainedMatch || !coinsTotalMatch || coinsGainedMatch.length < 2 || coinsTotalMatch.length < 2) {
+        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20 || !coinsGainedMatch || !coinsTotalMatch || coinsGainedMatch.length < 2 || coinsTotalMatch.length < 2 || !symbolExtras) {
             console.error(`Quit mid-spin during spin ${spinNum}`);
             break;
         }
@@ -128,6 +128,14 @@ export function processRun(text: string): RunInfo {
             details.recordSymbol(symbol, values[i]);
             spinInfo.symbols.push(symbol);
             spinInfo.values.push(values[i]);
+            let symbolExtra = undefined;
+            if (symbolExtras[i]) {
+                const maybeNumber = Number(symbolExtras[i].slice(1, symbolExtras[i].length - 1));
+                if (!isNaN(maybeNumber)) {
+                    symbolExtra = maybeNumber;
+                }
+            }
+            spinInfo.symbolExtras.push(symbolExtra);
         }
 
         if (!isVictory) {
