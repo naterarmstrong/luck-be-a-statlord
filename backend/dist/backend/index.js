@@ -234,14 +234,29 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
             symbol2: req.params.symbol2,
         }
     });
-    const statsApart = await db_1.sequelize.query(db_1.symbolsApartQuery, {
+    const statsSymbol1 = await db_1.sequelize.query(db_1.symbolsApartQuery, {
         type: sequelize_1.QueryTypes.SELECT,
         replacements: {
             symbol1: req.params.symbol,
             symbol2: req.params.symbol2,
         }
     });
-    return res.status(200).send({ together: statsTogether, apart: statsApart });
+    const statsSymbol2 = await db_1.sequelize.query(db_1.symbolsApartQuery, {
+        type: sequelize_1.QueryTypes.SELECT,
+        replacements: {
+            symbol1: req.params.symbol2,
+            symbol2: req.params.symbol,
+        }
+    });
+    const ret = {
+        WinRateTogether: statsTogether[0].win_rate,
+        WinRateSymbol1: statsSymbol1[0].win_rate,
+        WinRateSymbol2: statsSymbol2[0].win_rate,
+        GamesTogether: statsTogether[0].total_games,
+        GamesApartSymbol1: statsSymbol1[0].total_games,
+        GamesApartSymbol2: statsSymbol2[0].total_games,
+    };
+    return res.status(200).send(ret);
 });
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Route Info //////////////////////////////////////////////

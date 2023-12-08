@@ -281,7 +281,7 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
         }
     });
 
-    const statsApart = await sequelize.query(symbolsApartQuery, {
+    const statsSymbol1 = await sequelize.query(symbolsApartQuery, {
         type: QueryTypes.SELECT,
         replacements: {
             symbol1: req.params.symbol,
@@ -289,7 +289,24 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
         }
     });
 
-    return res.status(200).send({ together: statsTogether, apart: statsApart });
+    const statsSymbol2 = await sequelize.query(symbolsApartQuery, {
+        type: QueryTypes.SELECT,
+        replacements: {
+            symbol1: req.params.symbol2,
+            symbol2: req.params.symbol,
+        }
+    });
+
+    const ret = {
+        WinRateTogether: (statsTogether[0] as any).win_rate,
+        WinRateSymbol1: (statsSymbol1[0] as any).win_rate,
+        WinRateSymbol2: (statsSymbol2[0] as any).win_rate,
+        GamesTogether: (statsTogether[0] as any).total_games,
+        GamesApartSymbol1: (statsSymbol1[0] as any).total_games,
+        GamesApartSymbol2: (statsSymbol2[0] as any).total_games,
+    }
+
+    return res.status(200).send(ret);
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////

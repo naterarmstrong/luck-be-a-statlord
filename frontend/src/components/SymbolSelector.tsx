@@ -11,6 +11,7 @@ interface SymbolSelectorProps {
 const SymbolSelector: React.FC<SymbolSelectorProps> = ({ symbol, setSymbol }) => {
     return <Autocomplete
         disablePortal
+        autoComplete
         disableClearable
         options={Object.keys(Symbol)}
         value={symbol}
