@@ -50,7 +50,7 @@ export const AllSymbolStats: React.FC = () => {
     }, [])
 
     return (
-        <div style={{ height: 400 }} >
+        <div>
             <DataGrid
                 rows={stats}
                 columns={columns}

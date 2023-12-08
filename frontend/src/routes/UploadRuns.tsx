@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, LinearProgress, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
 import React from "react";
@@ -13,6 +13,8 @@ import { msToTime } from "../common/utils/time";
 import { enqueueSnackbar } from "notistack";
 import DisplayRuns from "../components/DisplayRuns";
 import { pauseExecution } from "../utils/yield";
+import Cookies from "universal-cookie";
+import userContext from "../contexts/UserContext";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -50,6 +52,7 @@ const UploadRuns: React.FC = () => {
     const [processedRuns, setProcessedRuns] = useState<Array<RunInfo>>([]);
     const [duplicates, setDuplicates] = useState<Array<string>>([]);
     const [progress, setProgress] = useState<ProgressInfo | null>(null)
+    const { setUser } = useContext(userContext);
 
     const os = getOperatingSystem();
 
@@ -67,9 +70,23 @@ const UploadRuns: React.FC = () => {
     }
 
     const processRuns = async () => {
+        let successes = 0;
+        let duplicateCount = 0;
+        let errorCount = 0;
+        let duplicateList: string[] = [];
         const runs = [];
         let i = 0;
         for (const file of selectedFiles) {
+            const chunk_size = 50;
+            if (i % chunk_size === 0) {
+                setProgress({
+                    state: "Processing",
+                    done: i,
+                    active: chunk_size,
+                    total: selectedFiles.length,
+                });
+                await pauseExecution();
+            }
             const text = await file.text();
             console.log(`Processing run ${file.name}`);
             try {
@@ -83,27 +100,15 @@ const UploadRuns: React.FC = () => {
                 runs.push(processed);
                 // console.log(`Run ${processed.number} was a ${outcome}`);
             } catch (error) {
+                errorCount += 1;
                 console.error(`Failed to process run ${file.name} for reason ${error}`)
                 continue
             }
 
             i += 1;
-            const chunk_size = 50;
-            if (i % chunk_size === 0) {
-                setProgress({
-                    state: "Processing",
-                    done: i,
-                    active: chunk_size,
-                    total: selectedFiles.length,
-                });
-                await pauseExecution();
-            }
         }
         setProcessedRuns(runs);
 
-        let successes = 0;
-        let duplicateCount = 0;
-        let duplicateList: string[] = [];
 
         const chunk_size = 100;
         const chunks = Math.ceil(runs.length / 100);
@@ -124,6 +129,19 @@ const UploadRuns: React.FC = () => {
                 mode: "cors" as RequestMode
             };
             const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
+            // The user token is expired/bad for some reason
+            if (response.status === 401) {
+                enqueueSnackbar(`Uploaded ${successes} run${successes > 1 ? "s" : ""}!`, {
+                    variant: "success",
+                    style: { fontSize: 35 },
+                    transitionDuration: 10000,
+                });
+                const cookies = new Cookies();
+                cookies.remove("username");
+                cookies.remove("userId");
+                setUser({ loggedIn: false })
+                navigate('/')
+            }
             const body = await response.json();
             successes += body.successes;
             duplicateCount += body.duplicateCount ?? 0;
@@ -151,6 +169,12 @@ const UploadRuns: React.FC = () => {
                 style: { fontSize: 35 }
             });
             setDuplicates(duplicateList);
+        }
+        if (errorCount > 0) {
+            enqueueSnackbar(`${errorCount} run${errorCount > 1 ? "s" : ""} failed to process or were empty.`, {
+                variant: "error",
+                style: { fontSize: 35 }
+            });
         }
     }
 

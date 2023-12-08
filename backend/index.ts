@@ -143,7 +143,7 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
 
     const sStart = Date.now()
 
-    console.log(req.body)
+    // console.log(req.body)
     for (const run of req.body as RunInfo[]) {
         const symbolDetails = [];
         for (const symbol of run.details!.showsPerSymbol.keys()) {
@@ -151,8 +151,6 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
             const value = run.details!.coinsPerSymbol.get(symbol);
             symbolDetails.push({ symbol, value, count });
         }
-
-        const start = Date.now()
 
         try {
 
@@ -186,10 +184,8 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 benchmark: true,
                 logging: false,
             });
-            const end = Date.now();
             successCount += 1;
 
-            console.log(`Time uploading run: ${msToTime(end - start)}`)
             // TODO: Finish uploading runs by uploading the actual symbols of each spin
         } catch (error: any) {
             if (error.errors && error.errors.length == 1 && error.errors[0].type === "unique violation") {

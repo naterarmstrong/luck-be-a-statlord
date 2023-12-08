@@ -116,7 +116,7 @@ app.post('/uploadRuns', async (req, res) => {
     let duplicates = [];
     let otherErrors = [];
     const sStart = Date.now();
-    console.log(req.body);
+    // console.log(req.body)
     for (const run of req.body) {
         const symbolDetails = [];
         for (const symbol of run.details.showsPerSymbol.keys()) {
@@ -124,7 +124,6 @@ app.post('/uploadRuns', async (req, res) => {
             const value = run.details.coinsPerSymbol.get(symbol);
             symbolDetails.push({ symbol, value, count });
         }
-        const start = Date.now();
         try {
             await run_1.Run.create({
                 UserId: req.userId,
@@ -156,9 +155,7 @@ app.post('/uploadRuns', async (req, res) => {
                 benchmark: true,
                 logging: false,
             });
-            const end = Date.now();
             successCount += 1;
-            console.log(`Time uploading run: ${(0, time_1.msToTime)(end - start)}`);
             // TODO: Finish uploading runs by uploading the actual symbols of each spin
         }
         catch (error) {

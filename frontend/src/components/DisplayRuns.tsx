@@ -15,7 +15,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
 
     const getRunDate = (date: number): string => {
         const d = new Date(date);
-        return d.toLocaleString('default', { month: 'short', day: 'numeric' });
+        return d.toLocaleString('default', { month: 'short', day: 'numeric', year: "numeric" });
     }
 
     return (

@@ -77,7 +77,7 @@ const Profile: React.FC = () => {
                     Win rate after rent 9: {(100 * stats.wins / stats.beat_rent_9_count).toFixed(0)}%<br />
                     Win rate after rent 10: {(100 * stats.wins / stats.beat_rent_10_count).toFixed(0)}%<br />
                     Win rate after rent 11: {(100 * stats.wins / stats.beat_rent_11_count).toFixed(0)}%<br />
-                    Win rate after rent 12: {(100 * stats.wins / stats.beat_rent_12_count).toFixed(0)}%<br />
+                    Win rate after rent 12: {(100 * stats.wins / Math.max(stats.beat_rent_12_count, stats.wins)).toFixed(0)}%<br />
                 </Typography>
                 : null}
         </Box>)
