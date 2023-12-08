@@ -26,6 +26,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                         <TableCell>Run #</TableCell>
                         <TableCell>Victory</TableCell>
                         <TableCell>Date Played</TableCell>
+                        <TableCell>Spins</TableCell>
                         <TableCell>Duration</TableCell>
                         <TableCell>Early</TableCell>
                         <TableCell>Mid</TableCell>
@@ -44,6 +45,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                                 </Grid>
                             </TableCell>
                             <TableCell>{getRunDate(run.date)}</TableCell>
+                            <TableCell>{run.spins}</TableCell>
                             <TableCell>{msToTime(run.duration)}</TableCell>
                             <TableCell>
                                 <Grid>
