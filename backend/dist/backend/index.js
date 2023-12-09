@@ -221,6 +221,9 @@ app.get('/user/:id/stats', async (req, res) => {
 });
 app.get('/symbolStats', async (req, res) => {
     const stats = await db_1.sequelize.query(db_1.symbolWinratesQuery, { type: sequelize_1.QueryTypes.SELECT });
+    // TODO: Account for versions in here. Not sure how exactly to store versions, could do
+    // major/minor/patch as separate smallints? so then the query looks like
+    // MAJOR >= 1 AND MINOR >= 2. That could work for everything, because 0 means select everything
     return res.status(200).send(stats);
 });
 app.get('/symbol/:symbol/details', async (req, res) => {

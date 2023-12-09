@@ -1,9 +1,9 @@
-import { Box } from "@mui/material";
+import { Box, Link } from "@mui/material";
 import { Rarity, Symbol, rarityColor } from "../common/models/symbol";
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { SYMBOL_TO_IMG } from "../utils/symbol";
-import { SymbolStats } from "./SymbolStatDisplay";
 import { useEffect, useState } from "react";
+import { SymbolStats } from "./SymbolStatDisplay";
 
 const columns: GridColDef[] = [
     {
@@ -12,7 +12,9 @@ const columns: GridColDef[] = [
         renderCell: (params: any) => (
             <Box>
                 <Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(params.value)} />
-                {params.value}
+                <Link href={`/symbolDetails?symbol=${params.value}`}>
+                    {params.value}
+                </Link>
             </Box>
         ) // TODO: put name here too
         , minWidth: 250

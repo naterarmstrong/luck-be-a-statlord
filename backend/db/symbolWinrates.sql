@@ -9,5 +9,6 @@ FROM
 WHERE
     Runs.id = SymbolDetails.RunId
     AND SymbolDetails.symbol = Symbols.name
+    AND Runs.date > 1668507128000
 GROUP BY
     Symbols.name;

@@ -1,5 +1,5 @@
 import { Autocomplete, Box, TextField } from "@mui/material";
-import { isSymbol } from "../common/models/symbol";
+import { SYMBOL_RARITIES, isSymbol, rarityColor } from "../common/models/symbol";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Symbol } from "../common/models/symbol";
 
@@ -16,7 +16,7 @@ const SymbolSelector: React.FC<SymbolSelectorProps> = ({ symbol, setSymbol }) =>
         options={Object.keys(Symbol)}
         value={symbol}
         renderOption={(props, option) => (
-            <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props} >
+            <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 }, color: rarityColor(SYMBOL_RARITIES[option as Symbol]) }} {...props} >
                 <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(option as Symbol)} />
                 {option}
             </Box>
