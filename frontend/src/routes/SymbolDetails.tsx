@@ -1,4 +1,4 @@
-import { Autocomplete, Box, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, OutlinedInput, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Card, CardContent, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, OutlinedInput, TextField, Typography } from "@mui/material";
 import { SYMBOL_RARITIES, Symbol, isSymbol, rarityColor } from "../common/models/symbol";
 import { useEffect, useState } from "react";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
@@ -132,26 +132,41 @@ const SymbolDetails: React.FC = () => {
                 {symbol}
             </Typography>
             {fullStats.length > 0 && ratings ?
-                <List>
-                    <ListItem>
-                        {ratings.Winrate}% winrate
-                    </ListItem>
-                    <ListItem>
-                        {ordinal(ratings.WinrateRanking)} overall winrate
-                    </ListItem>
-                    <ListItem>
-                        {ordinal(ratings.SameRarityWinrateRanking)} among<Typography color={rarityColor(SYMBOL_RARITIES[symbol])}> &nbsp; {` ${SYMBOL_RARITIES[symbol]} `} &nbsp; </Typography>symbols
-                    </ListItem>
-                    <ListItem>
-                        {ratings.Games} games
-                    </ListItem>
-                    <ListItem>
-                        {ordinal(ratings.GamesRanking)} overall pick rate
-                    </ListItem>
-                    <ListItem>
-                        {ordinal(ratings.SameRarityGamesRanking)} among {SYMBOL_RARITIES[symbol]} symbols
-                    </ListItem>
-                </List>
+                <Card sx={{ mb: 1, ml: 3, mr: 3 }}>
+                    <CardContent sx={{ mb: -2 }}>
+                        <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
+                            Winrate
+                        </Typography>
+                        <Typography variant="h3" lineHeight={.5}>
+                            {ratings.Winrate}%
+                        </Typography>
+                        <Box justifyContent={"center"}>
+                            <Typography sx={{ display: "inline-block", mx: "50px" }}>
+                                {ordinal(ratings.WinrateRanking)} overall &nbsp; &nbsp;
+                                {ordinal(ratings.SameRarityWinrateRanking)}
+                                <Typography color={rarityColor(SYMBOL_RARITIES[symbol])} sx={{ display: 'inline-block', mx: '8px' }}> {SYMBOL_RARITIES[symbol]} </Typography>
+                            </Typography>
+                        </Box>
+                    </CardContent>
+                </Card>
+                : null
+            }
+            {fullStats.length > 0 && ratings ?
+                <Card sx={{ mb: 1, ml: 3, mr: 3 }}>
+                    <CardContent>
+                        <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
+                            Games
+                        </Typography>
+                        <Typography variant="h3" lineHeight={.5}>
+                            {ratings.Games}
+                        </Typography>
+                        <Typography sx={{ display: "inline-block", mx: "50px" }}>
+                            {ordinal(ratings.GamesRanking)} overall &nbsp; &nbsp;
+                            {ordinal(ratings.SameRarityGamesRanking)}
+                            <Typography color={rarityColor(SYMBOL_RARITIES[symbol])} sx={{ display: 'inline-block', mx: '8px' }}> {SYMBOL_RARITIES[symbol]} </Typography>
+                        </Typography>
+                    </CardContent>
+                </Card>
                 : null}
         </Grid>
         <Grid item xs={8} alignSelf="start">
