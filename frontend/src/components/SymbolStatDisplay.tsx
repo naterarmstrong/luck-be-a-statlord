@@ -1,7 +1,8 @@
 import { Box, TableCell, TableRow } from "@mui/material";
 import { useEffect, useState } from "react";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
-import { Rarity, SYMBOL_RARITIES, Symbol } from "../common/models/symbol";
+import { SYMBOL_RARITIES, Symbol } from "../common/models/symbol";
+import { Rarity } from "../common/models/rarity";
 
 export interface SymbolStats {
     name: Symbol,

@@ -1,5 +1,6 @@
 import { Autocomplete, Box, TextField } from "@mui/material";
-import { SYMBOL_RARITIES, isSymbol, rarityColor } from "../common/models/symbol";
+import { SYMBOL_RARITIES, isSymbol } from "../common/models/symbol";
+import { rarityColor } from "../common/models/rarity";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Symbol } from "../common/models/symbol";
 

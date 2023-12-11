@@ -1,5 +1,6 @@
 import { Autocomplete, Box, Card, CardContent, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, OutlinedInput, TextField, Typography } from "@mui/material";
-import { SYMBOL_RARITIES, Symbol, isSymbol, rarityColor } from "../common/models/symbol";
+import { SYMBOL_RARITIES, Symbol, isSymbol } from "../common/models/symbol";
+import { rarityColor } from "../common/models/rarity";
 import { useEffect, useState } from "react";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { useSearchParams } from "react-router-dom";

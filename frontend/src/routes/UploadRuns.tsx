@@ -131,16 +131,16 @@ const UploadRuns: React.FC = () => {
             const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
             // The user token is expired/bad for some reason
             if (response.status === 401) {
-                enqueueSnackbar(`Uploaded ${successes} run${successes > 1 ? "s" : ""}!`, {
-                    variant: "success",
+                enqueueSnackbar(`Please log in again.`, {
+                    variant: "error",
                     style: { fontSize: 35 },
-                    transitionDuration: 10000,
+                    autoHideDuration: 10000,
                 });
                 const cookies = new Cookies();
                 cookies.remove("username");
                 cookies.remove("userId");
                 setUser({ loggedIn: false })
-                navigate('/')
+                navigate('/login')
             }
             const body = await response.json();
             successes += body.successes;
