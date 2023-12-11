@@ -24,11 +24,14 @@ def parse_rarity(r):
         return "Special"
     return to_camel_case(r)
 
-def process_json(input_file, img_folder, output_directory):
+def process_json(input_file, e_input_file, img_folder, output_directory):
     try:
         # Read JSON from the input file
         with open(input_file, 'r') as f:
             data = json.load(f)
+        
+        with open(e_input_file, 'r') as f:
+            edata = json.load(f)
         
         # Check if the output directory exists
         if not os.path.exists(output_directory):
@@ -43,6 +46,11 @@ def process_json(input_file, img_folder, output_directory):
         output_dir_imgs = os.path.join(output_directory, "imgs")
         
         item_names = list(data.keys())
+        item_names.extend(list(edata.keys()))
+        item_names.sort()
+
+        merged_data = {key: value for (key, value) in (list(data.items()) + list(edata.items()))}
+
         enum_names = {}
         for iname in item_names:
             enum_names[iname] = to_camel_case(iname)
@@ -57,7 +65,7 @@ def process_json(input_file, img_folder, output_directory):
             f.write('}\n\n\n')
             f.write("export const ITEM_RARITIES: Record<Item, Rarity> = {\n")
             for iname in item_names:
-                f.write(f"    [Item.{enum_names[iname]}]: Rarity.{parse_rarity(data[iname]['rarity'])},\n")
+                f.write(f"    [Item.{enum_names[iname]}]: Rarity.{parse_rarity(merged_data[iname]['rarity'])},\n")
             f.write("};\n")
         
         # Write to the frontend-only file
@@ -92,12 +100,13 @@ def process_json(input_file, img_folder, output_directory):
         print(f"Error: {e}")
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print("Usage: python script.py input_file img_folder output_folder")
+    if len(sys.argv) != 5:
+        print("Usage: python script.py input_file essence_input_file img_folder output_folder")
         sys.exit(1)
 
     input_file = sys.argv[1]
-    img_folder = sys.argv[2]
-    output_folder = sys.argv[3]
+    e_input_file = sys.argv[2]
+    img_folder = sys.argv[3]
+    output_folder = sys.argv[4]
 
-    process_json(input_file, img_folder, output_folder)
+    process_json(input_file, e_input_file, img_folder, output_folder)
