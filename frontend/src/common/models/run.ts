@@ -54,17 +54,35 @@ export class RunDetails {
     coinsPerSymbol: Map<Symbol, number>;
     // How many times symbols appeared in total
     showsPerSymbol: Map<Symbol, number>;
+    // First appearance per symbol
+    firstShowPerSymbol: Map<Symbol, number>;
+    // Endless specific metrics
+    endlessCoinsPerSymbol?: Map<Symbol, number>;
+    endlessShowsPerSymbol?: Map<Symbol, number>;
 
 
     constructor() {
         this.spins = [];
         this.coinsPerSymbol = new Map();
         this.showsPerSymbol = new Map();
+        this.firstShowPerSymbol = new Map();
     }
 
-    recordSymbol(symbol: Symbol, value: number) {
-        this.showsPerSymbol.set(symbol, (this.showsPerSymbol.get(symbol) ?? 0) + 1);
-        this.coinsPerSymbol.set(symbol, (this.coinsPerSymbol.get(symbol) ?? 0) + value);
+    recordSymbol(spinNum: number, symbol: Symbol, value: number, isEndless: boolean) {
+        if (!isEndless) {
+            this.showsPerSymbol.set(symbol, (this.showsPerSymbol.get(symbol) ?? 0) + 1);
+            this.coinsPerSymbol.set(symbol, (this.coinsPerSymbol.get(symbol) ?? 0) + value);
+            if (this.firstShowPerSymbol.get(symbol) === undefined && !isEndless) {
+                this.firstShowPerSymbol.set(symbol, spinNum);
+            }
+        } else {
+            if (!this.endlessCoinsPerSymbol || !this.endlessShowsPerSymbol) {
+                this.endlessCoinsPerSymbol = new Map(this.coinsPerSymbol);
+                this.endlessShowsPerSymbol = new Map(this.showsPerSymbol);
+            }
+            this.endlessShowsPerSymbol.set(symbol, (this.endlessShowsPerSymbol.get(symbol) ?? 0) + 1);
+            this.endlessCoinsPerSymbol.set(symbol, (this.endlessCoinsPerSymbol.get(symbol) ?? 0) + value);
+        }
     }
 }
 

@@ -4,6 +4,7 @@ import { Symbol } from "../common/models/symbol"
 import { RunInfo, RunDetails, SpinInfo } from "../common/models/run"
 import { Item } from "../common/models/item";
 import { sha256 } from 'hash.js';
+import parseSpin from "./parseSpin";
 
 /*
 Thing to record:
@@ -80,6 +81,9 @@ export function processRun(text: string): RunInfo {
     for (const spinText of spins.slice(1)) {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
+
+        parseSpin(spinText);
+
         const symbolExtras = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" ")[1]);
         const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
         // The final mapping is to ignore cases where something (a capsule) gives a removal token
@@ -125,7 +129,7 @@ export function processRun(text: string): RunInfo {
             if (symbol === Symbol.Unknown) {
                 console.error(`Found unknown symbol: ${symbolStr}`);
             }
-            details.recordSymbol(symbol, values[i]);
+            details.recordSymbol(spinNum, symbol, values[i], isVictory);
             spinInfo.symbols.push(symbol);
             spinInfo.values.push(values[i]);
             let symbolExtra = undefined;

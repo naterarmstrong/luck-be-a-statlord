@@ -8,6 +8,9 @@ import SymbolSelector from "../components/SymbolSelector";
 import SymImg from "../components/SymImg";
 import { SymbolStats } from "../components/SymbolStatDisplay";
 import { ordinal } from "../utils/ordinal";
+import ItemSelector from "../components/ItemSelector";
+import { Item } from "../common/models/item";
+import { sfmt } from "../utils/strfmt";
 
 export interface PairPerformance {
     WinRateTogether: number,
@@ -30,11 +33,16 @@ export interface Ratings {
 const SymbolDetails: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     let startSymbol = Symbol.Unknown;
+    let secondaryStartSymbol = Symbol.Unknown;
     if (searchParams.get("symbol") !== null && isSymbol(searchParams.get("symbol") as any)) {
         startSymbol = searchParams.get("symbol") as Symbol;
     }
+    if (searchParams.get("secondarySymbol") !== null && isSymbol(searchParams.get("secondarySymbol") as any)) {
+        secondaryStartSymbol = searchParams.get("secondarySymbol") as Symbol;
+    }
     const [symbol, setSymbol] = useState<Symbol>(startSymbol);
-    const [secondarySymbol, setSecondarySymbol] = useState<Symbol>(Symbol.Unknown);
+    const [secondarySymbol, setSecondarySymbol] = useState<Symbol>(secondaryStartSymbol);
+    const [secondaryItem, setSecondaryItem] = useState<Item>(Item.ItemMissing);
     const [pairPerf, setPairPerf] = useState<PairPerformance | null>(null);
     const [fullStats, setFullStats] = useState<Array<SymbolStats>>([]);
     const [ratings, setRatings] = useState<Ratings | null>(null);
@@ -53,8 +61,8 @@ const SymbolDetails: React.FC = () => {
     }, [])
 
     useEffect(() => {
-        setSearchParams({ symbol: symbol });
-    }, [symbol])
+        setSearchParams({ symbol: symbol, secondarySymbol: secondarySymbol });
+    }, [symbol, secondarySymbol])
 
 
     useEffect(() => {
@@ -130,7 +138,7 @@ const SymbolDetails: React.FC = () => {
         <Grid item xs={4} alignSelf="start">
             <Typography variant="h3" color={rarityColor(SYMBOL_RARITIES[symbol])}>
                 <Box component="img" style={{ width: "80px", marginRight: 20 }} src={SYMBOL_TO_IMG.get(symbol)} />
-                {symbol}
+                {sfmt(symbol)}
             </Typography>
             {fullStats.length > 0 && ratings ?
                 <Card sx={{ mb: 1, ml: 3, mr: 3 }}>
@@ -186,6 +194,14 @@ const SymbolDetails: React.FC = () => {
                         <SymImg symbol={symbol} /> <SymImg symbol={Symbol.Dud} />: {pairPerf.WinRateSymbol1}% win rate. {pairPerf.GamesApartSymbol1} Games. <br />
                         <SymImg symbol={Symbol.Dud} /> <SymImg symbol={secondarySymbol} />: {pairPerf.WinRateSymbol2}% win rate. {pairPerf.GamesApartSymbol2} Games. <br />
                     </Grid> : null}
+                <Grid item xs={4}>
+                    <Typography variant="h6">
+                        With items:
+                    </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                    <ItemSelector item={secondaryItem} setItem={setSecondaryItem} />
+                </Grid>
             </Grid>
         </Grid>
     </Grid>;

@@ -159,6 +159,12 @@ export function isSymbol(s: string): boolean {
     return Object.values(Symbol).includes(s as any);
 }
 
+export namespace SymbolUtils {
+    export function isArrow(s: Symbol) {
+        return [Symbol.BronzeArrow, Symbol.SilverArrow, Symbol.GoldenArrow].includes(s);
+    }
+}
+
 export const SYMBOL_RARITIES: Record<Symbol, Rarity> = {
     [Symbol.Amethyst]: Rarity.Rare,
     [Symbol.Anchor]: Rarity.Common,
@@ -314,3 +320,14 @@ export const SYMBOL_RARITIES: Record<Symbol, Rarity> = {
     [Symbol.Wolf]: Rarity.Uncommon,
     [Symbol.Unknown]: Rarity.Special,
 };
+
+export enum ArrowDirections {
+    N = "N",
+    NE = "NE",
+    E = "E",
+    SE = "SE",
+    S = "S",
+    SW = "SW",
+    W = "W",
+    NW = "NW",
+}
