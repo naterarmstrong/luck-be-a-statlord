@@ -2,7 +2,7 @@ import { v4 } from "uuid";
 import { IIDToSymbol } from "./symbol";
 import { Symbol } from "../common/models/symbol"
 import { RunInfo, RunDetails, SpinInfo } from "../common/models/run"
-import { Item } from "./item";
+import { Item } from "../common/models/item";
 import { sha256 } from 'hash.js';
 
 /*
