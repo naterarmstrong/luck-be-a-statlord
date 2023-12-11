@@ -232,6 +232,9 @@ export enum Item {
     ZaroffsContractEssence = "ZaroffsContractEssence",
 }
 
+export function isItem(s: string): boolean {
+    return Object.values(Item).includes(s as any);
+}
 
 export const ITEM_RARITIES: Record<Item, Rarity> = {
     [Item.AdoptionPapers]: Rarity.Common,
