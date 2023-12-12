@@ -82,7 +82,7 @@ export function processRun(text: string): RunInfo {
         const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
 
 
-        parseSpin(spinText);
+        parseSpin(spinText, version);
 
         const symbolExtras = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" ")[1]);
         const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;

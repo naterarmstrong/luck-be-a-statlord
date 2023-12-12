@@ -102,14 +102,14 @@ enum DebugLevel {
 // 15. OPTIONAL - victory
 // 16a. Added symbols or Skipped symbols (optional if VICTORY)
 // 16b. OPTIONAL - Added item
-export function parseSpin(spinText: string) {
-    const DEBUG = DebugLevel.Trace;
+export function parseSpin(spinText: string, version: string) {
+    const DEBUG = DebugLevel.Error;
     // Trim off the date from the start of each line
     // The date is formatted as:
     // [MM/DD/YYYY HH:MM:SS] CONTENT
     // which is 22 characters long
     const lines = spinText.split("\n").map((s, i) => i > 0 ? s.split(" ").slice(2).join(" ") : s);
-    const sp = new SpinParser(lines, DEBUG);
+    const sp = new SpinParser(version, lines, DEBUG);
 
     const spinNum = sp.getSpinNumber();
     const coinsBefore = sp.getCoinsBefore();
@@ -119,6 +119,10 @@ export function parseSpin(spinText: string) {
     const effects = [];
     const midEffectItems = [];
     const midEffectSymbols = [];
+    let postEffectItems = [];
+    let destroyedItems = [];
+
+    let sawError = false;
 
     // From here, it is possible for the player to quit at any point. `st.readLine` will throw the
     // error
@@ -131,9 +135,14 @@ export function parseSpin(spinText: string) {
                 sp.getSymbolAdded();
             } else if (sp.isItemAdded()) {
                 sp.getItemAdded();
+            } else if (sp.isItemDestroyCounter()) {
+                sp.getItemDestroyCounter();
+            } else if (sp.isItemDestroyed()) {
+                destroyedItems.push(sp.getItemDestroyed());
             } else {
                 // Skip items/symbols added mid-spin for now
-                console.error("Unknown event!", sp.readLine());
+                console.error("Unknown event in effects!", sp.readLine());
+                sawError = true;
             }
         }
         if (sp.isTrace()) {
@@ -141,7 +150,7 @@ export function parseSpin(spinText: string) {
         }
         sp.getPostEffectSymbols();
         sp.getSymbolValues();
-        sp.getPostEffectItems();
+        postEffectItems = sp.getPostEffectItems();
         sp.getPostEffectItemValues();
         sp.getDestroyedSymbols();
         sp.getDestroyedItems();
@@ -149,43 +158,74 @@ export function parseSpin(spinText: string) {
             if (sp.isItemAdded()) {
                 sp.getItemAdded();
             } else if (sp.isItemDestroyed()) {
-                sp.getItemDestroyed();
+                destroyedItems.push(sp.getItemDestroyed());
             } else if (sp.isSymbolAdded()) {
                 sp.getSymbolAdded();
+            } else if (sp.isItemDestroyCounter()) {
+                sp.getItemDestroyCounter();
             } else {
-                console.error("Unknown event!", sp.readLine());
+                console.error("Unknown event post-destroyed-items!", sp.readLine());
+                sawError = true;
             }
         }
         sp.getGainedCoins();
         sp.getCoinTotal();
 
+        // TODO: Handle continuing a run better!
+
         let victory = false;
-        if (sp.isVictory()) {
-            victory = sp.getVictory();
-        }
 
         while (!sp.done()) {
-            if (sp.isItemAdded()) {
+            if (sp.isVictory()) {
+                victory = sp.getVictory();
+            } else if (sp.isLoss()) {
+                victory = !sp.getLoss();
+            } else if (sp.isItemAdded()) {
                 sp.getItemAdded();
             } else if (sp.isSymbolAdded()) {
                 sp.getSymbolAdded();
+            } else if (sp.isItemDestroyed()) {
+                sp.getItemDestroyed();
+            } else if (sp.isItemDestroyCounter()) {
+                sp.getItemDestroyCounter();
+            } else if (sp.isPostEffectSymbols() && postEffectItems.some((si: SpinItem) => si.item == Item.Coffee || si.item == Item.CoffeeEssence)) {
+                // This is super strange, but apparently when coffee_essence (and maybe coffee)
+                // triggers, the spin layout, values, items, item values, destroyed symbol, and
+                // destroyed items get logged _as though there were no effects_. Then, it will be a
+                // 'destroyed item' and back to normal. Very strange.
+                console.log("Discovered weird coffee bug.")
+                sp.getPostEffectSymbols();
+                sp.getSymbolValues();
+                sp.getPostEffectItems();
+                sp.getPostEffectItemValues();
+                sp.getDestroyedSymbols();
+                sp.getDestroyedItems();
+
+                // We care about this one
+                destroyedItems.push(sp.getItemDestroyed());
+
+                sp.getGainedCoins();
+                sp.getCoinTotal();
             } else {
-                console.error("Unknown event!", sp.readLine());
+                console.error("Unknown event post-cointotal!", sp.readLine());
+                sawError = true;
             }
         }
 
         if (!sp.done()) {
             console.error(`Lines left!! ${sp.lines.length} total, ${sp.lineIdx} index`)
+            sp.markEnd(true);
+        } else {
+            sp.markEnd(sawError);
         }
-        sp.markEnd();
 
     } catch (error) {
         if (error instanceof SpinTextEndedError) {
-            sp.markEnd();
+            sp.markEnd(sawError);
             console.error("Quit mid-spin.")
             return;
         }
-        sp.markEnd();
+        sp.markEnd(true);
         throw error;
     }
 
@@ -195,15 +235,24 @@ const spinLineRegex = /\[(\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(
 const valueLineRegex = /\[(-?\w+), (-?\w+), (-?\w+), (-?\w+), (-?\w+)\]/
 
 class SpinParser {
+    // The version can be necessary to handle different log behavior across different game versions
+    version: string
+
     lines: Array<string>
     lineIdx: number
     // Whether or not to print detailed debug output on the parsing of the spin
     debug: DebugLevel
+    // Whether or not an error appeared during parsing of the spin
+    sawError: boolean
+    // Only used for outputting errors
+    spinNumber?: number
 
-    constructor(lines: Array<string>, debug: DebugLevel) {
+    constructor(version: string, lines: Array<string>, debug: DebugLevel) {
+        this.version = version;
         this.lines = lines;
         this.lineIdx = 0;
         this.debug = debug;
+        this.sawError = false;
     }
 
     getSpinNumber(): number {
@@ -211,17 +260,21 @@ class SpinParser {
         // [DATE] --- SPIN #|123 ---
         const spinNum = Number(this.readLine().split(" ")[0]);
         if (isNaN(spinNum)) {
+            this.sawError = true;
             throw new Error(`Failed to detect spin number from text: ${this.lines[this.lineIdx - 1]}`);
         }
         if (this.isTrace()) {
-            console.group(`Spin number ${spinNum}`);
+            // groupCollapsed is nicer, but hides errors...
+            console.groupCollapsed(`Spin number ${spinNum}`);
         }
+        this.spinNumber = spinNum;
         return spinNum;
     }
 
     getCoinsBefore(): number {
         const coinsBeforeMatch = this.readLine().match("Currently have ([0-9]*) coins")?.[1];
         if (!coinsBeforeMatch || isNaN(Number(coinsBeforeMatch))) {
+            this.sawError = true;
             throw new Error(`Failed to detect spin number from text: ${this.lines[this.lineIdx - 1]}`);
         }
         return Number(coinsBeforeMatch);
@@ -246,7 +299,8 @@ class SpinParser {
         if (this.isError()) {
             const spinLayoutMatch = headerLine.match("Spin layout before effects is:");
             if (!spinLayoutMatch) {
-                console.log(`Could not find pre effects layout heading on line.`, headerLine)
+                this.sawError = true;
+                console.error(`Could not find pre effects layout heading on line.`, headerLine)
             }
         }
 
@@ -265,7 +319,8 @@ class SpinParser {
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("Items before effects are:");
             if (!itemHeaderMatch) {
-                console.log(`Could not find pre effects items heading on line.`, headerLine)
+                this.sawError = true;
+                console.error(`Could not find pre effects items heading on line.`, headerLine)
             }
         }
 
@@ -302,7 +357,8 @@ class SpinParser {
         const headerLine = this.readLine();
         if (this.isError()) {
             if (!headerLine.startsWith("Spin layout after effects is:")) {
-                console.log(`Could not find post effects layout heading on line.`, headerLine)
+                this.sawError = true;
+                console.error(`Could not find post effects layout heading on line.`, headerLine)
             }
         }
 
@@ -320,7 +376,8 @@ class SpinParser {
         const headerLine = this.readLine();
         if (this.isError()) {
             if (!headerLine.startsWith("Symbol values after effects are:")) {
-                console.log(`Could not find values heading on line.`, headerLine)
+                console.error(`Could not find values heading on line.`, headerLine)
+                this.sawError = true;
             }
         }
 
@@ -353,7 +410,8 @@ class SpinParser {
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("There are [0-9]+ items:");
             if (!itemHeaderMatch) {
-                console.log(`Could not find post effects items heading on line.`, headerLine)
+                console.error(`Could not find post effects items heading on line.`, headerLine)
+                this.sawError = true;
             }
         }
 
@@ -379,7 +437,8 @@ class SpinParser {
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("Item values after effects are:");
             if (!itemHeaderMatch) {
-                console.log(`Could not find post effects items heading on line.`, headerLine)
+                console.error(`Could not find post effects items heading on line.`, headerLine)
+                this.sawError = true;
             }
         }
 
@@ -405,7 +464,8 @@ class SpinParser {
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("There are [0-9]+ destroyed symbols:");
             if (!itemHeaderMatch) {
-                console.log(`Could not find symbols destroyed heading on line.`, headerLine)
+                console.error(`Could not find symbols destroyed heading on line.`, headerLine)
+                this.sawError = true;
             }
         }
 
@@ -432,7 +492,8 @@ class SpinParser {
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("There are [0-9]+ destroyed items:");
             if (!itemHeaderMatch) {
-                console.log(`Could not find items destroyed heading on line.`, headerLine)
+                console.error(`Could not find items destroyed heading on line.`, headerLine)
+                this.sawError = true;
             }
         }
 
@@ -465,11 +526,28 @@ class SpinParser {
 
         if (this.isError() && item === Item.ItemMissing) {
             console.error("Failed to match destroyed item", line);
+            this.sawError = true;
         } else if (this.isTrace()) {
             console.log("destroyed item", item)
         }
 
         return item;
+    }
+
+    isItemDestroyCounter(): boolean {
+        return this.peek().startsWith("Destroy counters")
+    }
+
+    getItemDestroyCounter(): Item {
+        const line = this.readLine();
+        const itemMatch = line.match(/Destroy counters - (\w+) now has 1/);
+        if (!itemMatch || IIDToItem(itemMatch[1]) === Item.ItemMissing) {
+            throw new Error(`Failed to match item when destroy counter incremented: ${line}`);
+        } else if (this.isTrace()) {
+            console.log("item destroy counter", IIDToItem(itemMatch[1]))
+        }
+
+        return IIDToItem(itemMatch[1]);
     }
 
     isGainedCoins(): boolean {
@@ -478,7 +556,7 @@ class SpinParser {
 
     getGainedCoins(): number {
         const line = this.readLine();
-        const gainedCoinsMatch = line.match("Gained ([0-9]+) coins this spin")
+        const gainedCoinsMatch = line.match("Gained (-?[0-9]+) coins this spin")
         if (!gainedCoinsMatch || gainedCoinsMatch.length !== 2 || isNaN(Number(gainedCoinsMatch[1]))) {
             throw new Error(`Could not read gained coins in ${line}`)
         }
@@ -499,7 +577,7 @@ class SpinParser {
 
     getCoinTotal(): number {
         const line = this.readLine();
-        const coinTotalMatch = line.match("Coin total is now ([0-9]+) after spinning")
+        const coinTotalMatch = line.match("Coin total is now (-?[0-9]+) after spinning")
 
         if (!coinTotalMatch || coinTotalMatch.length !== 2 || isNaN(Number(coinTotalMatch[1]))) {
             throw new Error(`Could not read gained coins in ${line}`)
@@ -520,6 +598,43 @@ class SpinParser {
         return this.readLine().startsWith("VICTORY");
     }
 
+    // This happens only very infrequently. In my experience, it happens exactly when you destroy an
+    // item to try to get enough to pay a rent payment, but don't make it, namely piggy bank or swear jar
+    isLoss(): boolean {
+        return this.peek().startsWith("GAME OVER")
+    }
+
+    getLoss(): boolean {
+        return this.readLine().startsWith("GAME OVER");
+    }
+
+    isContinuing(): boolean {
+        return this.peek().startsWith("--- CONTINUING")
+    }
+
+    // Continuing is a weird one. The default formatting is to have the
+    // --- CONTINUING RUN #XXX ---
+    // --- v1.2.3 ---
+    //
+    // However, then it seems to usually re-add all items that are already in the inventory IF it
+    // has already passed the "There are X items" log statement, before continuing to the rest of
+    // the spin, if it exists.
+    //
+    // If the continue happens before Item effects start, or the post-spin layout, then the spin is
+    // rerolled, but with one less coin. This was seen on v0.14.9, and needs to be
+    // checked if the behavior is still present. On v0.11.3, it restarted the spin when continuing
+    // mid-item effects. On 0.14.3, it kept the spin when continuing mid-item effects. I would guess
+    // that the breakpoint is v0.13.2, based on the patch notes.
+    handleContinuing() {
+        // TODO: handle this better
+        // continuing
+        this.readLine();
+        this.readLine();
+        while (!this.done() && this.isItemAdded()) {
+            this.getItemAdded();
+        }
+    }
+
     isSymbolAdded(): boolean {
         const s = this.peek();
         return s.startsWith("Skipped symbols") || s.startsWith("Added symbols: ");
@@ -535,32 +650,44 @@ class SpinParser {
             return [];
         }
 
-        const symbolMatch = line.match(/Added symbols: \[(.*)\]/);
-        if (!symbolMatch) {
-            throw new Error(`Failed to match symbol added: ${line}`)
+        const symbolTexts = line.split("[")[1].split("]")[0].split(",").map((s) => s.trim());
+
+        if (this.isTrace()) {
+            console.log("Added symbol texts", symbolTexts)
         }
 
-        const symbol = IIDToSymbol(symbolMatch[1]);
-        if (symbol === Symbol.Unknown && this.isError()) {
-            console.error("Failed to match symbol", line);
+        const symbols = symbolTexts.map((s) => IIDToSymbol(s));
+
+        if (this.isError() && symbols.find((s) => s === Symbol.Unknown)) {
+            console.error("Unknown symbol added", "symbol texts", symbolTexts)
+            this.sawError = true;
         }
 
-        return [symbol];
+        return symbols;
     }
 
     isItemAdded(): boolean {
-        return this.peek().startsWith("Added item")
+        return this.peek().startsWith("Added item") || this.peek().startsWith("Skipped items")
     }
 
-    getItemAdded(): Item {
+    getItemAdded(): Array<Item> {
         const line = this.readLine();
+        if (line.startsWith("Skipped items")) {
+            if (this.isTrace()) {
+                console.log("Skipped items")
+            }
+            return [];
+        }
+
+
         const item = IIDToItem(line.split(" ")[2]);
         if (this.isError() && item === Item.ItemMissing) {
             console.error("Failed to match added item", line);
+            this.sawError = true;
         } else if (this.isTrace()) {
             console.log("Added item", item)
         }
-        return item;
+        return [item];
     }
 
     // Effects follow the format:
@@ -570,6 +697,7 @@ class SpinParser {
     parseEffect(effectText: string): Effect {
         if (this.isError() && !effectText.startsWith("Effect - ")) {
             console.error(`Malformed effect: ${effectText}`);
+            this.sawError = true;
         }
         // strip first 9
         const effectOnly = effectText.slice(9);
@@ -582,6 +710,7 @@ class SpinParser {
             if (this.isError() && symbol == Symbol.Unknown) {
                 console.error(`Bad symbol effect source: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
+                this.sawError = true;
             }
             const x = Number(effectSource.split(" ")[1][3]);
             const y = Number(effectSource.split(" ")[2][2]);
@@ -589,6 +718,7 @@ class SpinParser {
             if (this.isError() && isNaN(index) || index < 0 || index > 19) {
                 console.error(`Bad symbol effect location: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
+                this.sawError = true;
             }
             source = { symbol, index };
         } else {
@@ -596,6 +726,7 @@ class SpinParser {
             if (this.isError() && item == Item.ItemMissing) {
                 console.error(`Bad item effect source: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
+                this.sawError = true;
             }
             source = item;
         }
@@ -629,6 +760,7 @@ class SpinParser {
             console.log("Original text", text)
             console.log("New text", fix7)
             console.error("Failed to parse JSON")
+            this.sawError = true;
             throw error;
         }
     }
@@ -656,6 +788,7 @@ class SpinParser {
         const symbol = IIDToSymbol(symOnly);
         if (symbol == Symbol.Unknown && this.isError()) {
             console.error(`Found unknown symbol: ${symOnly}`);
+            this.sawError = true;
         }
 
         const extras = this.parseExtras(symbolText);
@@ -678,6 +811,7 @@ class SpinParser {
 
         if (item == Item.ItemMissing && this.isError()) {
             console.error(`Found unknown item: ${itemOnly}`)
+            this.sawError = true;
         }
 
         const extras = this.parseExtras(itemText);
@@ -738,6 +872,7 @@ class SpinParser {
         const valueTextMatches = valueText.match(/(-?[0-9]+)(e[0-9]+)?(v[0-9]+)?(r[0-9]+)?/)
         if (!valueTextMatches || valueTextMatches.length != 5 || !valueTextMatches[0]) {
             console.error(`Failed to parse a value`, valueText)
+            this.sawError = true;
             throw new Error("Failed to parse value")
         }
 
@@ -750,11 +885,17 @@ class SpinParser {
     }
 
     // Used for internal recordkeeping upon ending
-    markEnd() {
+    markEnd(errored: boolean) {
         console.groupEnd()
+        if (errored || this.sawError) {
+            console.error(`Saw an error in spin ${this.spinNumber}.`);
+        }
     }
 
     peek(): string {
+        if (this.lineIdx >= this.lines.length) {
+            throw new SpinTextEndedError();
+        }
         return this.lines[this.lineIdx]
     }
 

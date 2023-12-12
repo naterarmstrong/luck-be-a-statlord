@@ -58,10 +58,9 @@ const UploadRuns: React.FC = () => {
 
     const selectFiles = (event: any) => {
         const fList: Array<File> = Array.from(event.target.files);
-        const newFiles = [...selectedFiles, ...fList];
-        // TODO: fix this to not allow duplicates here based on filenames
+        const oldFileSet = new Set(selectedFiles.map((f) => f.name));
+        const newFiles = [...selectedFiles, ...fList.filter((f) => !oldFileSet.has(f.name))];
         setSelectedFiles(newFiles);
-        console.log(newFiles)
     }
 
     const getRunDate = (date: number): string => {
