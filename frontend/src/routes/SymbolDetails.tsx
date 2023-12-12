@@ -19,6 +19,7 @@ export interface PairPerformance {
     GamesTogether: number,
     GamesApartSymbol1: number,
     GamesApartSymbol2: number,
+    TotalTotalGames: number,
 }
 
 export interface Ratings {
@@ -190,18 +191,10 @@ const SymbolDetails: React.FC = () => {
                 </Grid>
                 {pairPerf !== null ?
                     <Grid item xs={12}>
-                        <SymImg symbol={symbol} /> <SymImg symbol={secondarySymbol} />: {pairPerf.WinRateTogether}% win rate. {pairPerf.GamesTogether} Games. <br />
-                        <SymImg symbol={symbol} /> <SymImg symbol={Symbol.Dud} />: {pairPerf.WinRateSymbol1}% win rate. {pairPerf.GamesApartSymbol1} Games. <br />
-                        <SymImg symbol={Symbol.Dud} /> <SymImg symbol={secondarySymbol} />: {pairPerf.WinRateSymbol2}% win rate. {pairPerf.GamesApartSymbol2} Games. <br />
+                        <SymImg symbol={symbol} /> <SymImg symbol={secondarySymbol} />: {pairPerf.WinRateTogether}% win rate. {(100 * pairPerf.GamesTogether / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                        <SymImg symbol={symbol} /> <SymImg symbol={Symbol.Dud} />: {pairPerf.WinRateSymbol1}% win rate. {(100 * pairPerf.GamesApartSymbol1 / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                        <SymImg symbol={Symbol.Dud} /> <SymImg symbol={secondarySymbol} />: {pairPerf.WinRateSymbol2}% win rate. {(100 * pairPerf.GamesApartSymbol2 / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
                     </Grid> : null}
-                <Grid item xs={4}>
-                    <Typography variant="h6">
-                        With items:
-                    </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                    <ItemSelector item={secondaryItem} setItem={setSecondaryItem} />
-                </Grid>
             </Grid>
         </Grid>
     </Grid>;

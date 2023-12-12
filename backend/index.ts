@@ -15,7 +15,7 @@ import { sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, us
 import { reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
-import { QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
+import { Op, QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
 
 const secrets = dotenv.config();
 
@@ -301,6 +301,17 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
         }
     });
 
+    const totalGames = await Run.count({
+        where: {
+            date: {
+                [Op.gt]: 1668507128000
+            }
+        }
+    });
+
+    // ALSO TODO here: take patch parameters
+    console.log("Don't forget");
+
     const ret = {
         WinRateTogether: (statsTogether[0] as any).win_rate,
         WinRateSymbol1: (statsSymbol1[0] as any).win_rate,
@@ -308,6 +319,7 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
         GamesTogether: (statsTogether[0] as any).total_games,
         GamesApartSymbol1: (statsSymbol1[0] as any).total_games,
         GamesApartSymbol2: (statsSymbol2[0] as any).total_games,
+        TotalTotalGames: totalGames,
     }
 
     return res.status(200).send(ret);

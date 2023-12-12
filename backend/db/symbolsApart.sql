@@ -8,6 +8,7 @@ SELECT
 	WHERE
 			Runs.id = s1.RunId
 			AND s1.symbol = :symbol1
+			AND Runs.date > 1668507128000
 			AND NOT EXISTS (
 				SELECT 1 FROM SymbolDetails as s2 WHERE s2.RunId = Runs.id AND s2.symbol = :symbol2
 			);
