@@ -24,15 +24,15 @@ function newSpinSymbol(symbol: Symbol, extras: Extras): SpinSymbol {
 
 interface SpinItem {
     item: Item,
+    disabled?: boolean
     countdown?: number
 }
 
-function newSpinItem(item: Item, extras: Extras): SpinItem {
+function newSpinItem(item: Item, disabled: boolean, countdown?: number | undefined): SpinItem {
     return {
         item,
-        ...extras.countdown && { countdown: extras.countdown },
-        ...extras.bonus && { bonus: extras.bonus },
-        ...extras.multiplier && { multiplier: extras.multiplier },
+        ...disabled && { disabled },
+        ...countdown && { countdown },
     }
 }
 
@@ -95,11 +95,13 @@ enum DebugLevel {
 // 9. Item values after effects
 // 10. Destroyed symbols
 // 11. Destroyed items
-// 12. Gained coins
-// 13. Coin total
-// 14. OPTIONAL - victory
-// 15a. Added symbols or Skipped symbols (optional if VICTORY)
-// 15b. OPTIONAL - Added item
+// 12a. Added symbols or skipped symbols
+// 12b. destroyed item
+// 13. Gained coins
+// 14. Coin total
+// 15. OPTIONAL - victory
+// 16a. Added symbols or Skipped symbols (optional if VICTORY)
+// 16b. OPTIONAL - Added item
 export function parseSpin(spinText: string) {
     const DEBUG = DebugLevel.Trace;
     // Trim off the date from the start of each line
@@ -112,8 +114,8 @@ export function parseSpin(spinText: string) {
     const spinNum = sp.getSpinNumber();
     const coinsBefore = sp.getCoinsBefore();
     const finePrint = sp.getFinePrint();
-    const symbols = sp.getPreSpinSymbols();
-    const items = sp.getPreSpinItems();
+    const symbols = sp.getPreEffectSymbols();
+    const items = sp.getPreEffectItems();
     const effects = [];
     const midEffectItems = [];
     const midEffectSymbols = [];
@@ -122,22 +124,68 @@ export function parseSpin(spinText: string) {
     // error
     try {
         // TODO: Extend this loop to catch mid-effect symbol and item additions
-        while (!sp.isPostSpinLayout()) {
+        while (!sp.isPostEffectSymbols()) {
             if (sp.isEffect()) {
                 effects.push(sp.getEffect());
+            } else if (sp.isSymbolAdded()) {
+                sp.getSymbolAdded();
+            } else if (sp.isItemAdded()) {
+                sp.getItemAdded();
             } else {
                 // Skip items/symbols added mid-spin for now
-                sp.readLine();
+                console.error("Unknown event!", sp.readLine());
             }
         }
-        sp.getPostSpinSymbols();
+        if (sp.isTrace()) {
+            console.log("Effects", effects);
+        }
+        sp.getPostEffectSymbols();
         sp.getSymbolValues();
+        sp.getPostEffectItems();
+        sp.getPostEffectItemValues();
+        sp.getDestroyedSymbols();
+        sp.getDestroyedItems();
+        while (!sp.isGainedCoins()) {
+            if (sp.isItemAdded()) {
+                sp.getItemAdded();
+            } else if (sp.isItemDestroyed()) {
+                sp.getItemDestroyed();
+            } else if (sp.isSymbolAdded()) {
+                sp.getSymbolAdded();
+            } else {
+                console.error("Unknown event!", sp.readLine());
+            }
+        }
+        sp.getGainedCoins();
+        sp.getCoinTotal();
+
+        let victory = false;
+        if (sp.isVictory()) {
+            victory = sp.getVictory();
+        }
+
+        while (!sp.done()) {
+            if (sp.isItemAdded()) {
+                sp.getItemAdded();
+            } else if (sp.isSymbolAdded()) {
+                sp.getSymbolAdded();
+            } else {
+                console.error("Unknown event!", sp.readLine());
+            }
+        }
+
+        if (!sp.done()) {
+            console.error(`Lines left!! ${sp.lines.length} total, ${sp.lineIdx} index`)
+        }
+        sp.markEnd();
 
     } catch (error) {
         if (error instanceof SpinTextEndedError) {
+            sp.markEnd();
             console.error("Quit mid-spin.")
             return;
         }
+        sp.markEnd();
         throw error;
     }
 
@@ -166,7 +214,7 @@ class SpinParser {
             throw new Error(`Failed to detect spin number from text: ${this.lines[this.lineIdx - 1]}`);
         }
         if (this.isTrace()) {
-            console.log(`Spin number ${spinNum}`);
+            console.group(`Spin number ${spinNum}`);
         }
         return spinNum;
     }
@@ -193,7 +241,7 @@ class SpinParser {
         return finePrint;
     }
 
-    getPreSpinSymbols(): Array<SpinSymbol> {
+    getPreEffectSymbols(): Array<SpinSymbol> {
         const headerLine = this.readLine()
         if (this.isError()) {
             const spinLayoutMatch = headerLine.match("Spin layout before effects is:");
@@ -212,7 +260,7 @@ class SpinParser {
         return spinSymbols;
     }
 
-    getPreSpinItems(): Array<SpinItem> {
+    getPreEffectItems(): Array<SpinItem> {
         const headerLine = this.readLine()
         if (this.isError()) {
             const itemHeaderMatch = headerLine.match("Items before effects are:");
@@ -238,15 +286,19 @@ class SpinParser {
         return spinItems;
     }
 
-    getEffect() {
-        this.parseEffect(this.readLine())
+    isEffect() {
+        return this.peek().startsWith("Effect - ");
     }
 
-    isPostSpinLayout(): boolean {
+    getEffect(): Effect {
+        return this.parseEffect(this.readLine())
+    }
+
+    isPostEffectSymbols(): boolean {
         return this.peek().startsWith("Spin layout after effects is:");
     }
 
-    getPostSpinSymbols(): Array<SpinSymbol> {
+    getPostEffectSymbols(): Array<SpinSymbol> {
         const headerLine = this.readLine();
         if (this.isError()) {
             if (!headerLine.startsWith("Spin layout after effects is:")) {
@@ -296,8 +348,219 @@ class SpinParser {
         return values;
     }
 
-    isEffect() {
-        return this.peek().startsWith("Effect - ");
+    getPostEffectItems(): Array<SpinItem> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            const itemHeaderMatch = headerLine.match("There are [0-9]+ items:");
+            if (!itemHeaderMatch) {
+                console.log(`Could not find post effects items heading on line.`, headerLine)
+            }
+        }
+
+        const itemTexts = this.readLine().split("[")[1].split("]")[0].split(',').map((s) => s.trim());
+        if (this.isTrace()) {
+            console.log("Item texts:", itemTexts)
+        }
+        if (itemTexts.length === 1 && itemTexts[0] === "") {
+            return [];
+        }
+
+        const spinItems = itemTexts.map((s) => this.parseItem(s));
+
+        if (this.isTrace()) {
+            console.log("Spin Items:", spinItems);
+        }
+
+        return spinItems;
+    }
+
+    getPostEffectItemValues(): Array<EarnedValue> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            const itemHeaderMatch = headerLine.match("Item values after effects are:");
+            if (!itemHeaderMatch) {
+                console.log(`Could not find post effects items heading on line.`, headerLine)
+            }
+        }
+
+        const valueTexts = this.readLine().split("[")[1].split("]")[0].split(',').map((s) => s.trim());
+        if (this.isTrace()) {
+            console.log("Item value texts:", valueTexts)
+        }
+        if (valueTexts.length === 1 && valueTexts[0] === "") {
+            return [];
+        }
+
+        const values = valueTexts.map((s) => this.parseValue(s));
+
+        if (this.isTrace()) {
+            console.log("Item Values:", values);
+        }
+
+        return values;
+    }
+
+    getDestroyedSymbols(): Array<Symbol> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            const itemHeaderMatch = headerLine.match("There are [0-9]+ destroyed symbols:");
+            if (!itemHeaderMatch) {
+                console.log(`Could not find symbols destroyed heading on line.`, headerLine)
+            }
+        }
+
+        const symbolTexts = this.readLine().split("[")[1].split("]")[0].split(',').map((s) => s.trim());
+        if (symbolTexts.length === 1 && symbolTexts[0] === "") {
+            return [];
+        }
+
+        if (this.isTrace()) {
+            console.log("Destroyed symbol texts:", symbolTexts)
+        }
+
+        const symbols = symbolTexts.map((s) => IIDToSymbol(s));
+
+        if (this.isTrace()) {
+            console.log("Destroyed symbols:", symbols)
+        }
+
+        return symbols;
+    }
+
+    getDestroyedItems(): Array<Item> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            const itemHeaderMatch = headerLine.match("There are [0-9]+ destroyed items:");
+            if (!itemHeaderMatch) {
+                console.log(`Could not find items destroyed heading on line.`, headerLine)
+            }
+        }
+
+        const itemTexts = this.readLine().split("[")[1].split("]")[0].split(',').map((s) => s.trim());
+        if (itemTexts.length === 1 && itemTexts[0] === "") {
+            return [];
+        }
+
+        if (this.isTrace()) {
+            console.log("Destroyed item texts:", itemTexts)
+        }
+
+        const items = itemTexts.map((s) => IIDToItem(s));
+
+        if (this.isTrace()) {
+            console.log("Destroyed items:", items)
+        }
+
+        return items;
+    }
+
+    isItemDestroyed(): boolean {
+        return this.peek().startsWith("Destroyed item");
+    }
+
+    getItemDestroyed(): Item {
+        const line = this.readLine();
+
+        const item = IIDToItem(line.split(" ")[3]);
+
+        if (this.isError() && item === Item.ItemMissing) {
+            console.error("Failed to match destroyed item", line);
+        } else if (this.isTrace()) {
+            console.log("destroyed item", item)
+        }
+
+        return item;
+    }
+
+    isGainedCoins(): boolean {
+        return this.peek().startsWith("Gained");
+    }
+
+    getGainedCoins(): number {
+        const line = this.readLine();
+        const gainedCoinsMatch = line.match("Gained ([0-9]+) coins this spin")
+        if (!gainedCoinsMatch || gainedCoinsMatch.length !== 2 || isNaN(Number(gainedCoinsMatch[1]))) {
+            throw new Error(`Could not read gained coins in ${line}`)
+        }
+        if (this.isTrace()) {
+            console.log("Gained coins:", Number(gainedCoinsMatch[1]));
+        }
+
+        // TODO: Is it worthwhile to deal with removal, reroll, and essence tokens here?
+        while (this.peek().startsWith("Gained")) {
+            if (this.isTrace()) {
+                console.log(`Skipping line with tokens:`, this.peek());
+            }
+            this.readLine();
+        }
+
+        return Number(gainedCoinsMatch[1])
+    }
+
+    getCoinTotal(): number {
+        const line = this.readLine();
+        const coinTotalMatch = line.match("Coin total is now ([0-9]+) after spinning")
+
+        if (!coinTotalMatch || coinTotalMatch.length !== 2 || isNaN(Number(coinTotalMatch[1]))) {
+            throw new Error(`Could not read gained coins in ${line}`)
+        }
+
+        if (this.isTrace()) {
+            console.log("Total coins:", Number(coinTotalMatch[1]));
+        }
+
+        return Number(coinTotalMatch[1])
+    }
+
+    isVictory(): boolean {
+        return this.peek().startsWith("VICTORY");
+    }
+
+    getVictory(): boolean {
+        return this.readLine().startsWith("VICTORY");
+    }
+
+    isSymbolAdded(): boolean {
+        const s = this.peek();
+        return s.startsWith("Skipped symbols") || s.startsWith("Added symbols: ");
+    }
+
+    // Returns a single-item array if a symbol was added, or an empty array if not
+    getSymbolAdded(): Array<Symbol> {
+        const line = this.readLine();
+        if (line.startsWith("Skipped symbols")) {
+            if (this.isTrace()) {
+                console.log("Skipped symbols");
+            }
+            return [];
+        }
+
+        const symbolMatch = line.match(/Added symbols: \[(.*)\]/);
+        if (!symbolMatch) {
+            throw new Error(`Failed to match symbol added: ${line}`)
+        }
+
+        const symbol = IIDToSymbol(symbolMatch[1]);
+        if (symbol === Symbol.Unknown && this.isError()) {
+            console.error("Failed to match symbol", line);
+        }
+
+        return [symbol];
+    }
+
+    isItemAdded(): boolean {
+        return this.peek().startsWith("Added item")
+    }
+
+    getItemAdded(): Item {
+        const line = this.readLine();
+        const item = IIDToItem(line.split(" ")[2]);
+        if (this.isError() && item === Item.ItemMissing) {
+            console.error("Failed to match added item", line);
+        } else if (this.isTrace()) {
+            console.log("Added item", item)
+        }
+        return item;
     }
 
     // Effects follow the format:
@@ -402,14 +665,24 @@ class SpinParser {
 
     parseItem(itemText: string): SpinItem {
         const itemOnly = itemText.split("(")[0].trim();
-        const item = IIDToItem(itemOnly);
+        var disabled: boolean;
+        var item: Item;
+
+        if (itemOnly.endsWith("_d")) {
+            disabled = true;
+            item = IIDToItem(itemOnly.slice(0, itemOnly.length - 2));
+        } else {
+            disabled = false;
+            item = IIDToItem(itemOnly)
+        }
+
         if (item == Item.ItemMissing && this.isError()) {
             console.error(`Found unknown item: ${itemOnly}`)
         }
 
         const extras = this.parseExtras(itemText);
 
-        return newSpinItem(item, extras)
+        return newSpinItem(item, disabled, extras.countdown)
     }
 
     parseExtras(symbolOrItemText: string): Extras {
@@ -476,6 +749,11 @@ class SpinParser {
         return newEarnedValue(coins, rerolls, removals, essences);
     }
 
+    // Used for internal recordkeeping upon ending
+    markEnd() {
+        console.groupEnd()
+    }
+
     peek(): string {
         return this.lines[this.lineIdx]
     }
@@ -485,6 +763,10 @@ class SpinParser {
             throw new SpinTextEndedError();
         }
         return this.lines[this.lineIdx++];
+    }
+
+    done(): boolean {
+        return this.lineIdx >= this.lines.length || this.peek() == "";
     }
 
     isError(): boolean {
