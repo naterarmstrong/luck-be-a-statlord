@@ -36,6 +36,22 @@ function newSpinItem(item: Item, extras: Extras): SpinItem {
     }
 }
 
+interface EarnedValue {
+    coins: number
+    rerolls?: number
+    removals?: number
+    essences?: number
+}
+
+function newEarnedValue(coins: number, rerolls: number, removals: number, essences: number): EarnedValue {
+    return {
+        coins,
+        ...!isNaN(rerolls) && { rerolls },
+        ...!isNaN(removals) && { removals },
+        ...!isNaN(essences) && { essences },
+    }
+}
+
 interface Extras {
     countdown?: number
     bonus?: number
@@ -52,6 +68,7 @@ interface LocatedSymbol {
     symbol: Symbol,
     index: number,
 }
+
 
 class SpinTextEndedError extends Error { }
 
@@ -84,35 +101,38 @@ enum DebugLevel {
 // 15a. Added symbols or Skipped symbols (optional if VICTORY)
 // 15b. OPTIONAL - Added item
 export function parseSpin(spinText: string) {
-    const DEBUG = DebugLevel.Error;
+    const DEBUG = DebugLevel.Trace;
     // Trim off the date from the start of each line
     // The date is formatted as:
     // [MM/DD/YYYY HH:MM:SS] CONTENT
     // which is 22 characters long
     const lines = spinText.split("\n").map((s, i) => i > 0 ? s.split(" ").slice(2).join(" ") : s);
-    // 0th line is split so the number is the first thing. Use | to indicate the split
-    // [DATE] --- SPIN #|123 ---
-    const spinNum = Number(lines[0].match("([0-9]*)")?.[1]!);
-    if (isNaN(spinNum)) {
-        throw new Error(`Failed to detect spin number from text: ${lines[0]}`);
-    }
-    const coinsBefore = Number(lines[1].match("Currently have ([0-9]*) coins")?.[1]!);
-    if (isNaN(coinsBefore)) {
-        throw new Error(`Failed to detect coins from text: ${lines[1]}`);
-    }
-    const st = new SpinParser(lines, 2, DEBUG);
+    const sp = new SpinParser(lines, DEBUG);
 
-    const finePrint = st.getFinePrint();
-    const symbols = st.getPreSpinSymbols();
-    const items = st.getPreSpinItems();
+    const spinNum = sp.getSpinNumber();
+    const coinsBefore = sp.getCoinsBefore();
+    const finePrint = sp.getFinePrint();
+    const symbols = sp.getPreSpinSymbols();
+    const items = sp.getPreSpinItems();
     const effects = [];
+    const midEffectItems = [];
+    const midEffectSymbols = [];
 
     // From here, it is possible for the player to quit at any point. `st.readLine` will throw the
     // error
     try {
-        while (st.isEffect()) {
-            effects.push(st.getEffect());
+        // TODO: Extend this loop to catch mid-effect symbol and item additions
+        while (!sp.isPostSpinLayout()) {
+            if (sp.isEffect()) {
+                effects.push(sp.getEffect());
+            } else {
+                // Skip items/symbols added mid-spin for now
+                sp.readLine();
+            }
         }
+        sp.getPostSpinSymbols();
+        sp.getSymbolValues();
+
     } catch (error) {
         if (error instanceof SpinTextEndedError) {
             console.error("Quit mid-spin.")
@@ -123,7 +143,8 @@ export function parseSpin(spinText: string) {
 
 }
 
-const spinLineRegex = /\[([^,]*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\]/;
+const spinLineRegex = /\[(\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^)]*\))?)\]/;
+const valueLineRegex = /\[(-?\w+), (-?\w+), (-?\w+), (-?\w+), (-?\w+)\]/
 
 class SpinParser {
     lines: Array<string>
@@ -131,10 +152,31 @@ class SpinParser {
     // Whether or not to print detailed debug output on the parsing of the spin
     debug: DebugLevel
 
-    constructor(lines: Array<string>, lineIdx: number, debug: DebugLevel) {
+    constructor(lines: Array<string>, debug: DebugLevel) {
         this.lines = lines;
-        this.lineIdx = lineIdx;
+        this.lineIdx = 0;
         this.debug = debug;
+    }
+
+    getSpinNumber(): number {
+        // 0th line is split so the number is the first thing. Use | to indicate the split
+        // [DATE] --- SPIN #|123 ---
+        const spinNum = Number(this.readLine().split(" ")[0]);
+        if (isNaN(spinNum)) {
+            throw new Error(`Failed to detect spin number from text: ${this.lines[this.lineIdx - 1]}`);
+        }
+        if (this.isTrace()) {
+            console.log(`Spin number ${spinNum}`);
+        }
+        return spinNum;
+    }
+
+    getCoinsBefore(): number {
+        const coinsBeforeMatch = this.readLine().match("Currently have ([0-9]*) coins")?.[1];
+        if (!coinsBeforeMatch || isNaN(Number(coinsBeforeMatch))) {
+            throw new Error(`Failed to detect spin number from text: ${this.lines[this.lineIdx - 1]}`);
+        }
+        return Number(coinsBeforeMatch);
     }
 
     getFinePrint(): Array<number> | null {
@@ -159,21 +201,8 @@ class SpinParser {
                 console.log(`Could not find pre effects layout heading on line.`, headerLine)
             }
         }
-        const symbolTexts = [];
-        for (let i = 0; i < 4; i++) {
-            const symbolLine = this.readLine();
-            const symbolLineMatch = symbolLine.match(spinLineRegex);
-            if (!symbolLineMatch) {
-                console.log(`Could not find spin layout on line.`, symbolLine);
-                throw new Error("Failed to see pre-spin.")
-            }
-            symbolTexts.push(...symbolLineMatch?.slice(1));
-        }
 
-        if (this.isTrace()) {
-            console.log(`Symbol texts:`, symbolTexts);
-        }
-
+        const symbolTexts = this.getSymbolTexts();
         const spinSymbols = symbolTexts.map((s) => this.parseSymbol(s));
 
         if (this.isTrace()) {
@@ -211,6 +240,60 @@ class SpinParser {
 
     getEffect() {
         this.parseEffect(this.readLine())
+    }
+
+    isPostSpinLayout(): boolean {
+        return this.peek().startsWith("Spin layout after effects is:");
+    }
+
+    getPostSpinSymbols(): Array<SpinSymbol> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            if (!headerLine.startsWith("Spin layout after effects is:")) {
+                console.log(`Could not find post effects layout heading on line.`, headerLine)
+            }
+        }
+
+        const symbolTexts = this.getSymbolTexts();
+        const spinSymbols = symbolTexts.map((s) => this.parseSymbol(s));
+
+        if (this.isTrace()) {
+            console.log(spinSymbols);
+        }
+
+        return spinSymbols;
+    }
+
+    getSymbolValues(): Array<EarnedValue> {
+        const headerLine = this.readLine();
+        if (this.isError()) {
+            if (!headerLine.startsWith("Symbol values after effects are:")) {
+                console.log(`Could not find values heading on line.`, headerLine)
+            }
+        }
+
+        const valueTexts = [];
+        for (let i = 0; i < 4; i++) {
+            const valueLine = this.readLine();
+            const valueLineMatch = valueLine.match(valueLineRegex);
+            if (!valueLineMatch) {
+                console.log(`Could not find value layout on line.`, valueLine);
+                throw new Error("Failed to see values.")
+            }
+            valueTexts.push(...valueLineMatch?.slice(1));
+        }
+
+        if (this.isTrace()) {
+            console.log(`Value texts:`, valueTexts)
+        }
+
+        const values = valueTexts.map((s) => this.parseValue(s));
+
+        if (this.isTrace()) {
+            console.log(`Values`, values)
+        }
+
+        return values;
     }
 
     isEffect() {
@@ -285,7 +368,24 @@ class SpinParser {
             console.error("Failed to parse JSON")
             throw error;
         }
+    }
 
+    getSymbolTexts(): Array<string> {
+        const symbolTexts = [];
+        for (let i = 0; i < 4; i++) {
+            const symbolLine = this.readLine();
+            const symbolLineMatch = symbolLine.match(spinLineRegex);
+            if (!symbolLineMatch) {
+                console.log(`Could not find spin layout on line.`, symbolLine);
+                throw new Error("Failed to see post-spin.")
+            }
+            symbolTexts.push(...symbolLineMatch?.slice(1));
+        }
+
+        if (this.isTrace()) {
+            console.log(`Symbol texts:`, symbolTexts);
+        }
+        return symbolTexts;
     }
 
     parseSymbol(symbolText: string): SpinSymbol {
@@ -352,6 +452,28 @@ class SpinParser {
         }
 
         return { countdown, bonus, multiplier, direction }
+    }
+
+    parseValue(valueText: string): EarnedValue {
+        // Values look like 
+        // 12e1v1r1
+        // Where:
+        // - e is for essence tokens
+        // - v is for removal tokens
+        // - r is for reroll tokens
+        // If the tokens are not present, they will not appear at all
+        const valueTextMatches = valueText.match(/(-?[0-9]+)(e[0-9]+)?(v[0-9]+)?(r[0-9]+)?/)
+        if (!valueTextMatches || valueTextMatches.length != 5 || !valueTextMatches[0]) {
+            console.error(`Failed to parse a value`, valueText)
+            throw new Error("Failed to parse value")
+        }
+
+        const coins = Number(valueTextMatches[1]);
+        const essences = Number(valueTextMatches[2]?.slice(1))
+        const removals = Number(valueTextMatches[3]?.slice(1))
+        const rerolls = Number(valueTextMatches[4]?.slice(1))
+
+        return newEarnedValue(coins, rerolls, removals, essences);
     }
 
     peek(): string {
