@@ -10,6 +10,7 @@ import Cookies from "universal-cookie";
 import Profile from "./routes/Profile";
 import MainPage from "./routes/MainPage";
 import SymbolDetails from "./routes/SymbolDetails";
+import PurplePepperCalculator from "./routes/PurplePepperCalculator";
 
 const darkTheme = createTheme({
   palette: {
@@ -48,6 +49,7 @@ const App: React.FC = () => {
             <Route path="/symbolDetails" element={<SymbolDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
           </Routes>
         </Layout>
       </userContext.Provider>
