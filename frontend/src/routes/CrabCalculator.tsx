@@ -45,10 +45,15 @@ const CrabCalculator: React.FC = () => {
     const [calcCrabs, setCalcCrabs] = useState<number>(0);
 
     const calculate = () => {
+        if (crabs == 0) {
+            return
+        }
         // The number of lines that have 0-5 crabs
         const lineCounts = [0, 0, 0, 0, 0, 0]
         // The number of _trials_ that have a line with at least X crabs
         const highestCounts = [0, 0, 0, 0, 0, 0]
+
+        let crabShows = 0;
 
         let totalCoins = 0;
         for (let i = 0; i < trials; i++) {
@@ -57,6 +62,7 @@ const CrabCalculator: React.FC = () => {
             totalCoins += coinsFromCounts(trialCounts);
             for (let i = 0; i < 6; i++) {
                 lineCounts[i] += trialCounts[i];
+                crabShows += i * trialCounts[i];
             }
             for (let i = 5; i >= 0; i--) {
                 if (trialCounts[i] > 0) {
@@ -71,7 +77,7 @@ const CrabCalculator: React.FC = () => {
 
         setLineOdds(lineCounts.map((x) => x / (4 * trials)));
         setSpinOdds(highestCounts.map((x) => x / trials))
-        setCoinTotal(totalCoins / (trials * Math.min(crabs, 20)));
+        setCoinTotal(totalCoins / crabShows);
         setCalcCrabs(crabs);
     }
 
