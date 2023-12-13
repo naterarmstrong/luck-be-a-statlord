@@ -40,13 +40,12 @@ const Header: React.FC = () => {
                             Symbol Details
                         </Typography>
                     </Link>
-                    <Button id="tools-button" onClick={handleClick} sx={{ mr: 2, ml: 2, textShadow: "inherit", textTransform: "none", border: "none", textDecoration: "underline", textDecorationColor: "rgba(144, 202, 249, 0.4)", '&:hover': { textDecoration: "underline", textDecorationColor: "rgba(144, 202, 249, 0.4)" } }} variant="outlined">
-                        <Typography variant="h6" lineHeight={1}>
+                    <Link onClick={handleClick} sx={{ mr: 2, ml: 2, textShadow: "inherit" }} component="button">
+                        <Typography variant="h6">
                             Tools
                         </Typography>
-                    </Button>
+                    </Link>
                     <Menu
-                        id="tools-menu"
                         anchorEl={toolsAnchorEl}
                         open={Boolean(toolsAnchorEl)}
                         onClose={handleClose}
