@@ -28,6 +28,11 @@ const Header: React.FC = () => {
                             Symbol Details
                         </Typography>
                     </Link>
+                    <Link href="/purplePepperCalculator" sx={{ mr: 2, ml: 2 }}>
+                        <Typography variant="h6">
+                            Tools
+                        </Typography>
+                    </Link>
                     <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6" color={"green"}>
                             Upload Runs

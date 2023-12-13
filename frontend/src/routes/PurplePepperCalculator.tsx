@@ -2,6 +2,7 @@ import { Button, Grid, TextField, Typography } from "@mui/material";
 import SymImg from "../components/SymImg";
 import { Symbol } from "../common/models/symbol";
 import { Item } from "../common/models/item";
+import { shuffle, adjacentIdxs } from "../utils/simulate";
 import { useState } from "react";
 import React from "react";
 
@@ -32,90 +33,6 @@ const classify_trues = (trues: Array<number>) => {
     true_classes.set(s, (true_classes.get(s) ?? 0) + 1)
 }
 
-const shuffle = (duplicates: number, count: number): Array<boolean> => {
-    const a: Array<boolean> = [];
-    for (let i = 0; i < duplicates; i++) {
-        a.push(true);
-    }
-    for (let i = 0; i < (count - duplicates); i++) {
-        a.push(false);
-    }
-
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
-    }
-
-    return a.slice(0, 20);
-}
-
-const generateAllWith3 = (): Array<Array<boolean>> => {
-    let boards = [];
-    for (let i = 0; i < 20; i++) {
-        for (let j = i + 1; j < 20; j++) {
-            for (let k = j + 1; k < 20; k++) {
-                let board = [];
-                for (let l = 0; l < 20; l++) {
-                    board.push(i == l || j == l || k == l ? true : false);
-                }
-                boards.push(board);
-            }
-        }
-    }
-
-    return boards;
-}
-
-const generateAllWith4 = (): Array<Array<boolean>> => {
-    let boards = [];
-    for (let i = 0; i < 20; i++) {
-        for (let j = i + 1; j < 20; j++) {
-            for (let k = j + 1; k < 20; k++) {
-                for (let l = k + 1; l < 20; l++) {
-                    let board = [];
-                    for (let m = 0; m < 20; m++) {
-                        board.push(i == m || j == m || k == m || l == m ? true : false);
-                    }
-                    boards.push(board);
-                }
-            }
-        }
-    }
-
-    return boards;
-}
-
-const printBoard = (nums: Array<boolean>, success: boolean) => {
-    const symbol = (s: boolean): string => {
-        return s ? "X" : "O"
-    }
-    console.log(`Triggered: ${String(success)}`)
-    let boardString = "";
-    for (let y = 0; y < 4; y++) {
-        let xs = [0, 1, 2, 3, 4];
-        boardString += `    ${xs.map((x) => symbol(nums[5 * y + x])).join("")}\n`;
-    }
-    console.log(boardString)
-}
-
-// Returns the list of adjacent indices
-const adjacentIdxs = (idx: number): Array<number> => {
-    let adjacencies = [];
-    const x = idx % 5;
-    const y = Math.floor(idx / 5);
-    for (let dx = -1; dx < 2; dx++) {
-        for (let dy = -1; dy < 2; dy++) {
-            let nx = x + dx;
-            let ny = y + dy;
-            if (nx >= 0 && nx < 5 && ny >= 0 && ny < 4) {
-                adjacencies.push(ny * 5 + nx);
-            }
-        }
-    }
-    return adjacencies;
-}
 
 // Returns true if there are 3 or more 'true' values adjacent in nums, where nums represents a 4x5
 // matrix in row-major order
