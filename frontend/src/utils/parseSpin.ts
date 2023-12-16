@@ -3,6 +3,7 @@ import { ArrowDirections, Symbol, SymbolUtils } from "../common/models/symbol";
 import { IIDToSymbol, IID_TO_SYMBOL } from "./symbol";
 import { Item } from "../common/models/item";
 import { IIDToItem } from "./item";
+import { SemanticVersion } from "../common/utils/version";
 
 interface SpinSymbol {
     symbol: Symbol
@@ -184,6 +185,8 @@ export function parseSpin(spinText: string, version: string) {
                 sp.getItemAdded();
             } else if (sp.isSymbolAdded()) {
                 sp.getSymbolAdded();
+            } else if (sp.isContinuing()) {
+                sp.handleContinuing();
             } else if (sp.isItemDestroyed()) {
                 sp.getItemDestroyed();
             } else if (sp.isItemDestroyCounter()) {
@@ -193,7 +196,9 @@ export function parseSpin(spinText: string, version: string) {
                 // triggers, the spin layout, values, items, item values, destroyed symbol, and
                 // destroyed items get logged _as though there were no effects_. Then, it will be a
                 // 'destroyed item' and back to normal. Very strange.
-                console.log("Discovered weird coffee bug.")
+                if (sp.isTrace()) {
+                    console.log("Discovered weird coffee bug.")
+                }
                 sp.getPostEffectSymbols();
                 sp.getSymbolValues();
                 sp.getPostEffectItems();
@@ -202,7 +207,13 @@ export function parseSpin(spinText: string, version: string) {
                 sp.getDestroyedItems();
 
                 // We care about this one
-                destroyedItems.push(sp.getItemDestroyed());
+                while (sp.isItemDestroyed() || sp.isItemDestroyCounter()) {
+                    if (sp.isItemDestroyed()) {
+                        destroyedItems.push(sp.getItemDestroyed());
+                    } else if (sp.isItemDestroyCounter()) {
+                        sp.getItemDestroyCounter()
+                    }
+                }
 
                 sp.getGainedCoins();
                 sp.getCoinTotal();
@@ -233,10 +244,11 @@ export function parseSpin(spinText: string, version: string) {
 
 const spinLineRegex = /\[(\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^)]*\))?)\]/;
 const valueLineRegex = /\[(-?\w+), (-?\w+), (-?\w+), (-?\w+), (-?\w+)\]/
+const OLDEST_EFFECT_VERSION = new SemanticVersion("v0.9.0");
 
 class SpinParser {
     // The version can be necessary to handle different log behavior across different game versions
-    version: string
+    version: SemanticVersion
 
     lines: Array<string>
     lineIdx: number
@@ -248,7 +260,7 @@ class SpinParser {
     spinNumber?: number
 
     constructor(version: string, lines: Array<string>, debug: DebugLevel) {
-        this.version = version;
+        this.version = new SemanticVersion(version);
         this.lines = lines;
         this.lineIdx = 0;
         this.debug = debug;
@@ -346,7 +358,11 @@ class SpinParser {
     }
 
     getEffect(): Effect {
-        return this.parseEffect(this.readLine())
+        if (this.version.newerThan(OLDEST_EFFECT_VERSION)) {
+            return this.parseEffect(this.readLine())
+        }
+        this.readLine();
+        return { source: Item.ItemMissing, effect: "TOO OLD" }
     }
 
     isPostEffectSymbols(): boolean {
@@ -516,13 +532,13 @@ class SpinParser {
     }
 
     isItemDestroyed(): boolean {
-        return this.peek().startsWith("Destroyed item");
+        return this.peek().startsWith("Destroyed item") || this.peek().startsWith("Manually destroyed item");
     }
 
     getItemDestroyed(): Item {
         const line = this.readLine();
 
-        const item = IIDToItem(line.split(" ")[3]);
+        const item = line.startsWith("Destroyed item") ? IIDToItem(line.split(" ")[3]) : IIDToItem(line.split(" ")[4]);
 
         if (this.isError() && item === Item.ItemMissing) {
             console.error("Failed to match destroyed item", line);
@@ -556,12 +572,12 @@ class SpinParser {
 
     getGainedCoins(): number {
         const line = this.readLine();
-        const gainedCoinsMatch = line.match("Gained (-?[0-9]+) coins this spin")
-        if (!gainedCoinsMatch || gainedCoinsMatch.length !== 2 || isNaN(Number(gainedCoinsMatch[1]))) {
+        const gainedCoinsMatch = line.match("Gained (-?[0-9]+|inf) coins this spin")
+        if (!gainedCoinsMatch || gainedCoinsMatch.length !== 2 || (isNaN(Number(gainedCoinsMatch[1])) && gainedCoinsMatch[1] !== "inf")) {
             throw new Error(`Could not read gained coins in ${line}`)
         }
         if (this.isTrace()) {
-            console.log("Gained coins:", Number(gainedCoinsMatch[1]));
+            console.log("Gained coins:", gainedCoinsMatch[1]);
         }
 
         // TODO: Is it worthwhile to deal with removal, reroll, and essence tokens here?
@@ -572,14 +588,14 @@ class SpinParser {
             this.readLine();
         }
 
-        return Number(gainedCoinsMatch[1])
+        return gainedCoinsMatch[1] === "inf" ? Number.POSITIVE_INFINITY : Number(gainedCoinsMatch[1])
     }
 
     getCoinTotal(): number {
         const line = this.readLine();
-        const coinTotalMatch = line.match("Coin total is now (-?[0-9]+) after spinning")
+        const coinTotalMatch = line.match("Coin total is now (-?[0-9]+|inf) after spinning")
 
-        if (!coinTotalMatch || coinTotalMatch.length !== 2 || isNaN(Number(coinTotalMatch[1]))) {
+        if (!coinTotalMatch || coinTotalMatch.length !== 2 || (isNaN(Number(coinTotalMatch[1])) && coinTotalMatch[1] !== "inf")) {
             throw new Error(`Could not read gained coins in ${line}`)
         }
 
@@ -587,7 +603,7 @@ class SpinParser {
             console.log("Total coins:", Number(coinTotalMatch[1]));
         }
 
-        return Number(coinTotalMatch[1])
+        return coinTotalMatch[1] === "inf" ? Number.POSITIVE_INFINITY : Number(coinTotalMatch[1])
     }
 
     isVictory(): boolean {
@@ -627,17 +643,17 @@ class SpinParser {
     // that the breakpoint is v0.13.2, based on the patch notes.
     handleContinuing() {
         // TODO: handle this better
-        // continuing
-        this.readLine();
-        this.readLine();
+        this.readLine(); // continue line
+        this.readLine(); // version line
         while (!this.done() && this.isItemAdded()) {
+            // TODO: If the item is new, then we have reached the end of item re-adding
             this.getItemAdded();
         }
     }
 
     isSymbolAdded(): boolean {
         const s = this.peek();
-        return s.startsWith("Skipped symbols") || s.startsWith("Added symbols: ");
+        return s.startsWith("Skipped symbols") || s.startsWith("Added symbol");
     }
 
     // Returns a single-item array if a symbol was added, or an empty array if not
@@ -650,7 +666,15 @@ class SpinParser {
             return [];
         }
 
-        const symbolTexts = line.split("[")[1].split("]")[0].split(",").map((s) => s.trim());
+        var symbolTexts: string[]
+        if (line.startsWith("Added symbols: ")) {
+            symbolTexts = line.split("[")[1].split("]")[0].split(",").map((s) => s.trim());
+        } else if (line.startsWith("Added symbol: ")) {
+            symbolTexts = [line.split(" ")[2]]
+        } else {
+            throw new Error("Failed to parse symbol being added")
+        }
+
 
         if (this.isTrace()) {
             console.log("Added symbol texts", symbolTexts)
@@ -751,14 +775,17 @@ class SpinParser {
         const fix5 = fix4.replace(/\b([a-zA-Z]\w*):/gm, '"$1":');
         // Fix arrays of size 1
         const fix6 = fix5.replace(/\[(\w+)\]/gm, '["$1"]');
-        // Fix arrays of size 2 and 3
-        const fix7 = fix6.replace(/\[(\w+), (\w+)\]/gm, '["$1", "$2"]').replace(/\[(\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3"]');
+        // Fix arrays of size 2, 3, and 6. These almost always correspond to time capsules with
+        // capsule machine, the essence, and/or both. More than that really deserves a better
+        // solution
+        const fix7 = fix6.replace(/\[(\w+), (\w+)\]/gm, '["$1", "$2"]').replace(/\[(\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3"]').replace(/\[(\w+), (\w+), (\w+), (\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3", "$4", "$5", "$6"]');
+        const fix8 = fix7.replace(/"tiles_to_add":\[\w+, \w+, \w+, \w+, \w+, \w+, \w+, (.*)\]/gm, '"tiles_to_add": "many"')
 
         try {
-            return JSON.parse(fix7);
+            return JSON.parse(fix8);
         } catch (error) {
             console.log("Original text", text)
-            console.log("New text", fix7)
+            console.log("New text", fix8)
             console.error("Failed to parse JSON")
             this.sawError = true;
             throw error;
@@ -863,20 +890,19 @@ class SpinParser {
 
     parseValue(valueText: string): EarnedValue {
         // Values look like 
-        // 12e1v1r1
+        // 12e1v1r1 | inf
         // Where:
         // - e is for essence tokens
         // - v is for removal tokens
         // - r is for reroll tokens
         // If the tokens are not present, they will not appear at all
-        const valueTextMatches = valueText.match(/(-?[0-9]+)(e[0-9]+)?(v[0-9]+)?(r[0-9]+)?/)
-        if (!valueTextMatches || valueTextMatches.length != 5 || !valueTextMatches[0]) {
+        const valueTextMatches = valueText.match(/(-?[0-9]+|inf)(e[0-9]+)?(v[0-9]+)?(r[0-9]+)?/)
+        if (!valueTextMatches || valueTextMatches.length != 5 || valueTextMatches[0] === undefined) {
             console.error(`Failed to parse a value`, valueText)
             this.sawError = true;
             throw new Error("Failed to parse value")
         }
-
-        const coins = Number(valueTextMatches[1]);
+        let coins = valueTextMatches[1] === "inf" ? Number.POSITIVE_INFINITY : Number(valueTextMatches[1]);
         const essences = Number(valueTextMatches[2]?.slice(1))
         const removals = Number(valueTextMatches[3]?.slice(1))
         const rerolls = Number(valueTextMatches[4]?.slice(1))
@@ -886,7 +912,9 @@ class SpinParser {
 
     // Used for internal recordkeeping upon ending
     markEnd(errored: boolean) {
-        console.groupEnd()
+        if (this.isTrace()) {
+            console.groupEnd()
+        }
         if (errored || this.sawError) {
             console.error(`Saw an error in spin ${this.spinNumber}.`);
         }

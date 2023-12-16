@@ -87,8 +87,8 @@ const UploadRuns: React.FC = () => {
                 await pauseExecution();
             }
             const text = await file.text();
-            console.log(`Processing run ${file.name}`);
             try {
+                console.log(`Processing run ${file.name}`)
                 const processed = processRun(text);
                 var outcome: string;
                 if (processed.victory) {

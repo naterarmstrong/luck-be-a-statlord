@@ -111,6 +111,7 @@ const pear = require("../img/pear.png");
 const pearl = require("../img/pearl.png");
 const pirate = require("../img/pirate.png");
 const pinata = require("../img/pinata.png");
+const plum = require("../img/plum.png");
 const present = require("../img/present.png");
 const pufferfish = require("../img/pufferfish.png");
 const rabbit = require("../img/rabbit.png");
@@ -279,6 +280,7 @@ export const IID_TO_SYMBOL: Map<string, Symbol> = new Map([
     // I will keep the special character out of code for now
     ["piñata", Symbol.Pinata],
     ["pinata", Symbol.Pinata],
+    ["plum", Symbol.Plum],
     ["present", Symbol.Present],
     ["pufferfish", Symbol.Pufferfish],
     ["rabbit", Symbol.Rabbit],
@@ -434,6 +436,7 @@ export const SYMBOL_TO_IMG: Map<Symbol, string> = new Map([
     [Symbol.Pearl, pearl],
     [Symbol.Pirate, pirate],
     [Symbol.Pinata, pinata],
+    [Symbol.Plum, plum],
     [Symbol.Present, present],
     [Symbol.Pufferfish, pufferfish],
     [Symbol.Rabbit, rabbit],
