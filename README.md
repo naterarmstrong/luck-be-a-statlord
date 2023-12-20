@@ -23,7 +23,7 @@ Call the initial symbol (in this case, `milk`) the `primary` symbol.
 
 Here are some of the values, and what they mean:
 
-- `type`: This means that the `primary` symbol has been _transformed_ into the current `primary` symbol. In order to determine the previous symbol at that location, it is necessary to check what was at the location of the effect. The new value can be seen by the `primary`, or by the `diff`, which will contain the new symbol.
+- `type`: This means that the `primary` symbol has been _transformed_ into the current `primary` symbol. In order to determine the previous symbol at that location, it is necessary to check what was at the location of the effect, or look at the first comparison of the effect. The new value can be seen by the `primary`, or by the `diff`, which will contain the new symbol.
 - `destroyed`: This means that the `primary` symbol will be destroyed.
 - `removed`: This means that the `primary` symbol will be removed.
 - `value_bonus`: If there is a `target` symbol, it is an additive increase to the coins given by the `target`. Otherwise, it is an additive increase to the coins given by the `primary`.
@@ -35,6 +35,7 @@ Here are some of the values, and what they mean:
 - `saved_value`: This is used by items that trigger periodically, as well as essences that need to wait a certain number of spins.
 - `permanent_bonus`: This is used for eaters (Ms. Fruit, Diver, etc) and symbols that grow in value (Amethyst, Pear) to permanently increase their value. The amount it increases by can be determined from the `diff`.
 - `permanent_bonuses`: This is used for essences, and permanently changes things for a subset of symbols. An example of a permanent bonus triggering is below. The `diff` describes what the bonus is, and what symbols it applies to.
+- `wildcarded`: This is used when a symbol acts as a wildcard. Once a symbol has `wildcarded` set to true, it is evaluated as a wildcard in later value calculations. Wildcards are evaluated last.
 
 ```
 [12/7/2023 19:27:14] Effect - ricky_the_banana_essence: {comparisons:[{a:symbol_trigger, b:True}], diff:True, value_to_change:destroyed}

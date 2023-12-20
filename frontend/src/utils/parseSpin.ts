@@ -4,6 +4,38 @@ import { IIDToSymbol, IID_TO_SYMBOL } from "./symbol";
 import { Item } from "../common/models/item";
 import { IIDToItem } from "./item";
 import { SemanticVersion } from "../common/utils/version";
+import { Effect } from "./parseEffect";
+
+export interface SpinData {
+    victory: boolean
+
+    number: number
+    // There's some funkiness going on with coin numbers
+    currentCoins: number
+    coinsGained: number
+    coinTotal: number
+
+    // Don't bother including fine print, because we can't disambiguate fine print definitions
+    // easily regardless. Not only that, fine print effects are shown in effects when relevant
+
+    preEffectItems: Array<SpinItem>
+    preEffectLayout: Array<SpinSymbol>
+    // Not all effects will be serialized. Should design an efficient storage format for effects,
+    // because otherwise they take so much
+    postEffectLayout: Array<SpinSymbol>
+    postEffectItems: Array<SpinItem>
+    symbolValues: Array<EarnedValue>
+    itemValues: Array<EarnedValue>
+
+    itemsDestroyed: Array<Item>
+    symbolsDestroyed: Array<Symbol>
+    symbolsTransformed: Array<Symbol>
+
+    itemsAddedNoChoice: Array<Item>
+    symbolsAddedNoChoice: Array<Symbol>
+    itemsAddedChoice: Array<Item>
+    symbolsAddedChoice: Array<Symbol>
+}
 
 interface SpinSymbol {
     symbol: Symbol
@@ -60,12 +92,7 @@ interface Extras {
     direction?: ArrowDirections
 }
 
-interface Effect {
-    source: Item | LocatedSymbol,
-    effect: any,
-}
-
-interface LocatedSymbol {
+export interface LocatedSymbol {
     symbol: Symbol,
     index: number,
 }
@@ -103,7 +130,7 @@ enum DebugLevel {
 // 15. OPTIONAL - victory
 // 16a. Added symbols or Skipped symbols (optional if VICTORY)
 // 16b. OPTIONAL - Added item
-export function parseSpin(spinText: string, version: string) {
+export function parseSpin(spinText: string, version: string): SpinData | null {
     const DEBUG = DebugLevel.Error;
     // Trim off the date from the start of each line
     // The date is formatted as:
@@ -114,28 +141,63 @@ export function parseSpin(spinText: string, version: string) {
 
     const spinNum = sp.getSpinNumber();
     const coinsBefore = sp.getCoinsBefore();
-    const finePrint = sp.getFinePrint();
+    // Ignore fine print, as we can't do anything about it anyways
+    sp.getFinePrint();
     const symbols = sp.getPreEffectSymbols();
     const items = sp.getPreEffectItems();
-    const effects = [];
-    const midEffectItems = [];
-    const midEffectSymbols = [];
-    let postEffectItems = [];
-    let destroyedItems = [];
+
+    const effects: Effect[] = [];
+    const itemsAddedNoChoice = [];
+    const symbolsAddedNoChoice = [];
+    const itemsAddedChoice = [];
+    const symbolsAddedChoice = [];
+    const destroyedItems = [];
+    const destroyedSymbols: Array<Symbol> = [];
+    const removedSymbols: Array<Symbol> = [];
+    const transformedSymbols: Array<Symbol> = [];
 
     let sawError = false;
 
     // From here, it is possible for the player to quit at any point. `st.readLine` will throw the
     // error
     try {
-        // TODO: Extend this loop to catch mid-effect symbol and item additions
+        // Before we see the first effect, any symbols added were by choice. TODO: Verify that
+        let sawEffect = false;
         while (!sp.isPostEffectSymbols()) {
             if (sp.isEffect()) {
-                effects.push(sp.getEffect());
+                const effect = sp.getEffect();
+
+                if (effect.isSymbolDestroyed()) {
+                    if (effects.length === 0 || !effects[effects.length - 1].equals(effect)) {
+                        destroyedSymbols.push(effect.getSymbolDestroyed())
+                    }
+                }
+                if (effect.isSymbolRemoved()) {
+                    console.log(`Saw a removal of ${effect.getSymbolRemoved()}`, effect)
+                    removedSymbols.push(effect.getSymbolRemoved())
+                }
+                if (effect.isSymbolTransformed()) {
+                    // After a symbol is removed, there is a transformation like this for some reason
+                    if ((effect.source as LocatedSymbol).symbol !== Symbol.Empty) {
+                        const { before, after } = effect.getSymbolTransformed();
+                        transformedSymbols.push(before);
+                        symbolsAddedNoChoice.push(after);
+                        console.log(`Saw a transformation from ${before} to ${after}`, effect)
+                    }
+                }
+
+                effects.push(effect);
+                sawEffect = true;
             } else if (sp.isSymbolAdded()) {
-                sp.getSymbolAdded();
+                const symsAdded = sp.getSymbolAdded();
+                if (sawEffect) {
+                    symbolsAddedNoChoice.push(...symsAdded);
+                } else {
+                    symbolsAddedChoice.push(...symsAdded);
+                }
             } else if (sp.isItemAdded()) {
-                sp.getItemAdded();
+                const itemsAdded = sp.getItemAdded();
+                itemsAddedNoChoice.push(...itemsAdded);
             } else if (sp.isItemDestroyCounter()) {
                 sp.getItemDestroyCounter();
             } else if (sp.isItemDestroyed()) {
@@ -149,19 +211,21 @@ export function parseSpin(spinText: string, version: string) {
         if (sp.isTrace()) {
             console.log("Effects", effects);
         }
-        sp.getPostEffectSymbols();
-        sp.getSymbolValues();
-        postEffectItems = sp.getPostEffectItems();
-        sp.getPostEffectItemValues();
+
+        const postSymbols = sp.getPostEffectSymbols();
+        const symbolValues = sp.getSymbolValues();
+        const postEffectItems = sp.getPostEffectItems();
+        const itemValues = sp.getPostEffectItemValues();
+        // This info can be inferred from tracking items and symbols as they are destroyed
         sp.getDestroyedSymbols();
         sp.getDestroyedItems();
         while (!sp.isGainedCoins()) {
             if (sp.isItemAdded()) {
-                sp.getItemAdded();
+                itemsAddedNoChoice.push(...sp.getItemAdded());
             } else if (sp.isItemDestroyed()) {
                 destroyedItems.push(sp.getItemDestroyed());
             } else if (sp.isSymbolAdded()) {
-                sp.getSymbolAdded();
+                symbolsAddedChoice.push(...sp.getSymbolAdded());
             } else if (sp.isItemDestroyCounter()) {
                 sp.getItemDestroyCounter();
             } else {
@@ -169,8 +233,8 @@ export function parseSpin(spinText: string, version: string) {
                 sawError = true;
             }
         }
-        sp.getGainedCoins();
-        sp.getCoinTotal();
+        const gainedCoins = sp.getGainedCoins();
+        const coinTotal = sp.getCoinTotal();
 
         // TODO: Handle continuing a run better!
 
@@ -182,13 +246,13 @@ export function parseSpin(spinText: string, version: string) {
             } else if (sp.isLoss()) {
                 victory = !sp.getLoss();
             } else if (sp.isItemAdded()) {
-                sp.getItemAdded();
+                itemsAddedChoice.push(...sp.getItemAdded());
             } else if (sp.isSymbolAdded()) {
-                sp.getSymbolAdded();
+                symbolsAddedChoice.push(...sp.getSymbolAdded());
             } else if (sp.isContinuing()) {
                 sp.handleContinuing();
             } else if (sp.isItemDestroyed()) {
-                sp.getItemDestroyed();
+                destroyedItems.push(sp.getItemDestroyed());
             } else if (sp.isItemDestroyCounter()) {
                 sp.getItemDestroyCounter();
             } else if (sp.isPostEffectSymbols() && postEffectItems.some((si: SpinItem) => si.item == Item.Coffee || si.item == Item.CoffeeEssence)) {
@@ -230,11 +294,31 @@ export function parseSpin(spinText: string, version: string) {
             sp.markEnd(sawError);
         }
 
+        return {
+            victory,
+            number: spinNum,
+            currentCoins: coinsBefore,
+            coinsGained: gainedCoins,
+            coinTotal,
+            preEffectItems: items,
+            preEffectLayout: symbols,
+            postEffectLayout: postSymbols,
+            postEffectItems,
+            symbolValues,
+            itemValues,
+            itemsDestroyed: destroyedItems,
+            symbolsDestroyed: destroyedSymbols,
+            symbolsTransformed: transformedSymbols,
+            itemsAddedNoChoice,
+            itemsAddedChoice,
+            symbolsAddedNoChoice,
+            symbolsAddedChoice
+        }
     } catch (error) {
         if (error instanceof SpinTextEndedError) {
             sp.markEnd(sawError);
             console.error("Quit mid-spin.")
-            return;
+            return null;
         }
         sp.markEnd(true);
         throw error;
@@ -362,7 +446,7 @@ class SpinParser {
             return this.parseEffect(this.readLine())
         }
         this.readLine();
-        return { source: Item.ItemMissing, effect: "TOO OLD" }
+        return new Effect(Item.ItemMissing, "TOO OLD")
     }
 
     isPostEffectSymbols(): boolean {
@@ -757,7 +841,7 @@ class SpinParser {
 
         const effectObjText = effectOnly.split(": ")[1];
         const effect = this.parseEffectObject(effectObjText);
-        return { source, effect }
+        return new Effect(source, effect)
     }
 
     // The effect object is stored in almost-json, with some awkward constructions or unquoted keys
