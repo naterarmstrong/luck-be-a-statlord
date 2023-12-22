@@ -3,6 +3,8 @@ import { RunInfo } from "../common/models/run";
 import { msToTime } from "../common/utils/time";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Symbol } from "../common/models/symbol";
+import { Item } from "../common/models/item";
+import { ITEM_TO_IMG } from "../utils/item";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -41,7 +43,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                                 <Grid>
                                     <Box component="img" style={{ width: "50px" }} src={run.victory ? String(confirm) : String(dud)} />
                                     {run.guillotine ? <Box width="100%" /> : null}
-                                    {run.guillotine ? <Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(Symbol.Billionaire) /* TODO: Change this to guillotine when I add item images. */} /> : null}
+                                    {run.guillotine ? <Box component="img" style={{ width: "50px" }} src={ITEM_TO_IMG.get(Item.Guillotine) /* TODO: Change this to guillotine when I add item images. */} /> : null}
                                 </Grid>
                             </TableCell>
                             <TableCell>{getRunDate(run.date)}</TableCell>

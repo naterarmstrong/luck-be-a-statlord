@@ -173,7 +173,6 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                     }
                 }
                 if (effect.isSymbolRemoved()) {
-                    console.log(`Saw a removal of ${effect.getSymbolRemoved()}`, effect)
                     removedSymbols.push(effect.getSymbolRemoved())
                 }
                 if (effect.isSymbolTransformed()) {
@@ -182,7 +181,6 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                         const { before, after } = effect.getSymbolTransformed();
                         transformedSymbols.push(before);
                         symbolsAddedNoChoice.push(after);
-                        console.log(`Saw a transformation from ${before} to ${after}`, effect)
                     }
                 }
 
@@ -235,8 +233,6 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
         }
         const gainedCoins = sp.getGainedCoins();
         const coinTotal = sp.getCoinTotal();
-
-        // TODO: Handle continuing a run better!
 
         let victory = false;
 
@@ -622,7 +618,7 @@ class SpinParser {
     getItemDestroyed(): Item {
         const line = this.readLine();
 
-        const item = line.startsWith("Destroyed item") ? IIDToItem(line.split(" ")[3]) : IIDToItem(line.split(" ")[4]);
+        const item = line.startsWith("Destroyed item") ? IIDToItem(line.split(" ")[3].split(",")[0]) : IIDToItem(line.split(" ")[4]);
 
         if (this.isError() && item === Item.ItemMissing) {
             console.error("Failed to match destroyed item", line);
@@ -640,7 +636,7 @@ class SpinParser {
 
     getItemDestroyCounter(): Item {
         const line = this.readLine();
-        const itemMatch = line.match(/Destroy counters - (\w+) now has 1/);
+        const itemMatch = line.match(/Destroy counters - (\w+) now has ([0-9]+)/);
         if (!itemMatch || IIDToItem(itemMatch[1]) === Item.ItemMissing) {
             throw new Error(`Failed to match item when destroy counter incremented: ${line}`);
         } else if (this.isTrace()) {
@@ -859,10 +855,10 @@ class SpinParser {
         const fix5 = fix4.replace(/\b([a-zA-Z]\w*):/gm, '"$1":');
         // Fix arrays of size 1
         const fix6 = fix5.replace(/\[(\w+)\]/gm, '["$1"]');
-        // Fix arrays of size 2, 3, and 6. These almost always correspond to time capsules with
+        // Fix arrays of size 2, 3, 6, and 9. These almost always correspond to time capsules with
         // capsule machine, the essence, and/or both. More than that really deserves a better
         // solution
-        const fix7 = fix6.replace(/\[(\w+), (\w+)\]/gm, '["$1", "$2"]').replace(/\[(\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3"]').replace(/\[(\w+), (\w+), (\w+), (\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3", "$4", "$5", "$6"]');
+        const fix7 = fix6.replace(/\[(\w+), (\w+)\]/gm, '["$1", "$2"]').replace(/\[(\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3"]').replace(/\[(\w+), (\w+), (\w+), (\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3", "$4", "$5", "$6"]').replace(/\[(\w+), (\w+), (\w+), (\w+), (\w+), (\w+), (\w+), (\w+), (\w+)\]/gm, '["$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"]');
         const fix8 = fix7.replace(/"tiles_to_add":\[\w+, \w+, \w+, \w+, \w+, \w+, \w+, (.*)\]/gm, '"tiles_to_add": "many"')
 
         try {

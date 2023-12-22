@@ -6,7 +6,11 @@ export class SemanticVersion {
     // Construct a version from the string representation
     constructor(version: string) {
         const splits = version.slice(1).split(".");
-        this.major = Number(splits[0])
+        if (splits[0].startsWith("v")) {
+            this.major = Number(splits[0].slice(1))
+        } else {
+            this.major = Number(splits[0])
+        }
         this.minor = Number(splits[1])
         this.patch = Number(splits[2])
 

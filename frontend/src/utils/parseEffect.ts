@@ -1,5 +1,6 @@
 import { Item, isItem } from "../common/models/item";
 import { Symbol } from "../common/models/symbol";
+import { SemanticVersion } from "../common/utils/version";
 import { LocatedSymbol } from "./parseSpin";
 import { IIDToSymbol } from "./symbol";
 

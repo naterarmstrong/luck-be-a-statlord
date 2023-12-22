@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { IIDToSymbol } from "./symbol";
 import { Symbol } from "../common/models/symbol"
-import { RunInfo, RunDetails, SpinInfo } from "../common/models/run"
+import { RunInfo, RunDetails, SpinData, SpinInfo } from "../common/models/run"
 import { Item } from "../common/models/item";
 import { sha256 } from 'hash.js';
 import parseSpin from "./parseSpin";
@@ -101,8 +101,8 @@ export function processRun(text: string): RunInfo {
             break;
         }
 
-        const coinsEarned = Number(coinsGainedMatch[1])
-        const coinsTotal = Number(coinsTotalMatch[1])
+        const coinsEarned = Number(coinsGainedMatch[1]);
+        const coinsTotal = Number(coinsTotalMatch[1]);
 
         const spinInfo = new SpinInfo(coinsEarned, coinsTotal);
         spinInfo.symbolsAdded = symbolsAdded;
@@ -116,10 +116,6 @@ export function processRun(text: string): RunInfo {
         // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
         // copies, but eh whatever
 
-
-        // TODO: Capturing transformations (coal -> diamond, egg -> chick -> chicken, dog -> wolf) needs to go into effects
-        // Looks like value_to_change:type is what transforms symbols. tiles_to_add is when something being destroyed added something else
-        // Also, later, capturing value multipliers should be added to the main symbols probably
 
         // console.log(`Spin number ${spinNum}`);
         //console.log(symbols);
@@ -144,7 +140,7 @@ export function processRun(text: string): RunInfo {
 
         if (!isVictory) {
             // Skip keeping track of every single board once going for endless / guillotine essence
-            details.spins.push(spinInfo);
+            // details.spins.push(spinInfo);
             // TODO: Also push last spin if it is a guillotine essence win..
         }
 
@@ -152,6 +148,10 @@ export function processRun(text: string): RunInfo {
             isVictory = true;
             // From now on, it's endless mode. Should note that and put endless mode info into
             // a slightly different category
+        }
+
+        if (spinText.includes("guillotine_essence") && coinsTotal > 1000000000) {
+            isGuillotine = true;
         }
 
         if (spinNum === 30 || spinNum === 60) {
@@ -170,9 +170,7 @@ export function processRun(text: string): RunInfo {
         }
     }
 
-    if (text.includes("guillotine_essence") && Array(...details.coinsPerSymbol.values()).reduce((a, b) => a + b, 0) > 1000000000) {
-        isGuillotine = true;
-    }
+    console.log("Total coins:", Array(...details.coinsPerSymbol.values()).reduce((a, b) => a + b, 0))
 
     const end = performance.now();
     logRuns && console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
@@ -187,7 +185,124 @@ export function processRun(text: string): RunInfo {
     const run = new RunInfo(hash, runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
+    processRun2(text);
+
     return run;
+}
+
+export function processRun2(text: string): RunInfo {
+    if (text === "" || !text) {
+        throw new Error("Empty run file")
+    }
+
+    const hash = sha256().update(text).digest('hex');
+
+    // spins[0] is the information before the run starts
+    const spins = text.split(/--- SPIN #/);
+    const runNumber = Number(spins[0].split('\n')[0].match("--- STARTING RUN #(.*) ---")?.[1]);
+    const startDateString = spins[0].split('\n')[0].match(/\[(.*)\]/)?.[1]!;
+    const finishDateString = text.split("\n").slice(-2, -1)[0]!.match(/^\[([^\]^\n]*)\]/)?.[1]!;
+    const date = parseDate(startDateString);
+    const finishDate = parseDate(finishDateString);
+    const version = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
+
+
+    let isVictory = false;
+    let isFloor20 = true;
+    let isGuillotine = false;
+    const details = new RunDetails();
+
+    // Keeps track of inventory
+    const cumulativeSymbols = getSymbolAddedMap();
+
+    let earlySyms: Array<Symbol> = [];
+    let midSyms: Array<Symbol> = [];
+    let lateSyms: Array<Symbol> = [];
+
+    for (const spinText of spins.slice(1)) {
+        const spinData = parseSpin(spinText, version);
+        if (spinData === null) {
+            console.error("Failed to parse spin");
+            break;
+        }
+
+        const spinInfo = new SpinInfo(spinData.coinsGained, spinData.coinTotal);
+
+        isVictory ||= spinData.victory;
+        isFloor20 &&= couldBeFloor20(spinData);
+        if (spinData.postEffectItems.find((v) => v.item === Item.GuillotineEssence) !== undefined && spinData.coinTotal > 1000000000) {
+            isGuillotine = true;
+        }
+
+        // Note: Would have to keep track of inventory across spins by inferring based off of
+        // symbols added, destroyed, removed. However, that is currently impossible because the logs
+        // do not include which symbols are removed. They also don't include how many reroll /
+        // removal / essence things you have at any given time.
+
+        // Can keep track of how many spins since a symbol was last seen, and say that it was
+        // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
+        // copies, but eh whatever
+
+
+        // console.log(`Spin number ${spinNum}`);
+        //console.log(symbols);
+        //for (let i = 0; i < 20; i++) {
+        //     const symbolStr = symbolStrs[i];
+        //     const symbol = IIDToSymbol(symbolStr);
+        //     if (symbol === Symbol.Unknown) {
+        //         console.error(`Found unknown symbol: ${symbolStr}`);
+        //     }
+        //     details.recordSymbol(spinNum, symbol, values[i], isVictory);
+        //     spinInfo.symbols.push(symbol);
+        //     spinInfo.values.push(values[i]);
+        // }
+
+        if (!isVictory) {
+            // Skip keeping track of every single board once going for endless / guillotine essence
+            // details.spins.push(spinInfo);
+            // TODO: Also push last spin if it is a guillotine essence win..
+        }
+
+        // if (spinNum === 30 || spinNum === 60) {
+        //     const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+
+        //     if (spinNum === 30) {
+        //         earlySyms = best.map(x => x[0]);
+        //     } else if (spinNum === 60) {
+        //         midSyms = best.map(x => x[0]);
+        //     }
+        // }
+    }
+
+    const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+    lateSyms = best.map(x => x[0]);
+
+    console.log(`Run was on floor 20: ${isFloor20}`)
+
+
+    const run = new RunInfo(hash, runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
+    run.details = details;
+
+    return run;
+}
+
+// Returns false if that spin could not have occurred on floor 20. Returns true otherwise.
+// That check consists of looking for:
+//  - 3 duds on spin 0
+//  - dud added on spin 15
+//  - 3 fine print added by landlord (not implemented yet)
+function couldBeFloor20(spinData: SpinData): boolean {
+    if (spinData.number === 0) {
+        const dudCount = spinData.preEffectLayout.map((ss) => ss.symbol).filter((s) => s === Symbol.Dud).length;
+        if (dudCount != 3) {
+            return false;
+        }
+    }
+    if (spinData.number === 14) {
+        return spinData.symbolsAddedChoice.includes(Symbol.Dud);
+    }
+
+    return true;
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {

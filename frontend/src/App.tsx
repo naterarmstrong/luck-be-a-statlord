@@ -12,6 +12,7 @@ import MainPage from "./routes/MainPage";
 import SymbolDetails from "./routes/SymbolDetails";
 import PurplePepperCalculator from "./routes/PurplePepperCalculator";
 import CrabCalculator from "./routes/CrabCalculator";
+import RunDisplay from "./routes/RunDisplay";
 
 const darkTheme = createTheme({
   palette: {
@@ -52,6 +53,7 @@ const App: React.FC = () => {
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
+            <Route path="/runTest" element={<RunDisplay />} />
           </Routes>
         </Layout>
       </userContext.Provider>
