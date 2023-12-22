@@ -118,12 +118,21 @@ export interface SpinData {
     symbolsAddedChoice: Array<Symbol>
 }
 
-export interface SpinSymbol {
+export type SpinSymbol = NonArrowSpinSymbol | SpinArrow;
+
+export interface NonArrowSpinSymbol {
     symbol: Symbol
     countdown?: number
     bonus?: number
     multiplier?: number
-    direction?: ArrowDirections
+}
+
+export interface SpinArrow {
+    symbol: Symbol.BronzeArrow | Symbol.SilverArrow | Symbol.GoldenArrow,
+    direction: ArrowDirections,
+    countdown?: number
+    bonus?: number
+    multiplier?: number
 }
 
 export function newSpinSymbol(symbol: Symbol, extras: Extras): SpinSymbol {
@@ -134,6 +143,10 @@ export function newSpinSymbol(symbol: Symbol, extras: Extras): SpinSymbol {
         ...extras.multiplier && { multiplier: extras.multiplier },
         ...extras.direction && { direction: extras.direction },
     }
+}
+
+export function instanceOfSpinSymbol(object: any): object is SpinSymbol {
+    return 'symbol' in object;
 }
 
 export interface SpinItem {
@@ -148,6 +161,10 @@ export function newSpinItem(item: Item, disabled: boolean, countdown?: number | 
         ...disabled && { disabled },
         ...countdown && { countdown },
     }
+}
+
+export function instanceOfSpinItem(object: any): object is SpinItem {
+    return 'item' in object;
 }
 
 export interface EarnedValue {

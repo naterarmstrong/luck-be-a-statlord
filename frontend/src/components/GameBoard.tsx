@@ -2,6 +2,7 @@ import { Box, Divider, Grid, GridProps, styled } from "@mui/material";
 import SymImg from "./SymImg";
 import { Symbol } from "../common/models/symbol";
 import React from "react";
+import { SpinSymbol } from "../common/models/run";
 
 // The size of one block pixel in the run
 const PX_SIZE = 10;
@@ -12,15 +13,19 @@ const LBaLGrid = styled(Grid)<GridProps>(({ theme }) => ({
     border: `${PX_SIZE}px solid black`
 }))
 
-const GameBoard: React.FC = () => {
+export interface GameBoardProps {
+    symbols: Array<SpinSymbol>
+}
+
+const GameBoard: React.FC<GameBoardProps> = ({ symbols }) => {
     return (
         <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="80vh" sx={{ backgroundColor: "#ff8300" }}>
             <Box>
                 <LBaLGrid alignItems="center" justifyContent="center" container maxWidth={PX_SIZE * PX_PER_IMG * 5 + PX_SIZE * 16} rowSpacing={`${.6 * PX_SIZE}px`} >
-                    <RunDisplayRow top symbols={[Symbol.Sun, Symbol.FiveSidedDie, Symbol.RabbitFluff, Symbol.Flower, Symbol.Rain]} />
-                    <RunDisplayRow symbols={[Symbol.Sun, Symbol.FiveSidedDie, Symbol.RabbitFluff, Symbol.Flower, Symbol.Rain]} />
-                    <RunDisplayRow symbols={[Symbol.Sun, Symbol.FiveSidedDie, Symbol.RabbitFluff, Symbol.Flower, Symbol.Rain]} />
-                    <RunDisplayRow bottom symbols={[Symbol.Sun, Symbol.FiveSidedDie, Symbol.RabbitFluff, Symbol.Flower, Symbol.Rain]} />
+                    <RunDisplayRow top symbols={symbols.slice(0, 5)} />
+                    <RunDisplayRow symbols={symbols.slice(5, 10)} />
+                    <RunDisplayRow symbols={symbols.slice(10, 15)} />
+                    <RunDisplayRow bottom symbols={symbols.slice(15, 20)} />
                 </LBaLGrid>
             </Box>
         </Box>
@@ -30,7 +35,7 @@ const GameBoard: React.FC = () => {
 interface RunDisplayRowProps {
     top?: boolean,
     bottom?: boolean,
-    symbols: Array<Symbol>,
+    symbols: Array<SpinSymbol>,
 }
 
 const RunDisplayRow: React.FC<RunDisplayRowProps> = ({ top, bottom, symbols }) => {

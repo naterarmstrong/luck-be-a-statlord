@@ -230,6 +230,8 @@ const yellow_pepper_essence = require("../img/items/yellow_pepper_essence.png");
 const zaroffs_contract = require("../img/items/zaroffs_contract.png");
 const zaroffs_contract_essence = require("../img/items/zaroffs_contract_essence.png");
 
+export const ItemDisabledIMG = require("../img/item_disabled.png");
+
 
 
 export const IIDToItem = (iid: string): Item => {
