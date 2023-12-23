@@ -5,98 +5,7 @@ import { Item } from "../common/models/item";
 import { IIDToItem } from "./item";
 import { SemanticVersion } from "../common/utils/version";
 import { Effect } from "./parseEffect";
-
-export interface SpinData {
-    victory: boolean
-
-    number: number
-    // There's some funkiness going on with coin numbers
-    currentCoins: number
-    coinsGained: number
-    coinTotal: number
-
-    // Don't bother including fine print, because we can't disambiguate fine print definitions
-    // easily regardless. Not only that, fine print effects are shown in effects when relevant
-
-    preEffectItems: Array<SpinItem>
-    preEffectLayout: Array<SpinSymbol>
-    // Not all effects will be serialized. Should design an efficient storage format for effects,
-    // because otherwise they take so much
-    postEffectLayout: Array<SpinSymbol>
-    postEffectItems: Array<SpinItem>
-    symbolValues: Array<EarnedValue>
-    itemValues: Array<EarnedValue>
-
-    itemsDestroyed: Array<Item>
-    symbolsDestroyed: Array<Symbol>
-    symbolsTransformed: Array<Symbol>
-
-    itemsAddedNoChoice: Array<Item>
-    symbolsAddedNoChoice: Array<Symbol>
-    itemsAddedChoice: Array<Item>
-    symbolsAddedChoice: Array<Symbol>
-}
-
-interface SpinSymbol {
-    symbol: Symbol
-    countdown?: number
-    bonus?: number
-    multiplier?: number
-    direction?: ArrowDirections
-}
-
-function newSpinSymbol(symbol: Symbol, extras: Extras): SpinSymbol {
-    return {
-        symbol,
-        ...extras.countdown && { countdown: extras.countdown },
-        ...extras.bonus && { bonus: extras.bonus },
-        ...extras.multiplier && { multiplier: extras.multiplier },
-        ...extras.direction && { direction: extras.direction },
-    }
-}
-
-interface SpinItem {
-    item: Item,
-    disabled?: boolean
-    countdown?: number
-}
-
-function newSpinItem(item: Item, disabled: boolean, countdown?: number | undefined): SpinItem {
-    return {
-        item,
-        ...disabled && { disabled },
-        ...countdown && { countdown },
-    }
-}
-
-interface EarnedValue {
-    coins: number
-    rerolls?: number
-    removals?: number
-    essences?: number
-}
-
-function newEarnedValue(coins: number, rerolls: number, removals: number, essences: number): EarnedValue {
-    return {
-        coins,
-        ...!isNaN(rerolls) && { rerolls },
-        ...!isNaN(removals) && { removals },
-        ...!isNaN(essences) && { essences },
-    }
-}
-
-interface Extras {
-    countdown?: number
-    bonus?: number
-    multiplier?: number
-    direction?: ArrowDirections
-}
-
-export interface LocatedSymbol {
-    symbol: Symbol,
-    index: number,
-}
-
+import { EarnedValue, Extras, LocatedSymbol, SpinData, SpinItem, SpinSymbol, newEarnedValue, newSpinItem, newSpinSymbol } from "../common/models/run";
 
 class SpinTextEndedError extends Error { }
 
@@ -168,7 +77,10 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                 const effect = sp.getEffect();
 
                 if (effect.isSymbolDestroyed()) {
-                    if (effects.length === 0 || !effects[effects.length - 1].equals(effect)) {
+                    if (
+                        effects.length === 0 ||
+                        !(effects[effects.length - 1].equals(effect)) &&
+                        !(effects.length >= 2 && effects[effects.length - 2].equals(effect))) {
                         destroyedSymbols.push(effect.getSymbolDestroyed())
                     }
                 }
@@ -304,6 +216,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
             itemValues,
             itemsDestroyed: destroyedItems,
             symbolsDestroyed: destroyedSymbols,
+            symbolsRemoved: removedSymbols,
             symbolsTransformed: transformedSymbols,
             itemsAddedNoChoice,
             itemsAddedChoice,

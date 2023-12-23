@@ -69,9 +69,6 @@ export function processRun(text: string): RunInfo {
 
     const logRuns = false;
 
-    // Keeps track of inventory
-    const cumulativeSymbols = getSymbolAddedMap();
-
     let earlySyms: Array<Symbol> = [];
     let midSyms: Array<Symbol> = [];
     let lateSyms: Array<Symbol> = [];
@@ -210,69 +207,76 @@ export function processRun2(text: string): RunInfo {
     let isVictory = false;
     let isFloor20 = true;
     let isGuillotine = false;
-    const details = new RunDetails();
+    let rentsPaid = 0;
+    let lastCoinTotal = 1;
 
-    // Keeps track of inventory
-    const cumulativeSymbols = getSymbolAddedMap();
+    const details = new RunDetails();
 
     let earlySyms: Array<Symbol> = [];
     let midSyms: Array<Symbol> = [];
     let lateSyms: Array<Symbol> = [];
 
-    for (const spinText of spins.slice(1)) {
+    for (const [idx, spinText] of spins.slice(1).entries()) {
+        if (isVictory && idx != spins.length - 2) {
+            // Don't bother processing guillotine runs in the middle. Just skip to the last spin to
+            // display
+
+            // Set this to an arbitrarily high value so that unlimited runs will not record anything
+            // into the symbol details
+            rentsPaid = 100;
+            continue;
+        }
+
         const spinData = parseSpin(spinText, version);
         if (spinData === null) {
             console.error("Failed to parse spin");
             break;
         }
 
-        const spinInfo = new SpinInfo(spinData.coinsGained, spinData.coinTotal);
+        console.log(`Spin data for spin #${spinData.number}`, spinData);
 
         isVictory ||= spinData.victory;
         isFloor20 &&= couldBeFloor20(spinData);
+        if (!isFloor20) {
+            details.markNotFloor20();
+        }
         if (spinData.postEffectItems.find((v) => v.item === Item.GuillotineEssence) !== undefined && spinData.coinTotal > 1000000000) {
             isGuillotine = true;
         }
 
-        // Note: Would have to keep track of inventory across spins by inferring based off of
-        // symbols added, destroyed, removed. However, that is currently impossible because the logs
-        // do not include which symbols are removed. They also don't include how many reroll /
-        // removal / essence things you have at any given time.
-
-        // Can keep track of how many spins since a symbol was last seen, and say that it was
-        // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
-        // copies, but eh whatever
-
-
-        // console.log(`Spin number ${spinNum}`);
-        //console.log(symbols);
-        //for (let i = 0; i < 20; i++) {
-        //     const symbolStr = symbolStrs[i];
-        //     const symbol = IIDToSymbol(symbolStr);
-        //     if (symbol === Symbol.Unknown) {
-        //         console.error(`Found unknown symbol: ${symbolStr}`);
-        //     }
-        //     details.recordSymbol(spinNum, symbol, values[i], isVictory);
-        //     spinInfo.symbols.push(symbol);
-        //     spinInfo.values.push(values[i]);
-        // }
-
-        if (!isVictory) {
-            // Skip keeping track of every single board once going for endless / guillotine essence
-            // details.spins.push(spinInfo);
-            // TODO: Also push last spin if it is a guillotine essence win..
+        if (spinData.currentCoins + 20 < lastCoinTotal) {
+            rentsPaid += 1;
         }
 
-        // if (spinNum === 30 || spinNum === 60) {
-        //     const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
+        spinData.symbolsAddedChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(rentsPaid, symbol, true));
+        spinData.symbolsAddedNoChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(rentsPaid, symbol, false));
+        spinData.symbolsDestroyed.forEach((symbol: Symbol) => details.recordSymbolDestroyed(rentsPaid, symbol));
+        spinData.symbolsRemoved.forEach((symbol: Symbol) => details.recordSymbolRemoved(rentsPaid, symbol));
+        spinData.symbolsTransformed.forEach((symbol: Symbol) => details.recordSymbolRemoved(rentsPaid, symbol));
 
-        //     if (spinNum === 30) {
-        //         earlySyms = best.map(x => x[0]);
-        //     } else if (spinNum === 60) {
-        //         midSyms = best.map(x => x[0]);
-        //     }
-        // }
+        spinData.itemsAddedChoice.forEach((item: Item) => details.recordItemAdded(rentsPaid, item, true));
+        spinData.itemsAddedNoChoice.forEach((item: Item) => details.recordItemAdded(rentsPaid, item, false));
+        spinData.itemsDestroyed.forEach((item: Item) => details.recordItemDestroyed(rentsPaid, item));
+
+        for (let i = 0; i < 20; i++) {
+            details.recordSymbol2(rentsPaid, spinData.postEffectLayout[i].symbol, spinData.symbolValues[i].coins);
+            // TODO: track last appearances like below
+            // Can keep track of how many spins since a symbol was last seen, and say that it was
+            // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
+            // copies, but eh whatever
+        }
+
+        details.spins.push(spinData);
+
+        if (spinData.number === 30) {
+            earlySyms = details.getBest3Symbols();
+        } else if (spinData.number === 60) {
+            midSyms = details.getBest3Symbols();
+        }
     }
+
+    lateSyms = details.getBest3Symbols();
+    details.endRecording();
 
     const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
     lateSyms = best.map(x => x[0]);
@@ -303,17 +307,6 @@ function couldBeFloor20(spinData: SpinData): boolean {
     }
 
     return true;
-}
-
-function getSymbolAddedMap(): Map<Symbol, number> {
-    const ret = new Map();
-    ret.set(Symbol.Dud, 3);
-    ret.set(Symbol.Cat, 1);
-    ret.set(Symbol.Coin, 1);
-    ret.set(Symbol.Flower, 1);
-    ret.set(Symbol.Cherry, 1);
-    ret.set(Symbol.Pearl, 1);
-    return ret;
 }
 
 // Parses a LBaL date and returns the approximate unix timestamp

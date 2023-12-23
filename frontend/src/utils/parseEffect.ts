@@ -1,7 +1,7 @@
 import { Item, isItem } from "../common/models/item";
+import { LocatedSymbol } from "../common/models/run";
 import { Symbol } from "../common/models/symbol";
 import { SemanticVersion } from "../common/utils/version";
-import { LocatedSymbol } from "./parseSpin";
 import { IIDToSymbol } from "./symbol";
 
 interface TransformationData {
@@ -51,6 +51,12 @@ export class Effect {
     }
 
     equals(other: Effect): boolean {
-        return JSON.stringify(this) === JSON.stringify(other)
+        if (JSON.stringify(this) === JSON.stringify(other)) {
+            return true;
+        }
+        if (this.source.toString() == other.source.toString() && this.effect.value_to_change === "destroyed" && other.effect.value_to_change === "destroyed") {
+            return true;
+        }
+        return false
     }
 }

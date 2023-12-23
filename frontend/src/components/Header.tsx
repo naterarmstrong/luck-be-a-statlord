@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AppBar, Box, Button, Card, CardContent, CardMedia, Container, Grid, Link, Menu, MenuItem, Snackbar, TextField, Toolbar, Typography } from "@mui/material";
 import React from "react";
-import { billionaire } from "../utils/symbol";
 import userContext from "../contexts/UserContext";
 import SymImg from "./SymImg";
 import { Item } from "../common/models/item";
@@ -28,7 +27,7 @@ const Header: React.FC = () => {
             <Container maxWidth="xl">
                 <Toolbar>
                     <Link href="/" sx={{ mr: 2, ml: 2, mb: 0 }}>
-                        <Box component="img" style={{ width: "80px" }} src={billionaire} />
+                        <SymImg tile={Symbol.Billionaire} size={80} />
                     </Link>
                     <Link href="/" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6">

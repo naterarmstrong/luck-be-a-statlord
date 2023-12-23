@@ -75,7 +75,9 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
     var multiplier: number | undefined = undefined;
     var disabled: boolean | undefined = undefined;
     var imgSrc: string;
-    if (instanceOfSpinSymbol(tile)) {
+    if (typeof tile === 'string') {
+        imgSrc = getImageSource(tile);
+    } else if (instanceOfSpinSymbol(tile)) {
         countdown = tile.countdown;
         bonus = tile.bonus;
         multiplier = tile.multiplier;
@@ -85,7 +87,7 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
         disabled = tile.disabled;
         imgSrc = getImageSource(tile.item);
     } else {
-        imgSrc = getImageSource(tile);
+        imgSrc = "NEVER"
     }
 
     return (
