@@ -9,10 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
-import { Run, Spin, SpinSymbol, SymbolDetails } from './models/run';
-import { RunInfo, SpinInfo } from '../frontend/src/common/models/run'
+import { ItemDetails, ItemDetailsByRent, Run, Spin, SpinSymbol, SymbolDetails, SymbolDetailsByRent } from './models/run';
+import { RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
 import { sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
-import { reviver } from '../frontend/src/common/utils/mapStringify';
+import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
 import { Op, QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
@@ -145,11 +145,53 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
 
     // console.log(req.body)
     for (const run of req.body as RunInfo[]) {
+        console.log("Starting to process run");
         const symbolDetails = [];
-        for (const symbol of run.details!.showsPerSymbol.keys()) {
-            const count = run.details!.showsPerSymbol.get(symbol);
-            const value = run.details!.coinsPerSymbol.get(symbol);
-            symbolDetails.push({ symbol, value, count });
+        const symbolDetailsByRent = [];
+        for (const [symbol, details] of run.details!.symbolDetails.entries()) {
+            symbolDetails.push({
+                symbol,
+                value: details.totalCoins,
+                count: details.totalShows,
+                earliestRentAdded: details.earliestRentAdded,
+                addedByChoice: details.addedByChoice,
+                addedByEffect: details.addedByEffect,
+                timesRemovedByEffect: details.timesRemovedByEffect,
+                timesDestroyedByEffect: details.timesDestroyedByEffect,
+                timesRemovedByPlayer: details.timesRemovedByPlayer,
+            });
+            for (let i = 0; i < 14; i++) {
+                if (details.coinsByRentPayment[i] != 0 || details.timesAddedChoiceByRent[i] != 0) {
+                    symbolDetailsByRent.push({
+                        symbol,
+                        rent: i,
+                        value: details.coinsByRentPayment[i],
+                        timesAdded: details.timesAddedChoiceByRent[i],
+                    });
+                }
+            }
+        }
+
+        const itemDetails = [];
+        const itemDetailsByRent = [];
+        for (const [item, details] of run.details!.itemDetails.entries()) {
+            itemDetails.push({
+                item,
+                earliestRentAdded: details.earliestRentAdded,
+                addedByChoice: details.timesAddedByChoice,
+                addedByEffect: details.timesAddedNoChoice,
+                timesDestroyed: details.timesDestroyed,
+            });
+            for (let i = 0; i < 14; i++) {
+                if (details.timesAddedByRent[i] != 0 || details.timesDestroyedByRent[i] != 0) {
+                    itemDetailsByRent.push({
+                        item,
+                        rent: i,
+                        timesDestroyed: details.timesDestroyedByRent[i],
+                        timesAdded: details.timesAddedByRent[i],
+                    });
+                }
+            }
         }
 
         try {
@@ -160,6 +202,7 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 number: run.number,
                 victory: run.victory,
                 guillotine: run.guillotine,
+                isFloor20: run.isFloor20,
                 spins: run.spins,
                 date: run.date,
                 duration: run.duration,
@@ -169,18 +212,19 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 midSyms: run.earlySyms.join(','),
                 lateSyms: run.earlySyms.join(','),
                 SymbolDetails: symbolDetails,
-                Spins: run.details!.spins.map((spin: SpinInfo, idx: number) => {
+                ItemDetails: itemDetails,
+                SymbolDetailsByRent: symbolDetailsByRent,
+                ItemDetailsByRent: itemDetailsByRent,
+                Spins: run.details!.spins.map((spin: SpinData, idx: number) => {
                     return {
-                        coinsEarned: spin.coinsEarned,
-                        totalCoins: spin.totalCoins,
+                        coinsEarned: spin.coinsGained,
+                        totalCoins: spin.coinTotal,
                         number: idx,
-                        Symbols: spin.symbols.join(','),
-                        Values: spin.values.join(','),
-                        Extras: spin.symbolExtras.join(','),
+                        FullSpinData: JSON.stringify(spin, replacer),
                     };
                 }),
             }, {
-                include: [SymbolDetails, Spin],
+                include: [SymbolDetails, Spin, ItemDetails, SymbolDetailsByRent, ItemDetailsByRent],
                 benchmark: true,
                 logging: false,
             });
@@ -194,9 +238,10 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 duplicates.push(run.hash);
             } else {
                 otherErrorCount += 1;
+                console.log("Got an error: ", error)
                 otherErrors.push(run.hash);
             }
-            // console.log("Got an error: ", error)
+            console.log("Got an error: ", error)
         }
     }
 

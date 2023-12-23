@@ -5,7 +5,7 @@ import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Symbol } from "../common/models/symbol"
 import { RunInfo } from "../common/models/run"
-import { processRun } from "../utils/processRun";
+import { processRun, processRun2 } from "../utils/processRun";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"
@@ -76,7 +76,7 @@ const UploadRuns: React.FC = () => {
         const runs = [];
         let i = 0;
         for (const file of selectedFiles) {
-            const chunk_size = 50;
+            const chunk_size = 20;
             if (i % chunk_size === 0) {
                 setProgress({
                     state: "Processing",
@@ -89,7 +89,7 @@ const UploadRuns: React.FC = () => {
             const text = await file.text();
             try {
                 console.log(`Processing run ${file.name}`)
-                const processed = processRun(text);
+                const processed = processRun2(text);
                 var outcome: string;
                 if (processed.victory) {
                     outcome = "success";

@@ -179,7 +179,7 @@ export function processRun(text: string): RunInfo {
     }
 
 
-    const run = new RunInfo(hash, runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
+    const run = new RunInfo(hash, runNumber, version, true, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
     processRun2(text);
@@ -233,8 +233,6 @@ export function processRun2(text: string): RunInfo {
             break;
         }
 
-        console.log(`Spin data for spin #${spinData.number}`, spinData);
-
         isVictory ||= spinData.victory;
         isFloor20 &&= couldBeFloor20(spinData);
         if (!isFloor20) {
@@ -284,7 +282,7 @@ export function processRun2(text: string): RunInfo {
     console.log(`Run was on floor 20: ${isFloor20}`)
 
 
-    const run = new RunInfo(hash, runNumber, version, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
+    const run = new RunInfo(hash, runNumber, version, isFloor20, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
     return run;

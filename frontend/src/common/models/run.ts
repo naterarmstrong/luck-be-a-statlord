@@ -7,6 +7,7 @@ export class RunInfo {
     number: number;
     victory: boolean;
     guillotine: boolean;
+    isFloor20: boolean;
     spins: number;
     // The unix timestamp of the run's completion
     date: number;
@@ -26,6 +27,7 @@ export class RunInfo {
         hash: string,
         number: number,
         version: string,
+        isFloor20: boolean,
         date: number,
         duration: number,
         victory: boolean,
@@ -38,6 +40,7 @@ export class RunInfo {
         this.hash = hash;
         this.number = number;
         this.version = version;
+        this.isFloor20 = isFloor20;
         this.date = date;
         this.duration = duration;
         this.victory = victory;

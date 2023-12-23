@@ -81,6 +81,8 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                         effects.length === 0 ||
                         !(effects[effects.length - 1].equals(effect)) &&
                         !(effects.length >= 2 && effects[effects.length - 2].equals(effect))) {
+                        // TODO: Handle dove _really_ screwing this up. Probably have to keep
+                        // track of the board, and do stuff with it
                         destroyedSymbols.push(effect.getSymbolDestroyed())
                     }
                 }
