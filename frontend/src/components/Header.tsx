@@ -31,12 +31,17 @@ const Header: React.FC = () => {
                     </Link>
                     <Link href="/" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6">
-                            All Symbols
+                            Symbols
                         </Typography>
                     </Link>
-                    <Link href="/symbolDetails" sx={{ mr: 2, ml: 2 }}>
+                    <Link href="/itemStats" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6">
-                            Symbol Details
+                            Items
+                        </Typography>
+                    </Link>
+                    <Link href="/essenceStats" sx={{ mr: 2, ml: 2 }}>
+                        <Typography variant="h6">
+                            Essences
                         </Typography>
                     </Link>
                     <Link onClick={handleClick} sx={{ mr: 2, ml: 2, textShadow: "inherit" }} component="button">

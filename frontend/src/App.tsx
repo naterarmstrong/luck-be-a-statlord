@@ -13,6 +13,8 @@ import SymbolDetails from "./routes/SymbolDetails";
 import PurplePepperCalculator from "./routes/PurplePepperCalculator";
 import CrabCalculator from "./routes/CrabCalculator";
 import RunDisplay from "./routes/RunDisplay";
+import ItemStats from "./routes/ItemStats";
+import AllEssenceStats from "./components/AllEssenceStats";
 
 const darkTheme = createTheme({
   palette: {
@@ -49,6 +51,8 @@ const App: React.FC = () => {
             <Route path="/" element={<MainPage />} />
             <Route path="/upload" element={<UploadRuns />} />
             <Route path="/symbolDetails" element={<SymbolDetails />} />
+            <Route path="/itemStats" element={<ItemStats />} />
+            <Route path="/essenceStats" element={<AllEssenceStats />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />

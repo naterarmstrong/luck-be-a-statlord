@@ -51,7 +51,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
     const spinNum = sp.getSpinNumber();
     const coinsBefore = sp.getCoinsBefore();
     // Ignore fine print, as we can't do anything about it anyways
-    sp.getFinePrint();
+    const finePrint = sp.getFinePrint();
     const symbols = sp.getPreEffectSymbols();
     const items = sp.getPreEffectItems();
 
@@ -158,7 +158,14 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
             } else if (sp.isItemAdded()) {
                 itemsAddedChoice.push(...sp.getItemAdded());
             } else if (sp.isSymbolAdded()) {
-                symbolsAddedChoice.push(...sp.getSymbolAdded());
+                const symbols = sp.getSymbolAdded();
+                if (symbols.length === 1 && symbols[0] === Symbol.HexOfDestruction && spinNum >= 90) {
+                    symbolsAddedNoChoice.push(...symbols);
+                } else if (symbols.length === 1 && symbols[0] === Symbol.Dud) {
+                    symbolsAddedNoChoice.push(...symbols);
+                } else {
+                    symbolsAddedChoice.push(...sp.getSymbolAdded());
+                }
             } else if (sp.isContinuing()) {
                 sp.handleContinuing();
             } else if (sp.isItemDestroyed()) {

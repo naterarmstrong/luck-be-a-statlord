@@ -11,11 +11,12 @@ import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { ItemDetails, ItemDetailsByRent, Run, Spin, SpinSymbol, SymbolDetails, SymbolDetailsByRent } from './models/run';
 import { RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
-import { sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
+import { essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
 import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
 import { Op, QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
+import { initializeItems } from './models/item';
 
 const secrets = dotenv.config();
 
@@ -46,6 +47,7 @@ app.use(checkLogin);
 sequelize.sync().then(async () => {
     console.log("DB has been synced.");
     await initializeSymbols();
+    await initializeItems();
     console.log("Symbols have been initialized.");
 }
 );
@@ -145,7 +147,6 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
 
     // console.log(req.body)
     for (const run of req.body as RunInfo[]) {
-        console.log("Starting to process run");
         const symbolDetails = [];
         const symbolDetailsByRent = [];
         for (const [symbol, details] of run.details!.symbolDetails.entries()) {
@@ -313,6 +314,30 @@ app.get('/symbolStats', async (req, res) => {
     // TODO: Account for versions in here. Not sure how exactly to store versions, could do
     // major/minor/patch as separate smallints? so then the query looks like
     // MAJOR >= 1 AND MINOR >= 2. That could work for everything, because 0 means select everything
+
+    return res.status(200).send(stats);
+});
+
+app.get('/itemStats', async (req, res) => {
+    const stats = await sequelize.query(itemWinratesQuery, { type: QueryTypes.SELECT });
+
+    // TODO: Account for versions in here. Not sure how exactly to store versions, could do
+    // major/minor/patch as separate smallints? so then the query looks like
+    // MAJOR >= 1 AND MINOR >= 2. That could work for everything, because 0 means select everything
+
+    console.log("new new Item stats!")
+
+    return res.status(200).send(stats);
+});
+
+app.get('/essenceStats', async (req, res) => {
+    const stats = await sequelize.query(essenceWinratesQuery, { type: QueryTypes.SELECT });
+
+    // TODO: Account for versions in here. Not sure how exactly to store versions, could do
+    // major/minor/patch as separate smallints? so then the query looks like
+    // MAJOR >= 1 AND MINOR >= 2. That could work for everything, because 0 means select everything
+
+    console.log("new new Item stats!")
 
     return res.status(200).send(stats);
 });

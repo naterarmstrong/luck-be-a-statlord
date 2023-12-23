@@ -5,6 +5,15 @@ import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid"
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { useEffect, useState } from "react";
 import { SymbolStats } from "./SymbolStatDisplay";
+import { ITEM_TO_IMG } from "../utils/item";
+import { Item } from "../common/models/item";
+
+export interface ItemStats {
+    name: Item,
+    rarity: Rarity,
+    win_rate: number,
+    total_games: number,
+}
 
 const columns: GridColDef[] = [
     {
@@ -12,12 +21,12 @@ const columns: GridColDef[] = [
         headerName: 'Icon',
         renderCell: (params: any) => (
             <Box>
-                <Box component="img" style={{ width: "50px" }} src={SYMBOL_TO_IMG.get(params.value)} />
-                <Link href={`/symbolDetails?symbol=${params.value}`}>
+                <Box component="img" style={{ width: "50px" }} src={ITEM_TO_IMG.get(params.value)} />
+                <Link href={`/itemDetails?item=${params.value}`}>
                     {params.value}
                 </Link>
             </Box>
-        ) // TODO: put name here too
+        )
         , minWidth: 250
     },
     {
@@ -30,39 +39,24 @@ const columns: GridColDef[] = [
         }
     },
     { field: 'win_rate', headerName: 'Win Rate', minWidth: 150 },
-    { field: 'total_games', headerName: 'Total Games', minWidth: 150 },
-    {
-        field: 'pick_rate',
-        headerName: 'Pick Rate',
-        minWidth: 150,
-        valueGetter: (params: GridValueGetterParams) =>
-            params.row.chosen_games
-    },
-    {
-        field: 'picked_win_rate',
-        headerName: 'Picked Win Rate',
-        minWidth: 150,
-        valueGetter: (params: GridValueGetterParams) =>
-            (100 * params.row.chosen_won_games / params.row.chosen_games).toFixed(2)
-    },
-    { field: 'total_shows', headerName: 'Shows per Game', minWidth: 150 }
+    { field: 'total_games', headerName: 'Total Games', minWidth: 150 }
 ]
 
 // TODO: get into workable state in combination with backend query
-export const AllSymbolStats: React.FC = () => {
-    const [stats, setStats] = useState<Array<SymbolStats>>([]);
+export const AllItemStats: React.FC = () => {
+    const [stats, setStats] = useState<Array<ItemStats>>([]);
 
     useEffect(() => {
-        const fetchSymbolStats = async () => {
-            const response = await fetch(`http://localhost:3001/symbolStats`);
+        const fetchItemStats = async () => {
+            const response = await fetch(`http://localhost:3001/itemStats`);
             if (!response.ok) {
-                console.log(`Error fetching symbol stats`);
+                console.log(`Error fetching item stats`);
             }
             const jsonData = await response.json();
             setStats(jsonData);
         }
 
-        fetchSymbolStats().catch(console.error);
+        fetchItemStats().catch(console.error);
     }, [])
 
     return (
@@ -70,10 +64,10 @@ export const AllSymbolStats: React.FC = () => {
             <DataGrid
                 rows={stats}
                 columns={columns}
-                getRowId={(x: SymbolStats) => x.name}
+                getRowId={(x: ItemStats) => x.name}
             />
         </div>
     );
 }
 
-export default AllSymbolStats;
+export default AllItemStats;
