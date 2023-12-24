@@ -10,7 +10,7 @@ import { Symbol } from "../common/models/symbol";
 const Header: React.FC = () => {
     const navigate = useNavigate();
 
-    const { username, loggedIn, userId, setUser } = useContext(userContext);
+    const { username, loggedIn, userId } = useContext(userContext);
 
     const [toolsAnchorEl, setToolsAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(toolsAnchorEl);

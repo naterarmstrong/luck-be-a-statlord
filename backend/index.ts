@@ -287,7 +287,13 @@ app.get('/run/:id', async (req, res) => {
         where: {
             id: parseInt(req.params.id, 10),
         },
-        include: [{ model: Spin, separate: true, include: [{ model: SpinSymbol, separate: true }] }, { model: SymbolDetails, separate: true }],
+        include: [
+            { model: Spin, separate: true },
+            { model: SymbolDetails, separate: true },
+            { model: ItemDetails, separate: true },
+            { model: SymbolDetailsByRent, separate: true },
+            { model: ItemDetailsByRent, separate: true }
+        ],
         benchmark: true
     });
 

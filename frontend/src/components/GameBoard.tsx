@@ -14,16 +14,12 @@ export interface GameBoardProps {
 
 const GameBoard: React.FC<GameBoardProps> = ({ symbols, pxSize }) => {
     return (
-        <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }}>
-            <Box>
-                <Grid alignItems="center" justifyContent="center" container maxWidth={pxSize * PX_PER_IMG * 5 + pxSize * 16} rowSpacing={`${.6 * pxSize}px`} style={{ background: "white", border: `${pxSize}px solid black` }}>
-                    <RunDisplayRow top symbols={symbols.slice(0, 5)} pxSize={pxSize} />
-                    <RunDisplayRow symbols={symbols.slice(5, 10)} pxSize={pxSize} />
-                    <RunDisplayRow symbols={symbols.slice(10, 15)} pxSize={pxSize} />
-                    <RunDisplayRow bottom symbols={symbols.slice(15, 20)} pxSize={pxSize} />
-                </Grid>
-            </Box>
-        </Box>
+        <Grid alignItems="center" justifyContent="center" container maxWidth={pxSize * PX_PER_IMG * 5 + pxSize * 16} rowSpacing={`${.6 * pxSize}px`} style={{ background: "white", border: `${pxSize}px solid black` }}>
+            <RunDisplayRow top symbols={symbols.slice(0, 5)} pxSize={pxSize} />
+            <RunDisplayRow symbols={symbols.slice(5, 10)} pxSize={pxSize} />
+            <RunDisplayRow symbols={symbols.slice(10, 15)} pxSize={pxSize} />
+            <RunDisplayRow bottom symbols={symbols.slice(15, 20)} pxSize={pxSize} />
+        </Grid>
     );
 }
 

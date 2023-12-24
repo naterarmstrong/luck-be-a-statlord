@@ -15,6 +15,7 @@ import CrabCalculator from "./routes/CrabCalculator";
 import RunDisplay from "./routes/RunDisplay";
 import ItemStats from "./routes/ItemStats";
 import AllEssenceStats from "./components/AllEssenceStats";
+import RunReplay from "./routes/RunReplay";
 
 const darkTheme = createTheme({
   palette: {
@@ -55,6 +56,7 @@ const App: React.FC = () => {
             <Route path="/essenceStats" element={<AllEssenceStats />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/run/:runId" element={<RunReplay />} />
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />

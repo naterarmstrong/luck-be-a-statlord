@@ -59,6 +59,9 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
         </Typography>
     }
     const getMultiplierOverlay = (multiplier: number) => {
+        if (multiplier === 1) {
+            return null;
+        }
         return <Typography style={multiplierOverlayStyle} sx={fontSizeSx} zIndex={1} position="absolute" lineHeight="0px">
             {multiplier}x
         </Typography>
