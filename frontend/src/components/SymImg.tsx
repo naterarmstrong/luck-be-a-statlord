@@ -5,11 +5,12 @@ import { Item } from "../common/models/item";
 import { ITEM_TO_IMG, ItemDisabledIMG } from "../utils/item";
 import React from "react";
 import { Rarity, rarityColor } from "../common/models/rarity";
-import { SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
+import { EarnedValue, SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
 
 interface SymImgProps {
     tile: Symbol | Item | SpinSymbol | SpinItem,
     size?: number,
+    earned?: EarnedValue,
     style?: React.CSSProperties,
 }
 
@@ -21,7 +22,7 @@ const getImageSource = (tile: Symbol | Item): string => {
     }
 }
 
-const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
+const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
     const fSize = size ?? 40;
     const pixelSize = fSize / 12;
     const countdownOverlayStyle = {
@@ -43,6 +44,14 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
         top: 2 * pixelSize,
         right: 3 * pixelSize,
         width: `${fSize * .7}px`
+    };
+    const coinsOverlayStyle = {
+        top: .2 * pixelSize,
+        left: 2 * pixelSize,
+        color: rarityColor(Rarity.Rare),
+        display: 'flex',
+        alignItems: 'center',
+        // flexWrap: 'wrap',
     };
     const fontSizeSx = {
         fontSize: `${fSize * .60}px`,
@@ -72,6 +81,15 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
         }
         return <Box component="img" style={disabledOverlayStyle} src={ItemDisabledIMG} zIndex={1} position="absolute" />
     }
+    const getCoinsOverlay = (earned: EarnedValue) => {
+        if (!earned || earned.coins === 0) {
+            return null;
+        }
+        return <Typography style={coinsOverlayStyle} zIndex={2} position="absolute" sx={{ fontSize: `${fSize * .8}px`, lineHeight: 1 }} >
+            <SymImg tile={Symbol.Coin} style={{ marginRight: "5px" }} />
+            {earned.coins}
+        </Typography>
+    }
 
     var countdown: number | undefined = undefined;
     var bonus: number | undefined = undefined;
@@ -100,6 +118,7 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style }) => {
             {bonus !== undefined && getBonusOverlay(bonus)}
             {multiplier !== undefined && getMultiplierOverlay(multiplier)}
             {disabled !== undefined && getDisabledOverlay(disabled)}
+            {earned !== undefined && getCoinsOverlay(earned)}
         </Box>
     );
 };

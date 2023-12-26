@@ -14,6 +14,7 @@ const RunReplay: React.FC = () => {
     const [name, setName] = useState<string>("");
     const [spinIdx, setSpinIdx] = useState<number>(0);
     const [postEffects, setPostEffects] = useState<boolean>(false);
+    const [displayCoins, setDisplayCoins] = useState<boolean>(true);
 
     const [runInfo, setRunInfo] = useState<RunInfo | undefined>(undefined);
 
@@ -66,7 +67,7 @@ const RunReplay: React.FC = () => {
         fetchRunData().catch(console.error)
     }, []);
 
-    const arrowKeyListener = useCallback((event) => {
+    const keyListener = useCallback((event) => {
         if (event.key === "ArrowRight") {
             updateSpin(spinIdx + 1);
         } else if (event.key === "ArrowLeft") {
@@ -77,16 +78,18 @@ const RunReplay: React.FC = () => {
         } else if (event.key === "ArrowDown") {
             setPostEffects(true);
             event.preventDefault();
+        } else if (event.key === "c") {
+            setDisplayCoins(!displayCoins);
         }
-    }, [spinIdx]);
+    }, [spinIdx, displayCoins]);
 
     useEffect(() => {
-        document.addEventListener("keydown", arrowKeyListener, false);
+        document.addEventListener("keydown", keyListener, false);
 
         return () => {
-            document.removeEventListener("keydown", arrowKeyListener, false);
+            document.removeEventListener("keydown", keyListener, false);
         };
-    }, [arrowKeyListener]);
+    }, [keyListener]);
 
     const updateSpin = (number: number) => {
         if (!runInfo || !runInfo.details) {
@@ -195,7 +198,7 @@ const RunReplay: React.FC = () => {
                             {getFirstItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
                         </Grid>
                         <Grid item minWidth={`${8 * 76}px`}>
-                            <GameBoard pxSize={8} symbols={getSpinSymbols()} />
+                            <GameBoard pxSize={8} symbols={getSpinSymbols()} coins={runInfo.details.spins[spinIdx].symbolValues} displayCoins={displayCoins} />
                         </Grid>
                         <Grid item>
                             {getSecondItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
@@ -204,10 +207,17 @@ const RunReplay: React.FC = () => {
                     <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop={postEffects ? "-100px" : "-110px"}>
                         {getCoinDisplay(runInfo, postEffects, spinIdx)}
                     </Grid>
-                    <Grid item>
-                        <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
-                            {postEffects ? "Toggle effects" : "Toggle effects"}
-                        </Button>
+                    <Grid container justifyContent="center" spacing={3}>
+                        <Grid item>
+                            <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
+                                {postEffects ? "Toggle effects" : "Toggle effects"}
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                            <Button onClick={() => setDisplayCoins(!displayCoins)} variant="contained">
+                                Toggle Coins
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Box>
