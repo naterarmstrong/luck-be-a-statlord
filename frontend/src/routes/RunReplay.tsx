@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { RunDetails, RunInfo, SpinData, SpinSymbol } from "../common/models/run";
+import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
 import { Box, Button, Grid, Typography } from "@mui/material";
 import GameBoard from "../components/GameBoard";
 import { enqueueSnackbar } from "notistack";
+import SymImg from "../components/SymImg";
+import { getRentDue } from "../utils/runUtils";
+import { Item } from "../common/models/item";
 
 const RunReplay: React.FC = () => {
     const { runId } = useParams();
@@ -68,6 +71,12 @@ const RunReplay: React.FC = () => {
             updateSpin(spinIdx + 1);
         } else if (event.key === "ArrowLeft") {
             updateSpin(spinIdx - 1);
+        } else if (event.key === "ArrowUp") {
+            setPostEffects(false);
+            event.preventDefault();
+        } else if (event.key === "ArrowDown") {
+            setPostEffects(true);
+            event.preventDefault();
         }
     }, [spinIdx]);
 
@@ -133,6 +142,7 @@ const RunReplay: React.FC = () => {
         return ret;
     }
 
+
     if (!runInfo || !runInfo.details) {
         return <Typography variant="h3">
             Loading Run...
@@ -141,54 +151,165 @@ const RunReplay: React.FC = () => {
 
 
     return (
-        <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }}>
-            <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
-                <Grid item xs={12} >
-                    <Typography variant="h4">
-                        Run #{runInfo.number} by {name}
-                    </Typography>
-                </Grid>
-                <Grid item xs={12} >
-                    <Grid container spacing={1}>
+        <Box>
+
+            <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }}>
+                <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
+                    <Grid item xs={12} >
+                        <Typography variant="h4">
+                            Run #{runInfo.number} by {name}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} >
+                        <Grid container spacing={1}>
+                            <Grid item>
+                                <Button onClick={() => updateSpin(0)} variant="contained">
+                                    First
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => updateSpin(spinIdx - 1)} variant="contained">
+                                    Previous
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Typography variant="h6">
+                                    Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins}
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => updateSpin(spinIdx + 1)} variant="contained">
+                                    Next
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => updateSpin(runInfo.details!.spins.length - 1)} variant="contained">
+                                    Last
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} />
+                        </Grid>
+                    </Grid>
+                    <Grid item>
+                        <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
+                            {postEffects ? "Pre-Effects" : "Post-Effects"}
+                        </Button>
+                    </Grid>
+                    <Grid item xs={12}><Grid container spacing={5} justifyContent="space-around">
                         <Grid item>
-                            <Button onClick={() => updateSpin(0)} variant="contained">
-                                First
-                            </Button>
+                            {getFirstItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
+                        </Grid>
+                        <Grid item minWidth={`${8 * 76}px`}>
+                            <GameBoard pxSize={8} symbols={getSpinSymbols()} />
                         </Grid>
                         <Grid item>
-                            <Button onClick={() => updateSpin(spinIdx - 1)} variant="contained">
-                                Previous
-                            </Button>
+                            {getSecondItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
                         </Grid>
-                        <Grid item>
-                            <Typography variant="h6">
-                                Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins}
-                            </Typography>
-                        </Grid>
-                        <Grid item>
-                            <Button onClick={() => updateSpin(spinIdx + 1)} variant="contained">
-                                Next
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button onClick={() => updateSpin(runInfo.details!.spins.length - 1)} variant="contained">
-                                Last
-                            </Button>
-                        </Grid>
-                        <Grid item xs={12} />
+                    </Grid></Grid>
+                    <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop="-100px">
+                        {getCoinDisplay(runInfo, postEffects, spinIdx)}
                     </Grid>
                 </Grid>
-                <Grid item>
-                    <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
-                        {postEffects ? "Pre-Effects" : "Post-Effects"}
-                    </Button>
-                </Grid>
-                <Grid item xs={6}>
-                    <GameBoard pxSize={8} symbols={getSpinSymbols()} />
-                </Grid>
-            </Grid>
+            </Box>
+            <Typography variant="h2">
+                Run Stats
+            </Typography>
+            This is the next thing
         </Box>
     );
+}
+
+
+const getCoinDisplay = (runInfo: RunInfo, postEffects: boolean, spinIdx: number) => {
+    if (!runInfo || !runInfo.details) {
+        return null;
+    }
+    const current = runInfo.details.spins[spinIdx].currentCoins;
+    const earned = runInfo.details.spins[spinIdx].coinsGained;
+    const total = runInfo.details.spins[spinIdx].coinTotal;
+
+    const earnedDisplay =
+        (<Typography variant="h4" style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+        }} lineHeight={0} marginBottom="-25px" marginLeft="20px">
+            <SymImg tile={Symbol.Coin} style={{ display: "inline", marginRight: "5px", marginBottom: "-5px" }} /> {earned}
+        </Typography>);
+
+
+    const dueInfo = getRentDue(spinIdx, runInfo.details);
+    const dueColor = dueInfo.due > total ? "red" : "green";
+    const diffDisplay =
+        <Typography variant="h5" color={dueColor} marginRight="10px">({(total - dueInfo.due)})</Typography>
+    const dueDisplay = (
+        <Typography variant="h5" marginLeft="30px" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+            {diffDisplay}
+            {dueInfo.due} {dueInfo.spinsRemaining > 0 ? `in ${dueInfo.spinsRemaining}` : "now"}
+        </Typography>
+    );
+
+    return (
+        <React.Fragment>
+            {postEffects ? null : earnedDisplay}
+            <Typography variant="h3" style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+            }}>
+                <SymImg tile={Symbol.Coin} style={{ display: "inline", marginRight: "5px", marginBottom: "-5px" }} />
+                {postEffects ? total : current - 1}
+                {dueDisplay}
+            </Typography>
+        </React.Fragment>
+    );
+}
+
+const getFirstItemDisplay = (spin: SpinData, postEffects: boolean) => {
+    let items: (SpinSymbol | SpinItem)[] = [];
+    if (postEffects) {
+        items = [...spin.postEffectItems];
+    } else {
+        items = [...spin.preEffectItems];
+    }
+
+    while (items.length < 9) {
+        items.push({ symbol: Symbol.Empty });
+    }
+
+    if (items.length > 9) {
+        items = items.slice(0, 9);
+    }
+
+    return (<Grid container spacing={1} justifySelf="end" maxWidth={12 * 6 * 4}>
+        {items.map((i) =>
+            <Grid item xs={4}>
+                <SymImg tile={i} size={12 * 6} />
+            </Grid>)}
+    </Grid>);
+}
+
+const getSecondItemDisplay = (spin: SpinData, postEffects: boolean) => {
+    let items: (SpinSymbol | SpinItem)[] = [];
+    if (postEffects) {
+        items = [...spin.postEffectItems];
+    } else {
+        items = [...spin.preEffectItems];
+    }
+
+    items = items.slice(9, 18);
+
+    while (items.length < 9) {
+        items.push({ symbol: Symbol.Empty });
+    }
+
+    return (
+        <Grid container spacing={1} maxWidth={12 * 6 * 4}>
+            {items.map((i) =>
+                <Grid item xs={4}>
+                    <SymImg tile={i} size={12 * 6} />
+                </Grid>)}
+        </Grid>);
 }
 
 export default RunReplay;

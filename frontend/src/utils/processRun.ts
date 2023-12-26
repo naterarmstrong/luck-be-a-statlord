@@ -22,7 +22,7 @@ Thing to record:
 
 // The spin count on which, and the amount which is due on each rent payment. Note that this might
 // end up incorrect due to comfy pillow / comfy pillow essence / coffee cup / coffee cup essence.
-const RENT_F20_SPINS = {
+export const RENT_F20_SPINS = {
     5: 25, // Rent 1
     10: 50, // Rent 2
     16: 100, // Rent 3
