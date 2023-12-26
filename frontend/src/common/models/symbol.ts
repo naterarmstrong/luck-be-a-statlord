@@ -164,6 +164,14 @@ export namespace SymbolUtils {
     export function isArrow(s: Symbol) {
         return [Symbol.BronzeArrow, Symbol.SilverArrow, Symbol.GoldenArrow].includes(s);
     }
+
+    export function isEater(s: Symbol) {
+        return [Symbol.Geologist, Symbol.Diver, Symbol.MrsFruit, Symbol.EldritchCreature, Symbol.Pirate].includes(s);
+    }
+
+    export function isGrower(s: Symbol) {
+        return [Symbol.Amethyst, Symbol.Pear, Symbol.Dove].includes(s);
+    }
 }
 
 export const SYMBOL_RARITIES: Record<Symbol, Rarity> = {

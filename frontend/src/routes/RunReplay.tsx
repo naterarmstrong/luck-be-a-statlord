@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { RunDetails, RunInfo, SpinData } from "../common/models/run";
-import { Symbol } from "../common/models/symbol";
+import { RunDetails, RunInfo, SpinData, SpinSymbol } from "../common/models/run";
+import { Symbol, SymbolUtils } from "../common/models/symbol";
 import { Box, Button, Grid, Typography } from "@mui/material";
 import GameBoard from "../components/GameBoard";
+import { enqueueSnackbar } from "notistack";
 
 const RunReplay: React.FC = () => {
     const { runId } = useParams();
@@ -48,6 +49,7 @@ const RunReplay: React.FC = () => {
             // TODO: Add symbol/item details to this
 
             setRunInfo(runInfo);
+            setSpinIdx(0);
 
             fetch(`http://localhost:3001/user/${jsonData.UserId}`).then((response) => {
                 if (!response.ok) {
@@ -60,6 +62,22 @@ const RunReplay: React.FC = () => {
 
         fetchRunData().catch(console.error)
     }, []);
+
+    const arrowKeyListener = useCallback((event) => {
+        if (event.key === "ArrowRight") {
+            updateSpin(spinIdx + 1);
+        } else if (event.key === "ArrowLeft") {
+            updateSpin(spinIdx - 1);
+        }
+    }, [spinIdx]);
+
+    useEffect(() => {
+        document.addEventListener("keydown", arrowKeyListener, false);
+
+        return () => {
+            document.removeEventListener("keydown", arrowKeyListener, false);
+        };
+    }, [arrowKeyListener]);
 
     const updateSpin = (number: number) => {
         if (!runInfo || !runInfo.details) {
@@ -76,6 +94,45 @@ const RunReplay: React.FC = () => {
         setPostEffects(false);
     }
 
+    const getSpinSymbols = (): Array<SpinSymbol> => {
+        if (!runInfo || !runInfo.details) {
+            return [];
+        }
+        const spin = runInfo.details.spins[spinIdx];
+        if (postEffects) {
+            return spin.postEffectLayout;
+        }
+        // If the symbol displayed is the same in the pre and post effect layout, apply bonuses and
+        // multipliers to the pre-effect layout. This is _not_ always accurate, and in particular
+        // with eaters will display wrong information.
+        const ret = [];
+        for (let i = 0; i < 20; i++) {
+            const preSymbol = spin.preEffectLayout[i];
+            const postSymbol = spin.postEffectLayout[i];
+
+            if (preSymbol.symbol !== postSymbol.symbol) {
+                ret.push(preSymbol);
+                continue;
+            }
+
+            const retSymbol: SpinSymbol = {
+                symbol: preSymbol.symbol,
+            };
+            if (preSymbol.countdown !== undefined) {
+                retSymbol.countdown = preSymbol.countdown;
+            }
+            if (postSymbol.multiplier) {
+                retSymbol.multiplier = postSymbol.multiplier;
+            }
+            if (postSymbol.bonus && !SymbolUtils.isEater(preSymbol.symbol)) {
+                retSymbol.bonus = postSymbol.bonus;
+            }
+            ret.push(retSymbol);
+        }
+
+        return ret;
+    }
+
     if (!runInfo || !runInfo.details) {
         return <Typography variant="h3">
             Loading Run...
@@ -85,7 +142,7 @@ const RunReplay: React.FC = () => {
 
     return (
         <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }}>
-            <Grid container justifyContent="center" alignItems="center" spacing={0} direction="column">
+            <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
                 <Grid item xs={12} >
                     <Typography variant="h4">
                         Run #{runInfo.number} by {name}
@@ -105,7 +162,7 @@ const RunReplay: React.FC = () => {
                         </Grid>
                         <Grid item>
                             <Typography variant="h6">
-                                Spin {runInfo.details.spins[spinIdx].number} of {runInfo.spins}
+                                Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins}
                             </Typography>
                         </Grid>
                         <Grid item>
@@ -119,15 +176,15 @@ const RunReplay: React.FC = () => {
                             </Button>
                         </Grid>
                         <Grid item xs={12} />
-                        <Grid item>
-                            <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
-                                {postEffects ? "Pre-Effects" : "Post-Effects"}
-                            </Button>
-                        </Grid>
                     </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                    <GameBoard pxSize={8} symbols={postEffects ? runInfo.details!.spins[spinIdx].postEffectLayout : runInfo.details!.spins[spinIdx].preEffectLayout} />
+                <Grid item>
+                    <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
+                        {postEffects ? "Pre-Effects" : "Post-Effects"}
+                    </Button>
+                </Grid>
+                <Grid item xs={6}>
+                    <GameBoard pxSize={8} symbols={getSpinSymbols()} />
                 </Grid>
             </Grid>
         </Box>
