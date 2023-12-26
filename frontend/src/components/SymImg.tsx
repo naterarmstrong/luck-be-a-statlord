@@ -1,11 +1,11 @@
 import { Box, Typography } from "@mui/material";
-import { ArrowDirections, Symbol, isSymbol } from "../common/models/symbol";
-import { SYMBOL_TO_IMG } from "../utils/symbol";
+import { ArrowDirections, Symbol, SymbolUtils, isSymbol } from "../common/models/symbol";
+import { SYMBOL_TO_IMG, getArrowImg } from "../utils/symbol";
 import { Item } from "../common/models/item";
 import { ITEM_TO_IMG, ItemDisabledIMG } from "../utils/item";
 import React from "react";
 import { Rarity, rarityColor } from "../common/models/rarity";
-import { EarnedValue, SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
+import { EarnedValue, SpinArrow, SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
 
 interface SymImgProps {
     tile: Symbol | Item | SpinSymbol | SpinItem,
@@ -99,10 +99,14 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
     if (typeof tile === 'string') {
         imgSrc = getImageSource(tile);
     } else if (instanceOfSpinSymbol(tile)) {
+        if (SymbolUtils.isArrow(tile.symbol)) {
+            imgSrc = getArrowImg(tile.symbol, (tile as SpinArrow).direction);
+        } else {
+            imgSrc = getImageSource(tile.symbol);
+        }
         countdown = tile.countdown;
         bonus = tile.bonus;
         multiplier = tile.multiplier;
-        imgSrc = getImageSource(tile.symbol);
     } else if (instanceOfSpinItem(tile)) {
         countdown = tile.countdown;
         disabled = tile.disabled;

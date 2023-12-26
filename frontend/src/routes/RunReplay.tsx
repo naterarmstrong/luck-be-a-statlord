@@ -14,7 +14,7 @@ const RunReplay: React.FC = () => {
     const [name, setName] = useState<string>("");
     const [spinIdx, setSpinIdx] = useState<number>(0);
     const [postEffects, setPostEffects] = useState<boolean>(false);
-    const [displayCoins, setDisplayCoins] = useState<boolean>(true);
+    const [displayCoins, setDisplayCoins] = useState<boolean>(false);
 
     const [runInfo, setRunInfo] = useState<RunInfo | undefined>(undefined);
 
@@ -67,6 +67,13 @@ const RunReplay: React.FC = () => {
         fetchRunData().catch(console.error)
     }, []);
 
+    const toggleCoins = () => {
+        if (!displayCoins) {
+            setPostEffects(true);
+        }
+        setDisplayCoins(!displayCoins);
+    }
+
     const keyListener = useCallback((event) => {
         if (event.key === "ArrowRight") {
             updateSpin(spinIdx + 1);
@@ -79,9 +86,11 @@ const RunReplay: React.FC = () => {
             setPostEffects(true);
             event.preventDefault();
         } else if (event.key === "c") {
-            setDisplayCoins(!displayCoins);
+            toggleCoins();
+        } else if (event.key === "e") {
+            setPostEffects(!postEffects);
         }
-    }, [spinIdx, displayCoins]);
+    }, [spinIdx, displayCoins, postEffects]);
 
     useEffect(() => {
         document.addEventListener("keydown", keyListener, false);
@@ -104,6 +113,7 @@ const RunReplay: React.FC = () => {
             setSpinIdx(number);
         }
         setPostEffects(false);
+        setDisplayCoins(false);
     }
 
     const getSpinSymbols = (): Array<SpinSymbol> => {
@@ -214,7 +224,7 @@ const RunReplay: React.FC = () => {
                             </Button>
                         </Grid>
                         <Grid item>
-                            <Button onClick={() => setDisplayCoins(!displayCoins)} variant="contained">
+                            <Button onClick={toggleCoins} variant="contained">
                                 Toggle Coins
                             </Button>
                         </Grid>

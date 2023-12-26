@@ -1,4 +1,4 @@
-import { Symbol } from "../common/models/symbol"
+import { ArrowDirections, Symbol } from "../common/models/symbol"
 
 const amethyst = require("../img/amethyst.png");
 const anchor = require("../img/anchor.png");
@@ -478,3 +478,93 @@ export const SYMBOL_TO_IMG: Map<Symbol, string> = new Map([
     [Symbol.Witch, witch],
     [Symbol.Wolf, wolf],
 ])
+
+
+const bronze_arrow1 = require("../img/arrows/bronze_arrow1.png");
+const bronze_arrow2 = require("../img/arrows/bronze_arrow2.png");
+const bronze_arrow3 = require("../img/arrows/bronze_arrow3.png");
+const bronze_arrow4 = require("../img/arrows/bronze_arrow4.png");
+const bronze_arrow5 = require("../img/arrows/bronze_arrow5.png");
+const bronze_arrow6 = require("../img/arrows/bronze_arrow6.png");
+const bronze_arrow7 = require("../img/arrows/bronze_arrow7.png");
+const bronze_arrow8 = require("../img/arrows/bronze_arrow8.png");
+const silver_arrow1 = require("../img/arrows/silver_arrow1.png");
+const silver_arrow2 = require("../img/arrows/silver_arrow2.png");
+const silver_arrow3 = require("../img/arrows/silver_arrow3.png");
+const silver_arrow4 = require("../img/arrows/silver_arrow4.png");
+const silver_arrow5 = require("../img/arrows/silver_arrow5.png");
+const silver_arrow6 = require("../img/arrows/silver_arrow6.png");
+const silver_arrow7 = require("../img/arrows/silver_arrow7.png");
+const silver_arrow8 = require("../img/arrows/silver_arrow8.png");
+const golden_arrow1 = require("../img/arrows/golden_arrow1.png");
+const golden_arrow2 = require("../img/arrows/golden_arrow2.png");
+const golden_arrow3 = require("../img/arrows/golden_arrow3.png");
+const golden_arrow4 = require("../img/arrows/golden_arrow4.png");
+const golden_arrow5 = require("../img/arrows/golden_arrow5.png");
+const golden_arrow6 = require("../img/arrows/golden_arrow6.png");
+const golden_arrow7 = require("../img/arrows/golden_arrow7.png");
+const golden_arrow8 = require("../img/arrows/golden_arrow8.png");
+
+export function getArrowImg(symbol: Symbol, direction: ArrowDirections): string {
+    switch (symbol) {
+        case Symbol.BronzeArrow:
+            switch (direction) {
+                case ArrowDirections.NW:
+                    return bronze_arrow1;
+                case ArrowDirections.N:
+                    return bronze_arrow2;
+                case ArrowDirections.NE:
+                    return bronze_arrow3;
+                case ArrowDirections.W:
+                    return bronze_arrow4;
+                case ArrowDirections.E:
+                    return bronze_arrow5;
+                case ArrowDirections.SW:
+                    return bronze_arrow6;
+                case ArrowDirections.S:
+                    return bronze_arrow7;
+                case ArrowDirections.SE:
+                    return bronze_arrow8;
+            }
+        case Symbol.SilverArrow:
+            switch (direction) {
+                case ArrowDirections.NW:
+                    return silver_arrow1;
+                case ArrowDirections.N:
+                    return silver_arrow2;
+                case ArrowDirections.NE:
+                    return silver_arrow3;
+                case ArrowDirections.W:
+                    return silver_arrow4;
+                case ArrowDirections.E:
+                    return silver_arrow5;
+                case ArrowDirections.SW:
+                    return silver_arrow6;
+                case ArrowDirections.S:
+                    return silver_arrow7;
+                case ArrowDirections.SE:
+                    return silver_arrow8;
+            }
+        case Symbol.GoldenArrow:
+            switch (direction) {
+                case ArrowDirections.NW:
+                    return golden_arrow1;
+                case ArrowDirections.N:
+                    return golden_arrow2;
+                case ArrowDirections.NE:
+                    return golden_arrow3;
+                case ArrowDirections.W:
+                    return golden_arrow4;
+                case ArrowDirections.E:
+                    return golden_arrow5;
+                case ArrowDirections.SW:
+                    return golden_arrow6;
+                case ArrowDirections.S:
+                    return golden_arrow7;
+                case ArrowDirections.SE:
+                    return golden_arrow8;
+            }
+        default:
+            return SYMBOL_TO_IMG.get(symbol)!;
+    }
+}
