@@ -190,11 +190,6 @@ const RunReplay: React.FC = () => {
                             <Grid item xs={12} />
                         </Grid>
                     </Grid>
-                    <Grid item>
-                        <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
-                            {postEffects ? "Pre-Effects" : "Post-Effects"}
-                        </Button>
-                    </Grid>
                     <Grid item xs={12}><Grid container spacing={5} justifyContent="space-around">
                         <Grid item>
                             {getFirstItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
@@ -206,8 +201,13 @@ const RunReplay: React.FC = () => {
                             {getSecondItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
                         </Grid>
                     </Grid></Grid>
-                    <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop="-100px">
+                    <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop={postEffects ? "-100px" : "-110px"}>
                         {getCoinDisplay(runInfo, postEffects, spinIdx)}
+                    </Grid>
+                    <Grid item>
+                        <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
+                            {postEffects ? "Toggle effects" : "Toggle effects"}
+                        </Button>
                     </Grid>
                 </Grid>
             </Box>
