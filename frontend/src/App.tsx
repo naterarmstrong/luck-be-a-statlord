@@ -57,6 +57,7 @@ const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/run/:runId" element={<RunReplay />} />
+            <Route path="/user/:userId/run/:runNumber" element={<RunReplay />} />
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />

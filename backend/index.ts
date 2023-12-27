@@ -210,8 +210,8 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 version: run.version,
                 // If using postgres, this can be array
                 earlySyms: run.earlySyms.join(','),
-                midSyms: run.earlySyms.join(','),
-                lateSyms: run.earlySyms.join(','),
+                midSyms: run.midSyms.join(','),
+                lateSyms: run.lateSyms.join(','),
                 SymbolDetails: symbolDetails,
                 ItemDetails: itemDetails,
                 SymbolDetailsByRent: symbolDetailsByRent,
@@ -281,8 +281,6 @@ app.get('/run/:id', async (req, res) => {
 
     // TODO: rehydrate all the spins, get into the correct format, and then send back
 
-    // 3.7 SECONDS TO RUN THIS QUERY if not separate
-    // This does grab everything. Now just need to reformat it into a nicer style.
     const runDetails = await Run.findOne({
         where: {
             id: parseInt(req.params.id, 10),
@@ -297,9 +295,43 @@ app.get('/run/:id', async (req, res) => {
         benchmark: true
     });
 
+    if (runDetails === null) {
+        return res.status(404).send();
+    }
+
 
     return res.status(200).send(runDetails);
 });
+
+app.get('/user/:id/run/:runNumber', async (req, res) => {
+    if (isNaN(parseInt(req.params.id, 10))) {
+        return res.status(400).send({ "error": "Bad user ID" });
+    }
+    if (isNaN(parseInt(req.params.runNumber, 10))) {
+        return res.status(400).send({ "error": "Bad run number" });
+    }
+
+    const runDetails = await Run.findOne({
+        where: {
+            number: parseInt(req.params.runNumber, 10),
+            UserId: parseInt(req.params.id, 10),
+        },
+        include: [
+            { model: Spin, separate: true },
+            { model: SymbolDetails, separate: true },
+            { model: ItemDetails, separate: true },
+            { model: SymbolDetailsByRent, separate: true },
+            { model: ItemDetailsByRent, separate: true }
+        ],
+        benchmark: true
+    });
+
+    if (runDetails === null) {
+        return res.status(404).send();
+    }
+
+    return res.status(200).send(runDetails);
+})
 
 app.get('/user/:id/stats', async (req, res) => {
     if (isNaN(parseInt(req.params.id, 10))) {

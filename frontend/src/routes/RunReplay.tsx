@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
 import { Box, Button, Grid, Typography } from "@mui/material";
@@ -13,10 +13,20 @@ import CoinChart from "../components/CoinChart";
 import CumulativeCoinChart from "../components/CumulativeCoinChart";
 import CoinBreakdownChart from "../components/CoinBreakdownChart";
 import API_ENDPOINT from "../utils/api";
+import { reviver } from "../common/utils/mapStringify";
 
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
-    const { runId } = useParams();
+    const { runId, userId, runNumber } = useParams();
+
+    let fetchUrl = "";
+    if (runId != undefined) {
+        fetchUrl = `${API_ENDPOINT}/run/${runId}`
+    } else {
+        fetchUrl = `${API_ENDPOINT}/user/${userId}/run/${runNumber}`
+    }
+
+    const navigate = useNavigate();
     const [name, setName] = useState<string>("");
     const [spinIdx, setSpinIdx] = useState<number>(0);
     const [postEffects, setPostEffects] = useState<boolean>(false);
@@ -26,10 +36,22 @@ const RunReplay: React.FC = () => {
 
     useEffect(() => {
         const fetchRunData = async () => {
-            const response = await fetch(`${API_ENDPOINT}/run/${runId}`);
+            const response = await fetch(fetchUrl);
             if (!response.ok) {
                 console.log("Error fetching");
-                // User didn't exist
+                if (response.status === 404) {
+                    enqueueSnackbar("Run does not exist", {
+                        variant: "error",
+                        style: { fontSize: 35 }
+                    });
+                } else {
+                    enqueueSnackbar("Unknown error fetching run", {
+                        variant: "error",
+                        style: { fontSize: 35 }
+                    });
+                }
+                navigate('/')
+                // Run didn't exist
             }
 
             const jsonData = await response.json();
@@ -53,9 +75,26 @@ const RunReplay: React.FC = () => {
 
             const details = new RunDetails();
             runInfo.details = details;
+            console.log("jsonData", jsonData);
             const spins: SpinData[] = jsonData.Spins.map((s: any) => JSON.parse(s.FullSpinData));
             spins.sort((s1, s2) => s1.number - s2.number);
             details.spins = spins;
+            details.symbolDetails = new Map();
+            jsonData.SymbolDetails.forEach((s: any) => {
+                details.symbolDetails.set(s.symbol, {
+                    totalCoins: s.value,
+                    totalShows: s.count,
+                    addedByChoice: s.addedByChoice,
+                    addedByEffect: s.addedByEffect,
+                    timesRemovedByEffect: s.timesRemovedByEffect,
+                    timesDestroyedByEffect: s.timesDestroyedByEffect,
+                    // This will not be fully accurate
+                    timesRemovedByPlayer: s.timesREmovedByPlayer,
+                    timesAddedChoiceByRent: [],
+                    coinsByRentPayment: [],
+                    ...(s.earliestRentAdded !== null && { earliestRentAdded: s.earliestRentAdded }),
+                })
+            });
             // TODO: Add symbol/item details to this
 
             setRunInfo(runInfo);

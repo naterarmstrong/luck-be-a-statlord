@@ -253,9 +253,11 @@ export class RunDetails {
     }
 
     getBest3Symbols(): Array<Symbol> {
-        console.log(this);
-        const ret = (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, 3).map((s) => s[0])
-        console.log(ret);
+        return this.getBestNSymbols(3);
+    }
+
+    getBestNSymbols(n: number): Array<Symbol> {
+        const ret = (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, n).map((s) => s[0])
         return ret;
     }
 }

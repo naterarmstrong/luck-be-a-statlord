@@ -115,6 +115,14 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
         imgSrc = "NEVER"
     }
 
+    if (countdown === undefined
+        && bonus === undefined
+        && multiplier === undefined
+        && disabled === undefined
+        && earned === undefined) {
+        return <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />;
+    }
+
     return (
         <Box position="relative">
             <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />

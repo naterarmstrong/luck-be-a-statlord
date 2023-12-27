@@ -44,7 +44,7 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
             {
                 data: earnedData,
                 curve: "step",
-                label: "Earned",
+                label: "Total",
                 color: "#ff8300"
             },
             {

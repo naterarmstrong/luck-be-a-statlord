@@ -5,7 +5,7 @@ import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Symbol } from "../common/models/symbol"
 import { RunInfo } from "../common/models/run"
-import { processRun2 } from "../utils/processRun";
+import { processRun } from "../utils/processRun";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"
@@ -90,7 +90,7 @@ const UploadRuns: React.FC = () => {
             const text = await file.text();
             try {
                 console.log(`Processing run ${file.name}`)
-                const processed = processRun2(text);
+                const processed = processRun(text);
                 var outcome: string;
                 if (processed.victory) {
                     outcome = "success";
@@ -128,6 +128,7 @@ const UploadRuns: React.FC = () => {
                 credentials: "include" as RequestCredentials,
                 mode: "cors" as RequestMode
             };
+            console.log(`Posting to: ${API_ENDPOINT}/uploadRuns`)
             const response = await fetch(`${API_ENDPOINT}/uploadRuns`, fetchArgs);
             // The user token is expired/bad for some reason
             if (response.status === 401) {
@@ -209,7 +210,7 @@ const UploadRuns: React.FC = () => {
                         startIcon={<CloudUploadIcon />}
                     >
                         Choose Runs
-                        <VisuallyHiddenInput type="file" onChange={selectFiles} multiple />
+                        <VisuallyHiddenInput type="file" accept=".log" onChange={selectFiles} multiple />
                     </Button>
                 </Box>
             </Grid>

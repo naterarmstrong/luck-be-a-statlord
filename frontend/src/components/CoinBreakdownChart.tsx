@@ -16,7 +16,10 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
     console.log(runInfo)
 
     let symbols: Symbol[] = [];
-    let bestSyms = runInfo.earlySyms.concat(runInfo.midSyms).concat(runInfo.lateSyms);
+    let bestSyms = [];
+    bestSyms.push(...runInfo.earlySyms.slice(0, 1));
+    bestSyms.push(...runInfo.midSyms.slice(0, 2));
+    bestSyms.push(...runInfo.details.getBestNSymbols(5));
     for (const symbol of bestSyms) {
         if (!symbols.includes(symbol)) {
             symbols.push(symbol);
@@ -25,7 +28,7 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
 
     console.log(symbols);
 
-    let totalPerSymbol = symbols.map((_) => 0);
+    let totalPerSymbol = symbols.map((_) => 0.0000001);
     const seriesPerSymbol: number[][] = symbols.map((_) => []);
 
     const xAxis = [];
@@ -85,7 +88,7 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
                 data: earnedData,
                 area: true,
                 stack: "total",
-                label: "Earned",
+                label: "Other",
                 color: "#ff8300"
             },
             {
@@ -150,7 +153,7 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
     return (
         <Box justifyContent="center" display="flex" flexDirection="column">
             <Typography variant="h4">
-                Coins per Symbol
+                Cumulative Coin Breakdown
             </Typography>
             <Box width="100%" justifyContent="center">
                 {chart}

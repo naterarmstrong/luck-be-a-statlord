@@ -40,7 +40,7 @@ enum DebugLevel {
 // 16a. Added symbols or Skipped symbols (optional if VICTORY)
 // 16b. OPTIONAL - Added item
 export function parseSpin(spinText: string, version: string): SpinData | null {
-    const DEBUG = DebugLevel.Trace;
+    const DEBUG = DebugLevel.Error;
     // Trim off the date from the start of each line
     // The date is formatted as:
     // [MM/DD/YYYY HH:MM:SS] CONTENT
