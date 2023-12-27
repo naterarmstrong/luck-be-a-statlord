@@ -35,7 +35,12 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
     let lastRentStep = 0;
     let totalNeededSoFar = 0;
     let totalEarnedSoFar = 0;
-    for (let i = 0; i < runInfo.details.spins.length; i++) {
+
+    let loopEnd = runInfo.details.spins.length;
+    if (runInfo.guillotine) {
+        loopEnd -= 1;
+    }
+    for (let i = 0; i < loopEnd; i++) {
         if (i - lastRentStep >= RENT_LENGTHS[rentIdx]) {
             rentIdx += 1;
             lastRentStep = i;

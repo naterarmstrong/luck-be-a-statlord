@@ -27,6 +27,13 @@ const CoinChart: React.FC<CoinChartProps> = ({ runInfo }) => {
     }
     const yData = runInfo.details.spins.map((s) => s.coinsGained);
 
+    if (runInfo.guillotine) {
+        // Remove last element to remove outlier
+        xAxis.pop();
+        reqData.pop();
+        yData.pop();
+    }
+
     const chart = <LineChart
         xAxis={[{ data: xAxis, id: "spins" }]}
         series={[

@@ -117,7 +117,7 @@ export function processRun2(text: string): RunInfo {
         spinData.itemsDestroyed.forEach((item: Item) => details.recordItemDestroyed(rentsPaid, item));
 
         for (let i = 0; i < 20; i++) {
-            details.recordSymbol2(rentsPaid, spinData.postEffectLayout[i].symbol, spinData.symbolValues[i].coins);
+            details.recordSymbol(rentsPaid, spinData.postEffectLayout[i].symbol, spinData.symbolValues[i].coins);
             // TODO: track last appearances like below
             // Can keep track of how many spins since a symbol was last seen, and say that it was
             // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
@@ -135,8 +135,6 @@ export function processRun2(text: string): RunInfo {
 
     lateSyms = details.getBest3Symbols();
     details.endRecording();
-
-    console.log(`Run was on floor 20: ${isFloor20}`)
 
 
     const run = new RunInfo(hash, runNumber, version, isFloor20, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);

@@ -85,7 +85,7 @@ export class RunDetails {
     }
 
     // This should only be called when the player has not yet won
-    recordSymbol2(rentsPaid: number, symbol: Symbol, value: number) {
+    recordSymbol(rentsPaid: number, symbol: Symbol, value: number) {
         if (!this.isFloor20 || rentsPaid > 13) {
             return;
         }
@@ -257,23 +257,6 @@ export class RunDetails {
         const ret = (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, 3).map((s) => s[0])
         console.log(ret);
         return ret;
-    }
-
-    recordSymbol(spinNum: number, symbol: Symbol, value: number, isEndless: boolean) {
-        if (!isEndless) {
-            this.showsPerSymbol.set(symbol, (this.showsPerSymbol.get(symbol) ?? 0) + 1);
-            this.coinsPerSymbol.set(symbol, (this.coinsPerSymbol.get(symbol) ?? 0) + value);
-            if (this.firstShowPerSymbol.get(symbol) === undefined && !isEndless) {
-                this.firstShowPerSymbol.set(symbol, spinNum);
-            }
-        } else {
-            if (!this.endlessCoinsPerSymbol || !this.endlessShowsPerSymbol) {
-                this.endlessCoinsPerSymbol = new Map(this.coinsPerSymbol);
-                this.endlessShowsPerSymbol = new Map(this.showsPerSymbol);
-            }
-            this.endlessShowsPerSymbol.set(symbol, (this.endlessShowsPerSymbol.get(symbol) ?? 0) + 1);
-            this.endlessCoinsPerSymbol.set(symbol, (this.endlessCoinsPerSymbol.get(symbol) ?? 0) + value);
-        }
     }
 }
 

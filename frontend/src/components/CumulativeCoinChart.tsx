@@ -20,7 +20,12 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
     let lastRentStep = 0;
     let totalNeededSoFar = 0;
     let totalEarnedSoFar = 0;
-    for (let i = 0; i < runInfo.details.spins.length; i++) {
+
+    let loopEnd = runInfo.details.spins.length;
+    if (runInfo.guillotine) {
+        loopEnd -= 1;
+    }
+    for (let i = 0; i < loopEnd; i++) {
         if (i - lastRentStep >= RENT_LENGTHS[rentIdx]) {
             rentIdx += 1;
             lastRentStep = i;
@@ -32,8 +37,6 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
         reqData.push(totalNeededSoFar);
         earnedData.push(runInfo.details.spins[i].coinTotal);
     }
-
-    const yData = runInfo.details.spins.map((s) => s.coinsGained);
 
     const chart = <LineChart
         xAxis={[{ data: xAxis, id: "spins" }]}
@@ -105,7 +108,7 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
     return (
         <Box justifyContent="center" display="flex" flexDirection="column">
             <Typography variant="h4">
-                Total Coins Earned
+                Coin Total
             </Typography>
             <Box width="100%" justifyContent="center">
                 {chart}
