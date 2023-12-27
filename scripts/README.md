@@ -6,7 +6,7 @@ They are designed to run against files contained in a decompiled version of the 
 
 ## Getting the game files
 
-I won't provide instructions on how exactly to decompile the game, but it is reasonably standard to do so for godot.
+I won't provide instructions on how to decompile the game to avoid upsetting anyone, but it is reasonably standard to do so for godot.
 
 The `Luck be a Landlord.pck` file, once decompiled, has the following file structure that is relevant to us.
 

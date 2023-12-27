@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import GameBoard from "../components/GameBoard";
 import { enqueueSnackbar } from "notistack";
 import SymImg from "../components/SymImg";

@@ -53,3 +53,7 @@ There are a few things that are impossible to determine from run logs alone.
   - These symbols can be _inferred_ to disappear, as they will appear less frequently if there are multiple copies, or not at all if the last copy is removed. However, you cannot be sure that they are removed unless an empty is rolled, at which point you know for certain which symbols still exist.
 - Reroll and removal tokens
   - When added via the capsules, these are noted in the run logs. However, spending them is not visible.
+
+## Handling Mods
+
+All modded symbols (and existing symbols that are changed by a mod) will have the steamId appended to their id as it appears in the logs. By rejecting runs that have unknown symbols and items, we can avoid importing modded runs.
