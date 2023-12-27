@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
 import { Box, Button, Grid, Typography } from "@mui/material";
@@ -17,6 +17,7 @@ import { reviver } from "../common/utils/mapStringify";
 
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { runId, userId, runNumber } = useParams();
 
     let fetchUrl = "";
@@ -28,7 +29,16 @@ const RunReplay: React.FC = () => {
 
     const navigate = useNavigate();
     const [name, setName] = useState<string>("");
-    const [spinIdx, setSpinIdx] = useState<number>(0);
+
+    let startingUID = userId !== undefined ? Number(userId) : undefined;
+    const [UID, setUID] = useState<number | undefined>(startingUID);
+
+    let startingSpinIdx = 0;
+    let searchParamSpin = searchParams.get("spin");
+    if (searchParamSpin !== null && !isNaN(Number(searchParamSpin as any))) {
+        startingSpinIdx = Number(searchParamSpin);
+    }
+    const [spinIdx, setSpinIdx] = useState<number>(startingSpinIdx);
     const [postEffects, setPostEffects] = useState<boolean>(false);
     const [displayCoins, setDisplayCoins] = useState<boolean>(false);
 
@@ -98,7 +108,8 @@ const RunReplay: React.FC = () => {
             // TODO: Add symbol/item details to this
 
             setRunInfo(runInfo);
-            setSpinIdx(0);
+            setSpinIdx(startingSpinIdx);
+            setUID(jsonData.UserId);
 
             fetch(`${API_ENDPOINT}/user/${jsonData.UserId}`).then((response) => {
                 if (!response.ok) {
@@ -110,7 +121,7 @@ const RunReplay: React.FC = () => {
         }
 
         fetchRunData().catch(console.error)
-    }, []);
+    }, [runId, userId, runNumber]);
 
     const toggleCoins = () => {
         if (!displayCoins) {
@@ -149,6 +160,10 @@ const RunReplay: React.FC = () => {
             document.removeEventListener("keydown", keyListener, false);
         };
     }, [keyListener]);
+
+    useEffect(() => {
+        setSearchParams({ spin: String(spinIdx) });
+    }, [spinIdx])
 
     const updateSpin = (number: number) => {
         if (!runInfo || !runInfo.details) {
@@ -216,11 +231,23 @@ const RunReplay: React.FC = () => {
     return (
         <Box>
 
-            <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }} ref={runRef}>
+            <Box alignItems="center" justifyContent="center" minWidth="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }} ref={runRef}>
                 <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
                     <Grid item xs={12} >
                         <Typography variant="h4">
+                            {
+                                UID !== undefined ?
+                                    <Button onClick={() => { navigate(`/user/${UID}/run/${runInfo.number - 1}`); setRunInfo(undefined); }} variant="contained" sx={{ marginRight: "20px" }}>
+                                        Previous Run
+                                    </Button> : null
+                            }
                             Run #{runInfo.number} by {name}
+                            {
+                                UID !== undefined ?
+                                    <Button onClick={() => { navigate(`/user/${UID}/run/${runInfo.number + 1}`); setRunInfo(undefined); }} variant="contained" sx={{ marginLeft: "20px" }}>
+                                        Next Run
+                                    </Button> : null
+                            }
                         </Typography>
                     </Grid>
                     <Grid item xs={12} >
@@ -237,7 +264,7 @@ const RunReplay: React.FC = () => {
                             </Grid>
                             <Grid item>
                                 <Typography variant="h6">
-                                    Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins}
+                                    Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins + 1}
                                 </Typography>
                             </Grid>
                             <Grid item>
@@ -284,10 +311,29 @@ const RunReplay: React.FC = () => {
             <Typography variant="h2">
                 Run Stats
             </Typography>
-            <CoinChart runInfo={runInfo} />
-            <CumulativeCoinChart runInfo={runInfo} />
-            <CoinBreakdownChart runInfo={runInfo} />
-        </Box>
+            <Grid container justifyContent="center" alignItems="center" direction="column">
+                <Grid item>
+                    <Typography variant="h4" color={runInfo.victory ? "green" : "red"}>
+                        {runInfo.victory ? "Victory" : `Defeat after ${runInfo.spins} spins`}
+                    </Typography>
+                    {
+                        runInfo.guillotine ?
+                            <Typography variant="h4" color="orange">
+                                Guillotine
+                            </Typography> : null
+                    }
+                </Grid>
+                <Grid item>
+                    <CoinChart runInfo={runInfo} />
+                </Grid>
+                <Grid item>
+                    <CumulativeCoinChart runInfo={runInfo} />
+                </Grid>
+                <Grid item>
+                    <CoinBreakdownChart runInfo={runInfo} />
+                </Grid>
+            </Grid>
+        </Box >
     );
 }
 
