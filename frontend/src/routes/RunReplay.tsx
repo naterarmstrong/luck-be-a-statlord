@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
@@ -10,6 +10,7 @@ import { getRentDue } from "../utils/runUtils";
 import { Item } from "../common/models/item";
 
 const RunReplay: React.FC = () => {
+    const runRef = useRef<Element>();
     const { runId } = useParams();
     const [name, setName] = useState<string>("");
     const [spinIdx, setSpinIdx] = useState<number>(0);
@@ -88,7 +89,12 @@ const RunReplay: React.FC = () => {
         } else if (event.key === "c") {
             toggleCoins();
         } else if (event.key === "e") {
+            if (postEffects) {
+                setDisplayCoins(false);
+            }
             setPostEffects(!postEffects);
+        } else if (event.key === "v") {
+            runRef.current?.scrollIntoView({ block: "start", inline: "nearest", behavior: "smooth" });
         }
     }, [spinIdx, displayCoins, postEffects]);
 
@@ -166,7 +172,7 @@ const RunReplay: React.FC = () => {
     return (
         <Box>
 
-            <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }}>
+            <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }} ref={runRef}>
                 <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
                     <Grid item xs={12} >
                         <Typography variant="h4">
