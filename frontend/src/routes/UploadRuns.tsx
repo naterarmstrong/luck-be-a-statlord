@@ -97,7 +97,12 @@ const UploadRuns: React.FC = () => {
                 } else {
                     outcome = "failure";
                 }
-                runs.push(processed);
+                // Omit runs that are less than 30 seconds
+                if (processed.duration < 30 * 1000) {
+                    errorCount += 1;
+                } else {
+                    runs.push(processed);
+                }
                 // console.log(`Run ${processed.number} was a ${outcome}`);
             } catch (error) {
                 errorCount += 1;
@@ -172,7 +177,7 @@ const UploadRuns: React.FC = () => {
             setDuplicates(duplicateList);
         }
         if (errorCount > 0) {
-            enqueueSnackbar(`${errorCount} run${errorCount > 1 ? "s" : ""} failed to process or were empty.`, {
+            enqueueSnackbar(`${errorCount} run${errorCount > 1 ? "s" : ""} failed to process, were empty, or were too short.`, {
                 variant: "error",
                 style: { fontSize: 35 }
             });
