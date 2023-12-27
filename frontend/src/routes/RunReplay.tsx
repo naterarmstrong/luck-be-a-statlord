@@ -6,8 +6,12 @@ import { Box, Button, Grid, Typography } from "@mui/material";
 import GameBoard from "../components/GameBoard";
 import { enqueueSnackbar } from "notistack";
 import SymImg from "../components/SymImg";
-import { getRentDue } from "../utils/runUtils";
+import { AVG_NECESSARY, RENT_LENGTHS, getRentDue } from "../utils/runUtils";
 import { Item } from "../common/models/item";
+import { ChartContainer, LineChart } from "@mui/x-charts";
+import CoinChart from "../components/CoinChart";
+import CumulativeCoinChart from "../components/CumulativeCoinChart";
+import CoinBreakdownChart from "../components/CoinBreakdownChart";
 
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
@@ -240,7 +244,9 @@ const RunReplay: React.FC = () => {
             <Typography variant="h2">
                 Run Stats
             </Typography>
-            This is the next thing
+            <CoinChart runInfo={runInfo} />
+            <CumulativeCoinChart runInfo={runInfo} />
+            <CoinBreakdownChart runInfo={runInfo} />
         </Box>
     );
 }
@@ -267,9 +273,9 @@ const getCoinDisplay = (runInfo: RunInfo, postEffects: boolean, spinIdx: number)
     const dueInfo = getRentDue(spinIdx, runInfo.details);
     const dueColor = dueInfo.due > total ? "red" : "green";
     const diffDisplay =
-        <Typography variant="h5" color={dueColor} marginRight="10px">({(total - dueInfo.due)})</Typography>
+        <Typography component="div" variant="h5" color={dueColor} marginRight="10px">({(total - dueInfo.due)})</Typography>
     const dueDisplay = (
-        <Typography variant="h5" marginLeft="30px" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+        <Typography component="div" variant="h5" marginLeft="30px" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
             {diffDisplay}
             {dueInfo.due} {dueInfo.spinsRemaining > 0 ? `in ${dueInfo.spinsRemaining}` : "now"}
         </Typography>

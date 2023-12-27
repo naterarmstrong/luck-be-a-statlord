@@ -47,146 +47,6 @@ const coinsGainedRegex = /Gained (-?[\d]*) coins this spin/;
 const coinTotalRegex = /Coin total is now (-?[\d]*) after spinning/;
 const addedSymbolsRegex = /Added symbols: \[([^\^\n]*)\]/g
 
-export function processRun(text: string): RunInfo {
-    if (text === "" || !text) {
-        throw new Error("Empty run file")
-    }
-
-    const hash = sha256().update(text).digest('hex');
-
-    // spins[0] is the information before the run starts
-    const spins = text.split(/--- SPIN #/);
-    const runNumber = Number(spins[0].split('\n')[0].match("--- STARTING RUN #(.*) ---")?.[1]);
-    const startDateString = spins[0].split('\n')[0].match(/\[(.*)\]/)?.[1]!;
-    const finishDateString = text.split("\n").slice(-2, -1)[0]!.match(/^\[([^\]^\n]*)\]/)?.[1]!;
-    const date = parseDate(startDateString);
-    const finishDate = parseDate(finishDateString);
-    const version = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
-    let isVictory = false;
-    let isFloor20 = true;
-    let isGuillotine = false;
-    const details = new RunDetails();
-
-    const logRuns = false;
-
-    let earlySyms: Array<Symbol> = [];
-    let midSyms: Array<Symbol> = [];
-    let lateSyms: Array<Symbol> = [];
-
-    const start = performance.now();
-
-    for (const spinText of spins.slice(1)) {
-        const spinNum = Number(spinText.match("([\\d]*)")?.[1]!);
-
-
-        parseSpin(spinText, version);
-
-        const symbolExtras = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" ")[1]);
-        const symbolStrs = spinText.match(preSpinSymbolRegex)?.slice(1).map((s) => s.split(" (")[0])!;
-        // The final mapping is to ignore cases where something (a capsule) gives a removal token
-        // (v), reroll token (r), or essence (e), which is denoted like -12e1. We are only
-        // interested in the essence token
-        const values = spinText.match(spinValuesRegex)?.slice(1).map((s) => Number(s.split(/[vre]/)[0]))!;
-        const symbolsAdded = Array.from(spinText.matchAll(addedSymbolsRegex), (m) => m[1]).flatMap((x) => x.split(',')).map((x) => IIDToSymbol(x));
-
-        const coinsGainedMatch = spinText.match(coinsGainedRegex);
-        const coinsTotalMatch = spinText.match(coinTotalRegex);
-
-        // This can happen if you quit the game mid-spin, while effects are ongoing
-        if (!values || values.length < 20 || !symbolStrs || symbolStrs.length < 20 || !coinsGainedMatch || !coinsTotalMatch || coinsGainedMatch.length < 2 || coinsTotalMatch.length < 2 || !symbolExtras) {
-            console.error(`Quit mid-spin during spin ${spinNum}`);
-            break;
-        }
-
-        const coinsEarned = Number(coinsGainedMatch[1]);
-        const coinsTotal = Number(coinsTotalMatch[1]);
-
-        const spinInfo = new SpinInfo(coinsEarned, coinsTotal);
-        spinInfo.symbolsAdded = symbolsAdded;
-
-        // Note: Would have to keep track of inventory across spins by inferring based off of
-        // symbols added, destroyed, removed. However, that is currently impossible because the logs
-        // do not include which symbols are removed. They also don't include how many reroll /
-        // removal / essence things you have at any given time.
-
-        // Can keep track of how many spins since a symbol was last seen, and say that it was
-        // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+
-        // copies, but eh whatever
-
-
-        // console.log(`Spin number ${spinNum}`);
-        //console.log(symbols);
-        for (let i = 0; i < 20; i++) {
-            const symbolStr = symbolStrs[i];
-            const symbol = IIDToSymbol(symbolStr);
-            if (symbol === Symbol.Unknown) {
-                console.error(`Found unknown symbol: ${symbolStr}`);
-            }
-            details.recordSymbol(spinNum, symbol, values[i], isVictory);
-            spinInfo.symbols.push(symbol);
-            spinInfo.values.push(values[i]);
-            let symbolExtra = undefined;
-            if (symbolExtras[i]) {
-                const maybeNumber = Number(symbolExtras[i].slice(1, symbolExtras[i].length - 1));
-                if (!isNaN(maybeNumber)) {
-                    symbolExtra = maybeNumber;
-                }
-            }
-            spinInfo.symbolExtras.push(symbolExtra);
-        }
-
-        if (!isVictory) {
-            // Skip keeping track of every single board once going for endless / guillotine essence
-            // details.spins.push(spinInfo);
-            // TODO: Also push last spin if it is a guillotine essence win..
-        }
-
-        if (spinText.includes("VICTORY")) {
-            isVictory = true;
-            // From now on, it's endless mode. Should note that and put endless mode info into
-            // a slightly different category
-        }
-
-        if (spinText.includes("guillotine_essence") && coinsTotal > 1000000000) {
-            isGuillotine = true;
-        }
-
-        if (spinNum === 30 || spinNum === 60) {
-            const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
-
-            if (spinNum === 30) {
-                earlySyms = best.map(x => x[0]);
-                logRuns && console.log(`   Early game stats:`);
-            } else if (spinNum === 60) {
-                midSyms = best.map(x => x[0]);
-                logRuns && console.log(`   Mid game stats:`);
-            }
-            for (let i = 0; i < 3; i++) {
-                logRuns && console.log(`       ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
-            }
-        }
-    }
-
-    console.log("Total coins:", Array(...details.coinsPerSymbol.values()).reduce((a, b) => a + b, 0))
-
-    const end = performance.now();
-    logRuns && console.log(`Run number ${runNumber} on version ${version} in ${end - start}`)
-
-    const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
-    lateSyms = best.map(x => x[0]);
-    for (let i = 0; i < 3; i++) {
-        logRuns && console.log(`   ${best[i][0]}: ${best[i][1]} total, ${best[i][1] / details.showsPerSymbol.get(best[i][0])!} average`);
-    }
-
-
-    const run = new RunInfo(hash, runNumber, version, true, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
-    run.details = details;
-
-    processRun2(text);
-
-    return run;
-}
-
 export function processRun2(text: string): RunInfo {
     if (text === "" || !text) {
         throw new Error("Empty run file")
@@ -276,9 +136,6 @@ export function processRun2(text: string): RunInfo {
     lateSyms = details.getBest3Symbols();
     details.endRecording();
 
-    const best = (new Array(...details.coinsPerSymbol.entries())).sort(([, a], [, b]) => b - a).slice(0, 3);
-    lateSyms = best.map(x => x[0]);
-
     console.log(`Run was on floor 20: ${isFloor20}`)
 
 
@@ -301,7 +158,7 @@ function couldBeFloor20(spinData: SpinData): boolean {
         }
     }
     if (spinData.number === 14) {
-        return spinData.symbolsAddedChoice.includes(Symbol.Dud);
+        return spinData.symbolsAddedNoChoice.includes(Symbol.Dud);
     }
 
     return true;

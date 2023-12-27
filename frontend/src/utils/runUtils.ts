@@ -22,6 +22,9 @@ export const RENT_F20_SPINS = new Map([
     [120, 2000], // Rent 15 - third landlord rent
 ]);
 
+export const AVG_NECESSARY = [5, 10, 16.66, 25, 32.14, 42, 46.875, 56.25, 66.66, 72.22, 70, 77.7, 100, 150, 200];
+export const RENT_LENGTHS = [5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 10, 10, 10];
+
 export function getRentDue(spinIdx: number, details: RunDetails) {
     let effectiveSpinIdx = spinIdx;
     for (let i = 0; i < spinIdx; i++) {

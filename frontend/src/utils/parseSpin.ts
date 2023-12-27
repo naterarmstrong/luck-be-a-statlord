@@ -40,7 +40,7 @@ enum DebugLevel {
 // 16a. Added symbols or Skipped symbols (optional if VICTORY)
 // 16b. OPTIONAL - Added item
 export function parseSpin(spinText: string, version: string): SpinData | null {
-    const DEBUG = DebugLevel.Error;
+    const DEBUG = DebugLevel.Trace;
     // Trim off the date from the start of each line
     // The date is formatted as:
     // [MM/DD/YYYY HH:MM:SS] CONTENT
@@ -164,7 +164,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                 } else if (symbols.length === 1 && symbols[0] === Symbol.Dud) {
                     symbolsAddedNoChoice.push(...symbols);
                 } else {
-                    symbolsAddedChoice.push(...sp.getSymbolAdded());
+                    symbolsAddedChoice.push(...symbols);
                 }
             } else if (sp.isContinuing()) {
                 sp.handleContinuing();
@@ -674,7 +674,7 @@ class SpinParser {
         } else if (line.startsWith("Added symbol: ")) {
             symbolTexts = [line.split(" ")[2]]
         } else {
-            throw new Error("Failed to parse symbol being added")
+            throw new Error(`Failed to parse symbol being added: ${line}`)
         }
 
 

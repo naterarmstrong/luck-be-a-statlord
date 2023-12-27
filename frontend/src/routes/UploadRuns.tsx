@@ -5,7 +5,7 @@ import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Symbol } from "../common/models/symbol"
 import { RunInfo } from "../common/models/run"
-import { processRun, processRun2 } from "../utils/processRun";
+import { processRun2 } from "../utils/processRun";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"

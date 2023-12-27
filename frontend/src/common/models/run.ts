@@ -253,7 +253,10 @@ export class RunDetails {
     }
 
     getBest3Symbols(): Array<Symbol> {
-        return (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, 3).map((s) => s[0])
+        console.log(this);
+        const ret = (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, 3).map((s) => s[0])
+        console.log(ret);
+        return ret;
     }
 
     recordSymbol(spinNum: number, symbol: Symbol, value: number, isEndless: boolean) {

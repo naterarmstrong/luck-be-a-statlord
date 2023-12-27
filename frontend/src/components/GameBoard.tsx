@@ -51,7 +51,6 @@ const RunDisplayRow: React.FC<RunDisplayRowProps> = ({ top, bottom, symbols, pxS
         minWidth: `${(PX_PER_IMG + 3) * pxSize}`
     }
 
-    console.log("coins", coins, displayCoins)
     let getCoins = (i: number): EarnedValue | undefined => {
         if (!displayCoins || !coins) {
             return undefined;
