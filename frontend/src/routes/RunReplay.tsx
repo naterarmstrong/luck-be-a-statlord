@@ -12,6 +12,7 @@ import { ChartContainer, LineChart } from "@mui/x-charts";
 import CoinChart from "../components/CoinChart";
 import CumulativeCoinChart from "../components/CumulativeCoinChart";
 import CoinBreakdownChart from "../components/CoinBreakdownChart";
+import API_ENDPOINT from "../utils/api";
 
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
@@ -25,7 +26,7 @@ const RunReplay: React.FC = () => {
 
     useEffect(() => {
         const fetchRunData = async () => {
-            const response = await fetch(`http://localhost:3001/run/${runId}`);
+            const response = await fetch(`${API_ENDPOINT}/run/${runId}`);
             if (!response.ok) {
                 console.log("Error fetching");
                 // User didn't exist
@@ -60,7 +61,7 @@ const RunReplay: React.FC = () => {
             setRunInfo(runInfo);
             setSpinIdx(0);
 
-            fetch(`http://localhost:3001/user/${jsonData.UserId}`).then((response) => {
+            fetch(`${API_ENDPOINT}/user/${jsonData.UserId}`).then((response) => {
                 if (!response.ok) {
                     console.log("Error fetching username.")
                 }

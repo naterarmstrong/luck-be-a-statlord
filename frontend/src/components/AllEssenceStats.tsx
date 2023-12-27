@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { SymbolStats } from "./SymbolStatDisplay";
 import { ITEM_TO_IMG } from "../utils/item";
 import { Item } from "../common/models/item";
+import API_ENDPOINT from "../utils/api";
 
 export interface EssenceStats {
     name: Item,
@@ -40,7 +41,7 @@ export const AllEssenceStats: React.FC = () => {
 
     useEffect(() => {
         const fetchItemStats = async () => {
-            const response = await fetch(`http://localhost:3001/essenceStats`);
+            const response = await fetch(`${API_ENDPOINT}/essenceStats`);
             if (!response.ok) {
                 console.log(`Error fetching essence stats`);
             }

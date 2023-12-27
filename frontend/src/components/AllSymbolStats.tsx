@@ -5,6 +5,7 @@ import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid"
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { useEffect, useState } from "react";
 import { SymbolStats } from "./SymbolStatDisplay";
+import API_ENDPOINT from "../utils/api";
 
 const columns: GridColDef[] = [
     {
@@ -54,7 +55,7 @@ export const AllSymbolStats: React.FC = () => {
 
     useEffect(() => {
         const fetchSymbolStats = async () => {
-            const response = await fetch(`http://localhost:3001/symbolStats`);
+            const response = await fetch(`${API_ENDPOINT}/symbolStats`);
             if (!response.ok) {
                 console.log(`Error fetching symbol stats`);
             }

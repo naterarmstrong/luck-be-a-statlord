@@ -11,6 +11,7 @@ import { ordinal } from "../utils/ordinal";
 import ItemSelector from "../components/ItemSelector";
 import { Item } from "../common/models/item";
 import { sfmt } from "../utils/strfmt";
+import API_ENDPOINT from "../utils/api";
 
 export interface PairPerformance {
     WinRateTogether: number,
@@ -50,7 +51,7 @@ const SymbolDetails: React.FC = () => {
 
     useEffect(() => {
         const fetchFullSymbolStats = async () => {
-            const response = await fetch(`http://localhost:3001/symbolStats`);
+            const response = await fetch(`${API_ENDPOINT}/symbolStats`);
             if (!response.ok) {
                 console.log(`Error fetching symbol stats`);
             }
@@ -72,7 +73,7 @@ const SymbolDetails: React.FC = () => {
         }
 
         const fetchSymbolStats = async () => {
-            const response = await fetch(`http://localhost:3001/symbol/${symbol}/with/${secondarySymbol}`);
+            const response = await fetch(`${API_ENDPOINT}/symbol/${symbol}/with/${secondarySymbol}`);
             if (!response.ok) {
                 console.log(`Error fetching symbol stats`);
             }

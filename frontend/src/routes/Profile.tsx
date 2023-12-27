@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material"
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import API_ENDPOINT from "../utils/api";
 
 type ProfileStats = {
     total_games: number,
@@ -30,7 +31,7 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
-            const response = await fetch(`http://localhost:3001/user/${userId}`);
+            const response = await fetch(`${API_ENDPOINT}/user/${userId}`);
             if (!response.ok) {
                 console.log("Error fetching");
                 // User didn't exist
@@ -45,7 +46,7 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         const fetchUserStats = async () => {
-            const response = await fetch(`http://localhost:3001/user/${userId}/stats`);
+            const response = await fetch(`${API_ENDPOINT}/user/${userId}/stats`);
             if (!response.ok) {
                 console.log("Error fetching");
                 // User didn't exist

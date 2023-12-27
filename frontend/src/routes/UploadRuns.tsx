@@ -15,6 +15,7 @@ import DisplayRuns from "../components/DisplayRuns";
 import { pauseExecution } from "../utils/yield";
 import Cookies from "universal-cookie";
 import userContext from "../contexts/UserContext";
+import API_ENDPOINT from "../utils/api";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -127,7 +128,7 @@ const UploadRuns: React.FC = () => {
                 credentials: "include" as RequestCredentials,
                 mode: "cors" as RequestMode
             };
-            const response = await fetch('http://localhost:3001/uploadRuns', fetchArgs);
+            const response = await fetch(`${API_ENDPOINT}/uploadRuns`, fetchArgs);
             // The user token is expired/bad for some reason
             if (response.status === 401) {
                 enqueueSnackbar(`Please log in again.`, {

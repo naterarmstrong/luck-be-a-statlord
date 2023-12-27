@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { SymbolStats } from "./SymbolStatDisplay";
 import { ITEM_TO_IMG } from "../utils/item";
 import { Item } from "../common/models/item";
+import API_ENDPOINT from "../utils/api";
 
 export interface ItemStats {
     name: Item,
@@ -48,7 +49,7 @@ export const AllItemStats: React.FC = () => {
 
     useEffect(() => {
         const fetchItemStats = async () => {
-            const response = await fetch(`http://localhost:3001/itemStats`);
+            const response = await fetch(`${API_ENDPOINT}/itemStats`);
             if (!response.ok) {
                 console.log(`Error fetching item stats`);
             }

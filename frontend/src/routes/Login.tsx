@@ -6,6 +6,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Cookies from 'universal-cookie';
 import userContext from "../contexts/UserContext";
 import { enqueueSnackbar } from "notistack";
+import API_ENDPOINT from "../utils/api";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -36,7 +37,7 @@ const Login: React.FC = () => {
             mode: "cors" as RequestMode,
             credentials: "include" as RequestCredentials,
         };
-        const response = await fetch('http://localhost:3001/login', fetchArgs);
+        const response = await fetch(`${API_ENDPOINT}/login`, fetchArgs);
         if (!response.ok) {
             if (response.status == 404) {
                 enqueueSnackbar(`User does not exist.`, {
@@ -81,7 +82,7 @@ const Login: React.FC = () => {
             mode: "cors" as RequestMode,
             credentials: "include" as RequestCredentials,
         };
-        const response = await fetch('http://localhost:3001/register', fetchArgs);
+        const response = await fetch(`${API_ENDPOINT}/register`, fetchArgs);
         if (!response.ok) {
             if (response.status == 409) {
                 enqueueSnackbar('Username already taken', {
