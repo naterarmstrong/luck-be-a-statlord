@@ -86,6 +86,7 @@ const UploadRuns: React.FC = () => {
             try {
                 console.log(`Processing run ${file.name}`)
                 const processed = processRun(text);
+                // console.log("Processed run:", processed);
                 // Omit runs that are less than 30 seconds
                 if (processed.duration < 30 * 1000) {
                     errorCount += 1;

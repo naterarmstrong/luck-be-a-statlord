@@ -96,6 +96,7 @@ export function processRun(text: string): RunInfo {
         if (spinData.currentCoins + 20 < lastCoinTotal) {
             rentsPaid += 1;
         }
+        lastCoinTotal = spinData.coinTotal;
 
         const curRentsPaid = rentsPaid;
         spinData.symbolsAddedChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(curRentsPaid, symbol, true));
