@@ -121,7 +121,6 @@ const UploadRuns: React.FC = () => {
                 credentials: "include" as RequestCredentials,
                 mode: "cors" as RequestMode
             };
-            console.log(`Posting to: ${API_ENDPOINT}/uploadRuns`)
             const response = await fetch(`${API_ENDPOINT}/uploadRuns`, fetchArgs);
             // The user token is expired/bad for some reason
             if (response.status === 401) {

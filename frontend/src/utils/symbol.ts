@@ -506,7 +506,6 @@ const golden_arrow7 = require("../img/arrows/golden_arrow7.png");
 const golden_arrow8 = require("../img/arrows/golden_arrow8.png");
 
 export function getArrowImg(symbol: Symbol, direction: ArrowDirections): string {
-    console.log("Rendering arrow", symbol, direction)
     switch (symbol) {
         case Symbol.BronzeArrow:
             switch (direction) {

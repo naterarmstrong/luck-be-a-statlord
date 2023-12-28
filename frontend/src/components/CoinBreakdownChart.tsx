@@ -13,8 +13,6 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
         return null;
     }
 
-    console.log(runInfo)
-
     let symbols: Symbol[] = [];
     let bestSyms = [];
     bestSyms.push(...runInfo.earlySyms.slice(0, 1));
@@ -25,8 +23,6 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
             symbols.push(symbol);
         }
     }
-
-    console.log(symbols);
 
     let totalPerSymbol = symbols.map((_) => 0.0000001);
     const seriesPerSymbol: number[][] = symbols.map((_) => []);

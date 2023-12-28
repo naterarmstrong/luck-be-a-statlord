@@ -12,6 +12,20 @@ import CumulativeCoinChart from "../components/CumulativeCoinChart";
 import CoinBreakdownChart from "../components/CoinBreakdownChart";
 import API_ENDPOINT from "../utils/api";
 
+interface DisplayOptions {
+    spinIdx: number,
+    postEffects: boolean,
+    displayCoins: boolean,
+}
+
+interface UpdateDisplayOptionsArgs {
+    incSpinIdx?: boolean,
+    decSpinIdx?: boolean,
+    toggleEffects?: boolean,
+    toggleCoins?: boolean,
+    setSpinIdx?: number,
+}
+
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -29,9 +43,7 @@ const RunReplay: React.FC = () => {
     if (searchParamSpin !== null && !isNaN(Number(searchParamSpin as any))) {
         startingSpinIdx = Number(searchParamSpin);
     }
-    const [spinIdx, setSpinIdx] = useState<number>(startingSpinIdx);
-    const [postEffects, setPostEffects] = useState<boolean>(false);
-    const [displayCoins, setDisplayCoins] = useState<boolean>(false);
+    const [displayOptions, setDisplayOptions] = useState<DisplayOptions>({ spinIdx: startingSpinIdx, postEffects: false, displayCoins: false });
 
     const [runInfo, setRunInfo] = useState<RunInfo | undefined>(undefined);
 
@@ -106,7 +118,8 @@ const RunReplay: React.FC = () => {
             // TODO: Add symbol/item details to this
 
             setRunInfo(runInfo);
-            setSpinIdx(startingSpinIdx);
+            console.log(`Setting spin idx after fetching to ${startingSpinIdx}`);
+            setDisplayOptions({ spinIdx: startingSpinIdx, displayCoins: false, postEffects: false });
             setUID(jsonData.UserId);
 
             fetch(`${API_ENDPOINT}/user/${jsonData.UserId}`).then((response) => {
@@ -119,53 +132,82 @@ const RunReplay: React.FC = () => {
         }
 
         fetchRunData().catch(console.error)
-    }, [runId, userId, runNumber, navigate, startingSpinIdx]);
+    }, [runId, userId, runNumber, navigate]);
 
-    const toggleCoins = useCallback(() => {
-        if (!displayCoins) {
-            setPostEffects(true);
-        }
-        setDisplayCoins(!displayCoins);
-    }, [displayCoins]);
 
-    const updateSpin = useCallback((number: number) => {
+    const updateDisplayOptions = (e: UpdateDisplayOptionsArgs) => {
         if (!runInfo || !runInfo.details) {
             return;
         }
 
-        if (number < 0) {
-            setSpinIdx(0);
-        } else if (number >= runInfo.details.spins.length) {
-            setSpinIdx(runInfo.details.spins.length - 1);
-        } else {
-            setSpinIdx(number);
+        console.log("updateDisplayOptions callback being called with settings", displayOptions, e);
+
+        let newOptions = { ...displayOptions };
+        let spin = undefined;
+        if (e.setSpinIdx !== undefined) {
+            spin = e.setSpinIdx;
         }
-        setPostEffects(false);
-        setDisplayCoins(false);
-    }, [runInfo]);
+        if (e.incSpinIdx) {
+            spin = displayOptions.spinIdx + 1;
+        }
+        if (e.decSpinIdx) {
+            spin = displayOptions.spinIdx - 1;
+        }
+
+        if (spin !== undefined) {
+            if (spin < 0) {
+                newOptions.spinIdx = 0;
+            } else if (spin >= runInfo.details.spins.length) {
+                newOptions.spinIdx = runInfo.details.spins.length = 1;
+            } else {
+                newOptions.spinIdx = spin;
+            }
+        }
+
+        if (e.toggleEffects) {
+            newOptions.postEffects = !displayOptions.postEffects;
+        }
+
+        if (e.toggleCoins) {
+            newOptions.displayCoins = !displayOptions.displayCoins;
+        }
+
+        if (newOptions.spinIdx !== displayOptions.spinIdx) {
+            newOptions.postEffects = false;
+            newOptions.displayCoins = false;
+        }
+
+        setDisplayOptions(newOptions);
+    };
+
+    const throttleDisplayRef = useRef<number>();
+
+    const throttledUpdateDisplayOptions = (e: UpdateDisplayOptionsArgs) => {
+        if (throttleDisplayRef.current) {
+            return;
+        }
+
+        throttleDisplayRef.current = window.setTimeout(() => {
+            updateDisplayOptions(e);
+            throttleDisplayRef.current = 0;
+        }, 30);
+    }
 
     const keyListener = useCallback((event) => {
         if (event.key === "ArrowRight") {
-            updateSpin(spinIdx + 1);
-        } else if (event.key === "ArrowLeft") {
-            updateSpin(spinIdx - 1);
-        } else if (event.key === "ArrowUp") {
-            setPostEffects(false);
+            throttledUpdateDisplayOptions({ incSpinIdx: true });
             event.preventDefault();
-        } else if (event.key === "ArrowDown") {
-            setPostEffects(true);
+        } else if (event.key === "ArrowLeft") {
+            throttledUpdateDisplayOptions({ decSpinIdx: true });
             event.preventDefault();
         } else if (event.key === "c") {
-            toggleCoins();
+            throttledUpdateDisplayOptions({ toggleCoins: true });
         } else if (event.key === "e") {
-            if (postEffects) {
-                setDisplayCoins(false);
-            }
-            setPostEffects(!postEffects);
+            throttledUpdateDisplayOptions({ toggleEffects: true });
         } else if (event.key === "v") {
             runRef.current?.scrollIntoView({ block: "start", inline: "nearest", behavior: "smooth" });
         }
-    }, [spinIdx, postEffects, updateSpin, toggleCoins]);
+    }, [displayOptions]);
 
     useEffect(() => {
         document.addEventListener("keydown", keyListener, false);
@@ -175,17 +217,12 @@ const RunReplay: React.FC = () => {
         };
     }, [keyListener]);
 
-    useEffect(() => {
-        setSearchParams({ spin: String(spinIdx) });
-    }, [spinIdx, setSearchParams])
-
-
     const getSpinSymbols = (): Array<SpinSymbol> => {
         if (!runInfo || !runInfo.details) {
             return [];
         }
-        const spin = runInfo.details.spins[spinIdx];
-        if (postEffects) {
+        const spin = runInfo.details.spins[displayOptions.spinIdx];
+        if (displayOptions.postEffects) {
             return spin.postEffectLayout;
         }
         // If the symbol displayed is the same in the pre and post effect layout, apply bonuses and
@@ -230,7 +267,7 @@ const RunReplay: React.FC = () => {
     return (
         <Box>
 
-            <Box alignItems="center" justifyContent="center" minWidth="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }} ref={runRef}>
+            <Box alignItems="center" justifyContent="center" width="100vw" display="flex" minHeight="100vh" sx={{ backgroundColor: "#ff8300" }} ref={runRef}>
                 <Grid container justifyContent="center" alignItems="center" spacing={1} direction="column">
                     <Grid item xs={12} >
                         <Typography variant="h4">
@@ -252,27 +289,27 @@ const RunReplay: React.FC = () => {
                     <Grid item xs={12} >
                         <Grid container spacing={1}>
                             <Grid item>
-                                <Button onClick={() => updateSpin(0)} variant="contained">
+                                <Button onClick={() => updateDisplayOptions({ setSpinIdx: 0 })} variant="contained">
                                     First
                                 </Button>
                             </Grid>
                             <Grid item>
-                                <Button onClick={() => updateSpin(spinIdx - 1)} variant="contained">
+                                <Button onClick={() => updateDisplayOptions({ decSpinIdx: true })} variant="contained">
                                     Previous
                                 </Button>
                             </Grid>
                             <Grid item>
                                 <Typography variant="h6">
-                                    Spin {runInfo.details.spins[spinIdx].number + 1} of {runInfo.spins + 1}
+                                    Spin {runInfo.details.spins[displayOptions.spinIdx].number + 1} of {runInfo.spins + 1}
                                 </Typography>
                             </Grid>
                             <Grid item>
-                                <Button onClick={() => updateSpin(spinIdx + 1)} variant="contained">
+                                <Button onClick={() => updateDisplayOptions({ incSpinIdx: true })} variant="contained">
                                     Next
                                 </Button>
                             </Grid>
                             <Grid item>
-                                <Button onClick={() => updateSpin(runInfo.details!.spins.length - 1)} variant="contained">
+                                <Button onClick={() => updateDisplayOptions({ setSpinIdx: runInfo.details!.spins.length - 1 })} variant="contained">
                                     Last
                                 </Button>
                             </Grid>
@@ -281,26 +318,26 @@ const RunReplay: React.FC = () => {
                     </Grid>
                     <Grid item xs={12}><Grid container spacing={5} justifyContent="space-around">
                         <Grid item>
-                            {getFirstItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
+                            {getFirstItemDisplay(runInfo.details.spins[displayOptions.spinIdx], displayOptions.postEffects)}
                         </Grid>
                         <Grid item minWidth={`${8 * 76}px`}>
-                            <GameBoard pxSize={8} symbols={getSpinSymbols()} coins={runInfo.details.spins[spinIdx].symbolValues} displayCoins={displayCoins} />
+                            <GameBoard pxSize={8} symbols={getSpinSymbols()} coins={runInfo.details.spins[displayOptions.spinIdx].symbolValues} displayCoins={displayOptions.displayCoins} />
                         </Grid>
                         <Grid item>
-                            {getSecondItemDisplay(runInfo.details.spins[spinIdx], postEffects)}
+                            {getSecondItemDisplay(runInfo.details.spins[displayOptions.spinIdx], displayOptions.postEffects)}
                         </Grid>
                     </Grid></Grid>
-                    <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop={postEffects ? "-100px" : "-110px"}>
-                        {getCoinDisplay(runInfo, postEffects, spinIdx)}
+                    <Grid item xs={12} alignSelf="start" marginLeft="50px" marginTop={displayOptions.postEffects ? "-100px" : "-110px"}>
+                        {getCoinDisplay(runInfo, displayOptions.postEffects, displayOptions.spinIdx)}
                     </Grid>
                     <Grid container justifyContent="center" spacing={3}>
                         <Grid item>
-                            <Button onClick={() => setPostEffects(!postEffects)} variant="contained">
-                                {postEffects ? "Toggle effects" : "Toggle effects"}
+                            <Button onClick={() => updateDisplayOptions({ toggleEffects: true })} variant="contained">
+                                {displayOptions.postEffects ? "Toggle effects" : "Toggle effects"}
                             </Button>
                         </Grid>
                         <Grid item>
-                            <Button onClick={toggleCoins} variant="contained">
+                            <Button onClick={() => updateDisplayOptions({ toggleCoins: true })} variant="contained">
                                 Toggle Coins
                             </Button>
                         </Grid>
