@@ -1,4 +1,4 @@
-import { Box, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { Routes, Route } from "react-router-dom";
 import UploadRuns from "./routes/UploadRuns";
 

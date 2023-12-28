@@ -1,10 +1,7 @@
 import { Box, Link } from "@mui/material";
-import { Symbol } from "../common/models/symbol";
 import { Rarity, rarityColor } from "../common/models/rarity";
-import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid"
-import { SYMBOL_TO_IMG } from "../utils/symbol";
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useEffect, useState } from "react";
-import { SymbolStats } from "./SymbolStatDisplay";
 import { ITEM_TO_IMG } from "../utils/item";
 import { Item } from "../common/models/item";
 import API_ENDPOINT from "../utils/api";

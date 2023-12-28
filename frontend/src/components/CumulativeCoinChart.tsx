@@ -19,7 +19,6 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
     let rentIdx = 0;
     let lastRentStep = 0;
     let totalNeededSoFar = 0;
-    let totalEarnedSoFar = 0;
 
     let loopEnd = runInfo.details.spins.length;
     if (runInfo.guillotine) {
@@ -33,7 +32,6 @@ const CumulativeCoinChart: React.FC<CumulativeCoinChartProps> = ({ runInfo }) =>
         }
         xAxis.push(i + 1);
         totalNeededSoFar += AVG_NECESSARY[rentIdx];
-        totalEarnedSoFar += runInfo.details.spins[i].coinsGained;
         reqData.push(totalNeededSoFar);
         earnedData.push(runInfo.details.spins[i].coinTotal);
     }

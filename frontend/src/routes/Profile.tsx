@@ -42,7 +42,7 @@ const Profile: React.FC = () => {
         }
 
         fetchUserName().catch(console.error);
-    }, []);
+    }, [userId, navigate]);
 
     useEffect(() => {
         const fetchUserStats = async () => {
@@ -58,7 +58,7 @@ const Profile: React.FC = () => {
         }
 
         fetchUserStats().catch(console.error);
-    }, []);
+    }, [navigate, userId]);
 
     return (
         <Box>

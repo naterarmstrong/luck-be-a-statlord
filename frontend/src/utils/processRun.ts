@@ -1,7 +1,5 @@
-import { v4 } from "uuid";
-import { IIDToSymbol } from "./symbol";
 import { Symbol } from "../common/models/symbol"
-import { RunInfo, RunDetails, SpinData, SpinInfo } from "../common/models/run"
+import { RunInfo, RunDetails, SpinData } from "../common/models/run"
 import { Item } from "../common/models/item";
 import { sha256 } from 'hash.js';
 import parseSpin from "./parseSpin";
@@ -70,7 +68,7 @@ export function processRun(text: string): RunInfo {
     let lateSyms: Array<Symbol> = [];
 
     for (const [idx, spinText] of spins.slice(1).entries()) {
-        if (isVictory && idx != spins.length - 2) {
+        if (isVictory && idx !== spins.length - 2) {
             // Don't bother processing guillotine runs in the middle. Just skip to the last spin to
             // display
 
@@ -99,15 +97,16 @@ export function processRun(text: string): RunInfo {
             rentsPaid += 1;
         }
 
-        spinData.symbolsAddedChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(rentsPaid, symbol, true));
-        spinData.symbolsAddedNoChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(rentsPaid, symbol, false));
-        spinData.symbolsDestroyed.forEach((symbol: Symbol) => details.recordSymbolDestroyed(rentsPaid, symbol));
-        spinData.symbolsRemoved.forEach((symbol: Symbol) => details.recordSymbolRemoved(rentsPaid, symbol));
-        spinData.symbolsTransformed.forEach((symbol: Symbol) => details.recordSymbolRemoved(rentsPaid, symbol));
+        const curRentsPaid = rentsPaid;
+        spinData.symbolsAddedChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(curRentsPaid, symbol, true));
+        spinData.symbolsAddedNoChoice.forEach((symbol: Symbol) => details.recordSymbolAdded(curRentsPaid, symbol, false));
+        spinData.symbolsDestroyed.forEach((symbol: Symbol) => details.recordSymbolDestroyed(curRentsPaid, symbol));
+        spinData.symbolsRemoved.forEach((symbol: Symbol) => details.recordSymbolRemoved(curRentsPaid, symbol));
+        spinData.symbolsTransformed.forEach((symbol: Symbol) => details.recordSymbolRemoved(curRentsPaid, symbol));
 
-        spinData.itemsAddedChoice.forEach((item: Item) => details.recordItemAdded(rentsPaid, item, true));
-        spinData.itemsAddedNoChoice.forEach((item: Item) => details.recordItemAdded(rentsPaid, item, false));
-        spinData.itemsDestroyed.forEach((item: Item) => details.recordItemDestroyed(rentsPaid, item));
+        spinData.itemsAddedChoice.forEach((item: Item) => details.recordItemAdded(curRentsPaid, item, true));
+        spinData.itemsAddedNoChoice.forEach((item: Item) => details.recordItemAdded(curRentsPaid, item, false));
+        spinData.itemsDestroyed.forEach((item: Item) => details.recordItemDestroyed(curRentsPaid, item));
 
         for (let i = 0; i < 20; i++) {
             details.recordSymbol(rentsPaid, spinData.postEffectLayout[i].symbol, spinData.symbolValues[i].coins);
@@ -144,7 +143,7 @@ export function processRun(text: string): RunInfo {
 function couldBeFloor20(spinData: SpinData): boolean {
     if (spinData.number === 0) {
         const dudCount = spinData.preEffectLayout.map((ss) => ss.symbol).filter((s) => s === Symbol.Dud).length;
-        if (dudCount != 3) {
+        if (dudCount !== 3) {
             return false;
         }
     }

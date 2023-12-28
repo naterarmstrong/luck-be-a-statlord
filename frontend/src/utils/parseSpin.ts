@@ -1,6 +1,5 @@
-import { dir } from "console";
-import { ArrowDirections, Symbol, SymbolUtils } from "../common/models/symbol";
-import { IIDToSymbol, IID_TO_SYMBOL } from "./symbol";
+import { ArrowDirections, Symbol } from "../common/models/symbol";
+import { IIDToSymbol } from "./symbol";
 import { Item } from "../common/models/item";
 import { IIDToItem } from "./item";
 import { SemanticVersion } from "../common/utils/version";
@@ -51,7 +50,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
     const spinNum = sp.getSpinNumber();
     const coinsBefore = sp.getCoinsBefore();
     // Ignore fine print, as we can't do anything about it anyways
-    const finePrint = sp.getFinePrint();
+    sp.getFinePrint();
     const symbols = sp.getPreEffectSymbols();
     const items = sp.getPreEffectItems();
 
@@ -79,8 +78,8 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                 if (effect.isSymbolDestroyed()) {
                     if (
                         effects.length === 0 ||
-                        !(effects[effects.length - 1].equals(effect)) &&
-                        !(effects.length >= 2 && effects[effects.length - 2].equals(effect))) {
+                        (!(effects[effects.length - 1].equals(effect)) &&
+                            !(effects.length >= 2 && effects[effects.length - 2].equals(effect)))) {
                         // TODO: Handle dove _really_ screwing this up. Probably have to keep
                         // track of the board, and do stuff with it
                         destroyedSymbols.push(effect.getSymbolDestroyed())
@@ -172,7 +171,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
                 destroyedItems.push(sp.getItemDestroyed());
             } else if (sp.isItemDestroyCounter()) {
                 sp.getItemDestroyCounter();
-            } else if (sp.isPostEffectSymbols() && postEffectItems.some((si: SpinItem) => si.item == Item.Coffee || si.item == Item.CoffeeEssence)) {
+            } else if (sp.isPostEffectSymbols() && postEffectItems.some((si: SpinItem) => si.item === Item.Coffee || si.item === Item.CoffeeEssence)) {
                 // This is super strange, but apparently when coffee_essence (and maybe coffee)
                 // triggers, the spin layout, values, items, item values, destroyed symbol, and
                 // destroyed items get logged _as though there were no effects_. Then, it will be a
@@ -244,7 +243,7 @@ export function parseSpin(spinText: string, version: string): SpinData | null {
 
 }
 
-const spinLineRegex = /\[(\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^\)]*\))?), (\w+ ?(?:\([^)]*\))?)\]/;
+const spinLineRegex = /\[(\w+ ?(?:\([^)]*\))?), (\w+ ?(?:\([^)]*\))?), (\w+ ?(?:\([^)]*\))?), (\w+ ?(?:\([^)]*\))?), (\w+ ?(?:\([^)]*\))?)\]/;
 const valueLineRegex = /\[(-?\w+), (-?\w+), (-?\w+), (-?\w+), (-?\w+)\]/
 const OLDEST_EFFECT_VERSION = new SemanticVersion("v0.9.0");
 
@@ -733,7 +732,7 @@ class SpinParser {
         const sourceIsSymbol = effectSource.split(" ").length > 1;
         if (sourceIsSymbol) {
             const symbol = IIDToSymbol(effectSource.split(" ")[0]);
-            if (this.isError() && symbol == Symbol.Unknown) {
+            if (this.isError() && symbol === Symbol.Unknown) {
                 console.error(`Bad symbol effect source: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
                 this.sawError = true;
@@ -741,7 +740,7 @@ class SpinParser {
             const x = Number(effectSource.split(" ")[1][3]);
             const y = Number(effectSource.split(" ")[2][2]);
             const index = y * 5 + x
-            if (this.isError() && isNaN(index) || index < 0 || index > 19) {
+            if ((this.isError() && isNaN(index)) || index < 0 || index > 19) {
                 console.error(`Bad symbol effect location: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
                 this.sawError = true;
@@ -749,7 +748,7 @@ class SpinParser {
             source = { symbol, index };
         } else {
             const item = IIDToItem(effectSource)
-            if (this.isError() && item == Item.ItemMissing) {
+            if (this.isError() && item === Item.ItemMissing) {
                 console.error(`Bad item effect source: ${effectSource}`)
                 console.error(`    Effect: ${effectText}`)
                 this.sawError = true;
@@ -815,7 +814,7 @@ class SpinParser {
     parseSymbol(symbolText: string): SpinSymbol {
         const symOnly = symbolText.split("(")[0].trim();
         const symbol = IIDToSymbol(symOnly);
-        if (symbol == Symbol.Unknown && this.isError()) {
+        if (symbol === Symbol.Unknown && this.isError()) {
             console.error(`Found unknown symbol: ${symOnly}`);
             this.sawError = true;
         }
@@ -838,7 +837,7 @@ class SpinParser {
             item = IIDToItem(itemOnly)
         }
 
-        if (item == Item.ItemMissing && this.isError()) {
+        if (item === Item.ItemMissing && this.isError()) {
             console.error(`Found unknown item: ${itemOnly}`)
             this.sawError = true;
         }
@@ -899,7 +898,7 @@ class SpinParser {
         // - r is for reroll tokens
         // If the tokens are not present, they will not appear at all
         const valueTextMatches = valueText.match(/(-?[0-9]+|inf)(e[0-9]+)?(v[0-9]+)?(r[0-9]+)?/)
-        if (!valueTextMatches || valueTextMatches.length != 5 || valueTextMatches[0] === undefined) {
+        if (!valueTextMatches || valueTextMatches.length !== 5 || valueTextMatches[0] === undefined) {
             console.error(`Failed to parse a value`, valueText)
             this.sawError = true;
             throw new Error("Failed to parse value")
@@ -937,19 +936,19 @@ class SpinParser {
     }
 
     done(): boolean {
-        return this.lineIdx >= this.lines.length || this.peek() == "";
+        return this.lineIdx >= this.lines.length || this.peek() === "";
     }
 
     isError(): boolean {
-        return this.debug == DebugLevel.Error || this.debug == DebugLevel.Trace || this.debug == DebugLevel.Custom
+        return this.debug === DebugLevel.Error || this.debug === DebugLevel.Trace || this.debug === DebugLevel.Custom
     }
 
     isCustom(): boolean {
-        return this.debug == DebugLevel.Custom || this.debug == DebugLevel.Trace
+        return this.debug === DebugLevel.Custom || this.debug === DebugLevel.Trace
     }
 
     isTrace(): boolean {
-        return this.debug == DebugLevel.Trace
+        return this.debug === DebugLevel.Trace
     }
 }
 

@@ -1,7 +1,6 @@
 import { Button, Grid, TextField, Typography } from "@mui/material";
 import SymImg from "../components/SymImg";
 import { Symbol } from "../common/models/symbol";
-import { Item } from "../common/models/item";
 import { shuffle } from "../utils/simulate";
 import { useState } from "react";
 import React from "react";
@@ -45,7 +44,7 @@ const CrabCalculator: React.FC = () => {
     const [calcCrabs, setCalcCrabs] = useState<number>(0);
 
     const calculate = () => {
-        if (crabs == 0) {
+        if (crabs === 0) {
             return
         }
         // The number of lines that have 0-5 crabs

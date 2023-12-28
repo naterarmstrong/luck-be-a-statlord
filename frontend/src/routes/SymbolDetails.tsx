@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Card, CardContent, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, OutlinedInput, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import { SYMBOL_RARITIES, Symbol, isSymbol } from "../common/models/symbol";
 import { rarityColor } from "../common/models/rarity";
 import { useEffect, useState } from "react";
@@ -8,8 +8,6 @@ import SymbolSelector from "../components/SymbolSelector";
 import SymImg from "../components/SymImg";
 import { SymbolStats } from "../components/SymbolStatDisplay";
 import { ordinal } from "../utils/ordinal";
-import ItemSelector from "../components/ItemSelector";
-import { Item } from "../common/models/item";
 import { sfmt } from "../utils/strfmt";
 import API_ENDPOINT from "../utils/api";
 
@@ -44,7 +42,6 @@ const SymbolDetails: React.FC = () => {
     }
     const [symbol, setSymbol] = useState<Symbol>(startSymbol);
     const [secondarySymbol, setSecondarySymbol] = useState<Symbol>(secondaryStartSymbol);
-    const [secondaryItem, setSecondaryItem] = useState<Item>(Item.ItemMissing);
     const [pairPerf, setPairPerf] = useState<PairPerformance | null>(null);
     const [fullStats, setFullStats] = useState<Array<SymbolStats>>([]);
     const [ratings, setRatings] = useState<Ratings | null>(null);
@@ -64,7 +61,7 @@ const SymbolDetails: React.FC = () => {
 
     useEffect(() => {
         setSearchParams({ symbol: symbol, secondarySymbol: secondarySymbol });
-    }, [symbol, secondarySymbol])
+    }, [symbol, secondarySymbol, setSearchParams])
 
 
     useEffect(() => {
@@ -85,12 +82,12 @@ const SymbolDetails: React.FC = () => {
     }, [symbol, secondarySymbol])
 
     useEffect(() => {
-        if (symbol == Symbol.Unknown || fullStats.length == 0) {
+        if (symbol === Symbol.Unknown || fullStats.length === 0) {
             setRatings(null);
             return
         }
 
-        const myStats = fullStats.find((v) => v.name == symbol);
+        const myStats = fullStats.find((v) => v.name === symbol);
         if (!myStats) {
             console.error(`Didn't find my stats in full stat array: ${symbol}`);
             setRatings(null);
@@ -101,17 +98,17 @@ const SymbolDetails: React.FC = () => {
         let gRank = 1;
         let relativeGRank = 1;
         for (const stats of fullStats) {
-            if (stats.name == symbol) {
+            if (stats.name === symbol) {
                 continue;
             }
             if (stats.win_rate > myStats.win_rate) {
-                if (stats.rarity == myStats.rarity) {
+                if (stats.rarity === myStats.rarity) {
                     relativeWrRank += 1;
                 }
                 wrRank += 1;
             }
             if (stats.total_games > myStats.total_games) {
-                if (stats.rarity == myStats.rarity) {
+                if (stats.rarity === myStats.rarity) {
                     relativeGRank += 1;
                 }
                 gRank += 1;

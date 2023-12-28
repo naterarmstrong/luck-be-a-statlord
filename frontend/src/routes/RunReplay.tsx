@@ -2,30 +2,21 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { RunDetails, RunInfo, SpinData, SpinItem, SpinSymbol } from "../common/models/run";
 import { Symbol, SymbolUtils } from "../common/models/symbol";
-import { Box, Button, Grid, TextField, Typography } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import GameBoard from "../components/GameBoard";
 import { enqueueSnackbar } from "notistack";
 import SymImg from "../components/SymImg";
-import { AVG_NECESSARY, RENT_LENGTHS, getRentDue } from "../utils/runUtils";
-import { Item } from "../common/models/item";
-import { ChartContainer, LineChart } from "@mui/x-charts";
+import { getRentDue } from "../utils/runUtils";
 import CoinChart from "../components/CoinChart";
 import CumulativeCoinChart from "../components/CumulativeCoinChart";
 import CoinBreakdownChart from "../components/CoinBreakdownChart";
 import API_ENDPOINT from "../utils/api";
-import { reviver } from "../common/utils/mapStringify";
 
 const RunReplay: React.FC = () => {
     const runRef = useRef<Element>();
     const [searchParams, setSearchParams] = useSearchParams();
     const { runId, userId, runNumber } = useParams();
 
-    let fetchUrl = "";
-    if (runId != undefined) {
-        fetchUrl = `${API_ENDPOINT}/run/${runId}`
-    } else {
-        fetchUrl = `${API_ENDPOINT}/user/${userId}/run/${runNumber}`
-    }
 
     const navigate = useNavigate();
     const [name, setName] = useState<string>("");
@@ -45,6 +36,13 @@ const RunReplay: React.FC = () => {
     const [runInfo, setRunInfo] = useState<RunInfo | undefined>(undefined);
 
     useEffect(() => {
+        let fetchUrl = "";
+        if (runId !== undefined) {
+            fetchUrl = `${API_ENDPOINT}/run/${runId}`
+        } else {
+            fetchUrl = `${API_ENDPOINT}/user/${userId}/run/${runNumber}`
+        }
+
         const fetchRunData = async () => {
             const response = await fetch(fetchUrl);
             if (!response.ok) {
@@ -121,14 +119,30 @@ const RunReplay: React.FC = () => {
         }
 
         fetchRunData().catch(console.error)
-    }, [runId, userId, runNumber]);
+    }, [runId, userId, runNumber, navigate, startingSpinIdx]);
 
-    const toggleCoins = () => {
+    const toggleCoins = useCallback(() => {
         if (!displayCoins) {
             setPostEffects(true);
         }
         setDisplayCoins(!displayCoins);
-    }
+    }, [displayCoins]);
+
+    const updateSpin = useCallback((number: number) => {
+        if (!runInfo || !runInfo.details) {
+            return;
+        }
+
+        if (number < 0) {
+            setSpinIdx(0);
+        } else if (number >= runInfo.details.spins.length) {
+            setSpinIdx(runInfo.details.spins.length - 1);
+        } else {
+            setSpinIdx(number);
+        }
+        setPostEffects(false);
+        setDisplayCoins(false);
+    }, [runInfo]);
 
     const keyListener = useCallback((event) => {
         if (event.key === "ArrowRight") {
@@ -151,7 +165,7 @@ const RunReplay: React.FC = () => {
         } else if (event.key === "v") {
             runRef.current?.scrollIntoView({ block: "start", inline: "nearest", behavior: "smooth" });
         }
-    }, [spinIdx, displayCoins, postEffects]);
+    }, [spinIdx, postEffects, updateSpin, toggleCoins]);
 
     useEffect(() => {
         document.addEventListener("keydown", keyListener, false);
@@ -163,23 +177,8 @@ const RunReplay: React.FC = () => {
 
     useEffect(() => {
         setSearchParams({ spin: String(spinIdx) });
-    }, [spinIdx])
+    }, [spinIdx, setSearchParams])
 
-    const updateSpin = (number: number) => {
-        if (!runInfo || !runInfo.details) {
-            return;
-        }
-
-        if (number < 0) {
-            setSpinIdx(0);
-        } else if (number >= runInfo.details.spins.length) {
-            setSpinIdx(runInfo.details.spins.length - 1);
-        } else {
-            setSpinIdx(number);
-        }
-        setPostEffects(false);
-        setDisplayCoins(false);
-    }
 
     const getSpinSymbols = (): Array<SpinSymbol> => {
         if (!runInfo || !runInfo.details) {

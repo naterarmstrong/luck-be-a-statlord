@@ -1,7 +1,6 @@
-import { Box, Divider, Grid, GridProps, styled } from "@mui/material";
+import { Divider, Grid, } from "@mui/material";
 import SymImg from "./SymImg";
-import { Symbol } from "../common/models/symbol";
-import React, { useEffect } from "react";
+import React from "react";
 import { EarnedValue, SpinSymbol } from "../common/models/run";
 
 // The size of one block pixel in the run
@@ -35,7 +34,6 @@ interface RunDisplayRowProps {
 }
 
 const RunDisplayRow: React.FC<RunDisplayRowProps> = ({ top, bottom, symbols, pxSize, coins, displayCoins }) => {
-    const widthPerGI = (PX_PER_IMG + 2) * pxSize;
     const getDivider = () => {
         return <Divider orientation="vertical" flexItem sx={{ mr: `-${pxSize / 2}px`, ml: `-${pxSize / 2}px`, border: () => `${pxSize / 2}px solid black` }} />
     }

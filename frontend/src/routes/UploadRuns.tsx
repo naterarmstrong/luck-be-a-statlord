@@ -1,24 +1,18 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Box, Button, Card, CardContent, CardMedia, Grid, LinearProgress, ListItem, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
+import { Box, Button, Grid, LinearProgress, ListItem, Typography, styled } from "@mui/material";
 import React from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { Symbol } from "../common/models/symbol"
 import { RunInfo } from "../common/models/run"
 import { processRun } from "../utils/processRun";
-import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { getOperatingSystem } from "../utils/os";
 import { replacer } from "../common/utils/mapStringify"
-import { msToTime } from "../common/utils/time";
 import { enqueueSnackbar } from "notistack";
 import DisplayRuns from "../components/DisplayRuns";
 import { pauseExecution } from "../utils/yield";
 import Cookies from "universal-cookie";
 import userContext from "../contexts/UserContext";
 import API_ENDPOINT from "../utils/api";
-
-const confirm = require('../img/confirm.png');
-const dud = require('../img/dud.png');
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -51,6 +45,7 @@ const UploadRuns: React.FC = () => {
     const navigate = useNavigate();
     const [selectedFiles, setSelectedFiles] = useState<Array<File>>([]);
     const [processedRuns, setProcessedRuns] = useState<Array<RunInfo>>([]);
+    // TODO: Use duplicates to mark on the run display which ones had already been seen
     const [duplicates, setDuplicates] = useState<Array<string>>([]);
     const [progress, setProgress] = useState<ProgressInfo | null>(null)
     const { setUser } = useContext(userContext);
@@ -91,19 +86,12 @@ const UploadRuns: React.FC = () => {
             try {
                 console.log(`Processing run ${file.name}`)
                 const processed = processRun(text);
-                var outcome: string;
-                if (processed.victory) {
-                    outcome = "success";
-                } else {
-                    outcome = "failure";
-                }
                 // Omit runs that are less than 30 seconds
                 if (processed.duration < 30 * 1000) {
                     errorCount += 1;
                 } else {
                     runs.push(processed);
                 }
-                // console.log(`Run ${processed.number} was a ${outcome}`);
             } catch (error) {
                 errorCount += 1;
                 console.error(`Failed to process run ${file.name} for reason ${error}`)
@@ -175,6 +163,7 @@ const UploadRuns: React.FC = () => {
                 style: { fontSize: 35 }
             });
             setDuplicates(duplicateList);
+            console.log(duplicates);
         }
         if (errorCount > 0) {
             enqueueSnackbar(`${errorCount} run${errorCount > 1 ? "s" : ""} failed to process, were empty, or were too short.`, {

@@ -90,7 +90,7 @@ export class RunDetails {
             return;
         }
 
-        if (!this.inventory!.get(symbol) && symbol != Symbol.Empty) {
+        if (!this.inventory!.get(symbol) && symbol !== Symbol.Empty) {
             console.error("Encountered symbol I shouldn't have", symbol, this.inventory);
         }
 

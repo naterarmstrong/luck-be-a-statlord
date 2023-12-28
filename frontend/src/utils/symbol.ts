@@ -526,6 +526,8 @@ export function getArrowImg(symbol: Symbol, direction: ArrowDirections): string 
                     return bronze_arrow7;
                 case ArrowDirections.SE:
                     return bronze_arrow8;
+                default:
+                    return SYMBOL_TO_IMG.get(symbol)!;
             }
         case Symbol.SilverArrow:
             switch (direction) {
@@ -545,6 +547,8 @@ export function getArrowImg(symbol: Symbol, direction: ArrowDirections): string 
                     return silver_arrow7;
                 case ArrowDirections.SE:
                     return silver_arrow8;
+                default:
+                    return SYMBOL_TO_IMG.get(symbol)!;
             }
         case Symbol.GoldenArrow:
             switch (direction) {
@@ -564,6 +568,8 @@ export function getArrowImg(symbol: Symbol, direction: ArrowDirections): string 
                     return golden_arrow7;
                 case ArrowDirections.SE:
                     return golden_arrow8;
+                default:
+                    return SYMBOL_TO_IMG.get(symbol)!;
             }
         default:
             return SYMBOL_TO_IMG.get(symbol)!;

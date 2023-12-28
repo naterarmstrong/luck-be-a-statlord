@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, AppBar, Box, Button, Card, CardContent, CardMedia, Container, Grid, Link, Menu, MenuItem, Snackbar, TextField, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Container, Link, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
 import React from "react";
 import userContext from "../contexts/UserContext";
 import SymImg from "./SymImg";
@@ -13,7 +13,6 @@ const Header: React.FC = () => {
     const { username, loggedIn, userId } = useContext(userContext);
 
     const [toolsAnchorEl, setToolsAnchorEl] = useState<null | HTMLElement>(null);
-    const open = Boolean(toolsAnchorEl);
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setToolsAnchorEl(event.currentTarget);
     };

@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { ArrowDirections, Symbol, SymbolUtils, isSymbol } from "../common/models/symbol";
+import { Symbol, SymbolUtils, isSymbol } from "../common/models/symbol";
 import { SYMBOL_TO_IMG, getArrowImg } from "../utils/symbol";
 import { Item } from "../common/models/item";
 import { ITEM_TO_IMG, ItemDisabledIMG } from "../utils/item";

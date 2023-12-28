@@ -2,7 +2,6 @@ import { Box, Grid, Link, Table, TableBody, TableCell, TableHead, TableRow } fro
 import { RunInfo } from "../common/models/run";
 import { msToTime } from "../common/utils/time";
 import { SYMBOL_TO_IMG } from "../utils/symbol";
-import { Symbol } from "../common/models/symbol";
 import { Item } from "../common/models/item";
 import { ITEM_TO_IMG } from "../utils/item";
 import { useContext } from "react";
@@ -16,7 +15,7 @@ export interface DisplayRunsProps {
 }
 
 const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
-    const { username, loggedIn, userId } = useContext(userContext);
+    const { userId } = useContext(userContext);
 
     const getRunDate = (date: number): string => {
         const d = new Date(date);

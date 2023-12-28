@@ -1,6 +1,6 @@
-import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Box, Button, Card, CardContent, CardMedia, FormControl, Grid, IconButton, Input, InputAdornment, InputLabel, ListItem, OutlinedInput, Snackbar, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, styled } from "@mui/material";
+import { Box, Button, FormControl, Grid, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField } from "@mui/material";
 import React from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Cookies from 'universal-cookie';
@@ -8,16 +8,13 @@ import userContext from "../contexts/UserContext";
 import { enqueueSnackbar } from "notistack";
 import API_ENDPOINT from "../utils/api";
 
-const confirm = require('../img/confirm.png');
-const dud = require('../img/dud.png');
-
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const { username: signedUser, loggedIn, setUser } = useContext(userContext);
+    const { setUser } = useContext(userContext);
 
     const handleClickShowPassword = () => setShowPassword((showPassword) => !showPassword);
 
@@ -39,13 +36,13 @@ const Login: React.FC = () => {
         };
         const response = await fetch(`${API_ENDPOINT}/login`, fetchArgs);
         if (!response.ok) {
-            if (response.status == 404) {
+            if (response.status === 404) {
                 enqueueSnackbar(`User does not exist.`, {
                     variant: "error",
                     style: { fontSize: 35 }
                 });
             }
-            if (response.status == 401) {
+            if (response.status === 401) {
                 enqueueSnackbar(`Incorrect password`, {
                     variant: "error",
                     style: { fontSize: 35 }
@@ -84,7 +81,7 @@ const Login: React.FC = () => {
         };
         const response = await fetch(`${API_ENDPOINT}/register`, fetchArgs);
         if (!response.ok) {
-            if (response.status == 409) {
+            if (response.status === 409) {
                 enqueueSnackbar('Username already taken', {
                     variant: "error",
                     style: { fontSize: 35 }

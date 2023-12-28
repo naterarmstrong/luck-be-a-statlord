@@ -6,34 +6,6 @@ import { shuffle, adjacentIdxs } from "../utils/simulate";
 import { useState } from "react";
 import React from "react";
 
-let true_classes = new Map<string, number>();
-
-const classify_trues = (trues: Array<number>) => {
-    trues.sort((a, b) => a - b);
-    let pairs = trues.map((x) => [x % 5, Math.floor(x / 5)]);
-    let minX = Math.min(...(pairs.map(([x, y]) => x)))
-    let minY = Math.min(...(pairs.map(([x, y]) => y)))
-    pairs = pairs.map(([x, y]) => [x - minX, y - minY]);
-
-    let s = "";
-    for (let i = 0; i < 9; i++) {
-        let xI = i % trues.length;
-        let yI = Math.floor(i / trues.length);
-        if (pairs.map((a) => a.join("")).includes([xI, yI].join(""))) {
-            s += "X";
-        } else {
-            s += "O";
-        }
-
-        if (i % trues.length == trues.length - 1) {
-            s += "\n";
-        }
-    }
-
-    true_classes.set(s, (true_classes.get(s) ?? 0) + 1)
-}
-
-
 // Returns true if there are 3 or more 'true' values adjacent in nums, where nums represents a 4x5
 // matrix in row-major order
 const isSuccess = (nums: Array<boolean>): boolean => {
@@ -46,7 +18,7 @@ const isSuccess = (nums: Array<boolean>): boolean => {
             continue;
         }
         q.push(i);
-        while (q.length != 0) {
+        while (q.length !== 0) {
             const idx = q.pop()!;
             seen.add(idx);
             if (nums[idx]) {

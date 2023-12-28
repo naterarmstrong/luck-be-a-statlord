@@ -5,7 +5,7 @@ export function ordinal(n: number): string {
     const ones = n % 10;
     const tens = Math.floor(n / 10) % 10;
     let suff = "";
-    if (tens == 1) {
+    if (tens === 1) {
         suff = "th";
     } else {
         switch (ones) {
