@@ -6,6 +6,7 @@ import { ITEM_TO_IMG, ItemDisabledIMG } from "../utils/item";
 import React from "react";
 import { Rarity, rarityColor } from "../common/models/rarity";
 import { EarnedValue, SpinArrow, SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
+import TileTooltip from "./TileTooltip";
 
 interface SymImgProps {
     tile: Symbol | Item | SpinSymbol | SpinItem,
@@ -96,23 +97,28 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
     var multiplier: number | undefined = undefined;
     var disabled: boolean | undefined = undefined;
     var imgSrc: string;
+    var enumVal: Symbol | Item;
     if (typeof tile === 'string') {
         imgSrc = getImageSource(tile);
+        enumVal = tile;
     } else if (instanceOfSpinSymbol(tile)) {
         if (SymbolUtils.isArrow(tile.symbol)) {
             imgSrc = getArrowImg(tile.symbol, (tile as SpinArrow).direction);
         } else {
             imgSrc = getImageSource(tile.symbol);
         }
+        enumVal = tile.symbol;
         countdown = tile.countdown;
         bonus = tile.bonus;
         multiplier = tile.multiplier;
     } else if (instanceOfSpinItem(tile)) {
+        enumVal = tile.item;
         countdown = tile.countdown;
         disabled = tile.disabled;
         imgSrc = getImageSource(tile.item);
     } else {
-        imgSrc = "NEVER"
+        imgSrc = "NEVER";
+        enumVal = Item.ItemMissing;
     }
 
     if (countdown === undefined
@@ -120,12 +126,17 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
         && multiplier === undefined
         && disabled === undefined
         && earned === undefined) {
-        return <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />;
+        return (
+            <TileTooltip tile={enumVal}>
+                <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />
+            </TileTooltip>);
     }
 
     return (
         <Box position="relative">
-            <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />
+            <TileTooltip tile={enumVal}>
+                <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />
+            </TileTooltip>
             {countdown !== undefined && getCountdownOverlay(countdown)}
             {bonus !== undefined && getBonusOverlay(bonus)}
             {multiplier !== undefined && getMultiplierOverlay(multiplier)}
