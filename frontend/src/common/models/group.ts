@@ -61,6 +61,7 @@ export enum Group {
     Night = "night",
     Time_capsule_effects = "time_capsule_effects",
     Void = "void",
+    Pepper = "pepper",
 }
 
 export function isGroup(s: string): boolean {
@@ -624,6 +625,20 @@ export const GROUP_MEMBERS: Record<Group, Array<Symbol | Item>> = {
         Symbol.VoidFruit,
         Symbol.VoidStone,
     ],
+    [Group.Pepper]: [
+        Item.YellowPepper,
+        Item.WhitePepper,
+        Item.RedPepper,
+        Item.PurplePepper,
+        Item.PinkPepper,
+        Item.LimePepper,
+        Item.GreenPepper,
+        Item.GrayPepper,
+        Item.CyanPepper,
+        Item.BrownPepper,
+        Item.BluePepper,
+        Item.BlackPepper,
+    ]
 };
 
 
