@@ -6,7 +6,7 @@ import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { useSearchParams } from "react-router-dom";
 import SymbolSelector from "../components/SymbolSelector";
 import SymImg from "../components/SymImg";
-import { SymbolStats } from "../components/SymbolStatDisplay";
+import { SymbolStats } from "../components/AllSymbolStats";
 import { ordinal } from "../utils/ordinal";
 import { sfmt } from "../utils/strfmt";
 import API_ENDPOINT from "../utils/api";

@@ -161,16 +161,54 @@ export function isSymbol(s: string): s is Symbol {
 }
 
 export namespace SymbolUtils {
-    export function isArrow(s: Symbol) {
+    export function isArrow(s: Symbol): boolean {
         return [Symbol.BronzeArrow, Symbol.SilverArrow, Symbol.GoldenArrow].includes(s);
     }
 
-    export function isEater(s: Symbol) {
+    export function isEater(s: Symbol): boolean {
         return [Symbol.Geologist, Symbol.Diver, Symbol.MrsFruit, Symbol.EldritchCreature, Symbol.Pirate].includes(s);
     }
 
-    export function isGrower(s: Symbol) {
+    export function isGrower(s: Symbol): boolean {
         return [Symbol.Amethyst, Symbol.Pear, Symbol.Dove].includes(s);
+    }
+
+    export function symbolToDisplay(s: Symbol): string {
+        let upperCased = s.replace(/([A-Z][a-z])/g, " $1").trim();
+        let titleCased = upperCased.split(" ").map((s) => {
+            switch (s) {
+                case "The":
+                    return "the";
+                case "On":
+                    return "on";
+                case "Of":
+                    return "of";
+                case "A":
+                    return "a";
+                case "And":
+                    return "and";
+                default:
+                    return s;
+            }
+        }).join(" ");
+
+
+        switch (titleCased) {
+            case "Barof Soap":
+                titleCased = "Bar of Soap";
+                break;
+            case "Five Sided Die":
+                titleCased = "Five-Sided Die";
+                break;
+            case "Mrs Fruit":
+                titleCased = "Mrs. Fruit";
+                break;
+            case "Three Sided Die":
+                titleCased = "Three-Sided Die";
+                break;
+        }
+
+        return titleCased;
     }
 }
 

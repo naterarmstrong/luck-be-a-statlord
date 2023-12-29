@@ -1,10 +1,18 @@
 import { Box, Link } from "@mui/material";
-import { rarityColor } from "../common/models/rarity";
+import { Rarity, rarityColor } from "../common/models/rarity";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid"
 import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { useEffect, useState } from "react";
-import { SymbolStats } from "./SymbolStatDisplay";
 import API_ENDPOINT from "../utils/api";
+import { Symbol } from "../common/models/symbol";
+
+export interface SymbolStats {
+    name: Symbol,
+    rarity: Rarity,
+    win_rate: number,
+    total_shows: number,
+    total_games: number,
+}
 
 const columns: GridColDef[] = [
     {

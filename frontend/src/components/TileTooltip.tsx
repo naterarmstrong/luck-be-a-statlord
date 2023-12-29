@@ -1,6 +1,6 @@
 import { Divider, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
 import { ITEM_RARITIES, Item, isItem, itemToDisplay } from "../common/models/item";
-import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, isSymbol } from "../common/models/symbol";
+import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, SymbolUtils, isSymbol } from "../common/models/symbol";
 import React from "react";
 import { SYMBOL_DESCRIPTIONS } from "../utils/symbolDescriptions";
 import SymImg from "./SymImg";
@@ -35,7 +35,7 @@ const getRarity = (tile: Symbol | Item): Rarity => {
 
 function getTitle(tile: Symbol | Item): string {
     if (isSymbol(tile)) {
-        return tile;
+        return SymbolUtils.symbolToDisplay(tile);
     } else if (isItem(tile)) {
         return itemToDisplay(tile);
     }
