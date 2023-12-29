@@ -1,5 +1,5 @@
 import { Divider, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
-import { ITEM_RARITIES, Item } from "../common/models/item";
+import { ITEM_RARITIES, Item, isItem } from "../common/models/item";
 import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, isSymbol } from "../common/models/symbol";
 import React from "react";
 import { SYMBOL_DESCRIPTIONS } from "../utils/symbolDescriptions";
@@ -7,6 +7,9 @@ import SymImg from "./SymImg";
 import { Rarity, rarityColor, rarityToString } from "../common/models/rarity";
 import { IIDToSymbol } from "../utils/symbol";
 import { GROUP_MEMBERS, Group, isGroup } from "../common/models/group";
+import { ITEM_DESCRIPTIONS } from "../utils/itemDescriptions";
+import { extractRemaining, extractToken, isToken, startsWithToken } from "../common/models/token";
+import { TOKEN_COLOR } from "../utils/token";
 
 interface TileTooltipProps {
     tile: Symbol | Item,
@@ -18,13 +21,9 @@ const symbolHighColor = "#961757";
 const itemLowColor = "#0a4542"
 const itemHighColor = "#077872";
 
-const RedEmph = styled('span')(() => ({
-    color: rarityColor(Rarity.Essence),
-}));
-
-const WhiteEmph = styled('span')(() => ({
-    color: 'white',
-}));
+const ColoredText = styled('span')(({ color }) => ({
+    color: color,
+}))
 
 const getRarity = (tile: Symbol | Item): Rarity => {
     if (isSymbol(tile)) {
@@ -60,18 +59,21 @@ interface CoinValProps {
 
 const CoinVal: React.FC<CoinValProps> = ({ coins, omitGives }) => {
     return <Typography style={{ color: rarityColor(Rarity.Rare) }} sx={{ fontSize: `40px`, lineHeight: .7 }} display="inline">
-        {omitGives ? null : <WhiteEmph>Gives </WhiteEmph>} <SymImg tile={Symbol.Coin} size={30} omitTooltip textAlign style={{ marginRight: "-10px", marginLeft: "-5px" }} /> {coins}
+        {omitGives ? null : <ColoredText color="white">Gives </ColoredText>} <SymImg tile={Symbol.Coin} size={30} omitTooltip textAlign style={{ marginRight: "-10px", marginLeft: "-5px" }} /> {coins}
     </Typography>
 }
+
 
 const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
     let description = "";
     if (isSymbol(tile)) {
-        description = SYMBOL_DESCRIPTIONS[tile as Symbol];
+        description = SYMBOL_DESCRIPTIONS[tile];
+    } else if (isItem(tile)) {
+        description = ITEM_DESCRIPTIONS[tile];
     }
     let value = undefined;
     if (isSymbol(tile)) {
-        value = SYMBOL_VALUES[tile as Symbol];
+        value = SYMBOL_VALUES[tile];
     }
 
     const rarity = getRarity(tile);
@@ -109,16 +111,27 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
                         symElements.push(lastElement);
                     }
                     descPieces.push(<React.Fragment>{symElements}</React.Fragment>)
+                } else if (isToken(piece)) {
+                    descPieces.push(<SymImg omitTooltip textAlign size={30} tile={piece} />);
+                } else if (startsWithToken(piece)) {
+                    const token = extractToken(piece);
+                    const numeric = Number(extractRemaining(piece));
+                    if (isNaN(numeric)) {
+                        throw new Error(`Broken description!! ${description}`)
+                    }
+                    console.log("Pushing token value", numeric)
+                    descPieces.push(<SymImg omitTooltip textAlign size={30} tile={token} />);
+                    descPieces.push(<ColoredText color={TOKEN_COLOR[token]}>{numeric}</ColoredText>);
                 } else {
                     console.log("Pushing piece", piece)
                     descPieces.push(<React.Fragment>{piece}</React.Fragment>);
                 }
 
             } else {
-                // This is just a string part
                 lastWasStr = true;
+                // This is just a string part. We need to split apart and look for sections to highlight.
                 console.log("Pushing string part", piece)
-                descPieces.push(<React.Fragment>{piece}</React.Fragment>);
+                descPieces.push(processDescriptionText(piece));
             }
         }
 
@@ -152,6 +165,86 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
         >
             {children}
         </StyledTooltip>);
+}
+
+// Iteratively pass through a series of words, and change the text color for certain words to the
+// essence highlight color.
+function processDescriptionText(text: string): React.ReactElement<any, any> {
+    const retSoFar = [];
+    // Build up the string of non-highlighted words so that they can be together
+    let currentStr = "";
+    for (const word of text.split(" ")) {
+        // Process pairs of words to capture 'Very Rare' and 'each other'
+        if (currentStr.endsWith("Very ") && word === "Rare") {
+            const prevCurrStr = currentStr.slice(0, -5);
+            if (prevCurrStr !== "") {
+                retSoFar.push(<React.Fragment>{prevCurrStr}</React.Fragment>);
+            }
+            currentStr = "";
+
+            retSoFar.push(<React.Fragment><ColoredText color={rarityColor(Rarity.VeryRare)}>{"Very Rare "}</ColoredText></React.Fragment>);
+        } else if (currentStr.endsWith("each ") && word === "other") {
+            const prevCurrStr = currentStr.slice(0, -5);
+            if (prevCurrStr !== "") {
+                retSoFar.push(<React.Fragment>{prevCurrStr}</React.Fragment>);
+            }
+            currentStr = "";
+
+            retSoFar.push(<React.Fragment><ColoredText color={rarityColor(Rarity.Essence)}>{"each other "}</ColoredText></React.Fragment>);
+        }
+
+        const lowered = word.toLowerCase();
+        const needsHighlight = (
+            lowered.startsWith("destroy")
+            || lowered.startsWith("transform")
+            || lowered.startsWith("remove")
+            || lowered === "adds"
+            || lowered === "adding"
+            || lowered === "grow"
+            || !isNaN(Number(lowered))
+            || lowered === "times"
+            || (!isNaN(Number(lowered.slice(0, -1))) && ["x", "%"].includes(lowered.slice(-1)))
+            || isStringRarity(word));
+        if (needsHighlight) {
+            if (currentStr !== "") {
+                retSoFar.push(<React.Fragment>{currentStr}</React.Fragment>);
+                currentStr = "";
+            }
+            let color = rarityColor(Rarity.Essence);
+            if (isStringRarity(word)) {
+                color = rarityColor(getRarityFromString(word));
+            }
+            retSoFar.push(<React.Fragment><ColoredText color={color}>{word + " "}</ColoredText></React.Fragment>);
+        } else {
+            currentStr = currentStr + word + " "
+        }
+    }
+
+    if (currentStr !== "") {
+        retSoFar.push(<React.Fragment>{currentStr}</React.Fragment>);
+    }
+
+    return <React.Fragment>{retSoFar}</React.Fragment>;
+}
+
+function isStringRarity(word: string): boolean {
+    return ["Common", "Uncommon", "Rare", "Special", "Essence"].includes(word);
+}
+
+function getRarityFromString(word: string): Rarity {
+    switch (word) {
+        case "Common":
+            return Rarity.Common;
+        case "Uncommon":
+            return Rarity.Uncommon;
+        case "Rare":
+            return Rarity.Rare;
+        case "Special":
+            return Rarity.Special;
+        case "Essence":
+            return Rarity.Essence;
+    }
+    throw new Error("Got rarity when the string was not a rarity");
 }
 
 export default TileTooltip;

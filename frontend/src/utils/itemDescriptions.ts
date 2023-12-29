@@ -14,7 +14,7 @@ The written description of all items in the game. The following rules should app
     - Adds
 */
 
-export const ITEM_TO_IMG: Record<Item, string> = {
+export const ITEM_DESCRIPTIONS: Record<Item, string> = {
     [Item.AdoptionPapers]: "",
     [Item.AdoptionPapersEssence]: "",
     [Item.AncientLizardBlade]: "Gives :coin9: each spin. Gives :coin1: less for each symbol in your inventory with a quantity of 2 or more. Canot give less than :coin0:.",

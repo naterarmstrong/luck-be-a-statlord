@@ -158,7 +158,7 @@ const RunReplay: React.FC = () => {
             if (spin < 0) {
                 newOptions.spinIdx = 0;
             } else if (spin >= runInfo.details.spins.length) {
-                newOptions.spinIdx = runInfo.details.spins.length = 1;
+                newOptions.spinIdx = runInfo.details.spins.length - 1;
             } else {
                 newOptions.spinIdx = spin;
             }

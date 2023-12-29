@@ -156,7 +156,7 @@ export enum Symbol {
     Unknown = "Unknown",
 }
 
-export function isSymbol(s: string): boolean {
+export function isSymbol(s: string): s is Symbol {
     return Object.values(Symbol).includes(s as any);
 }
 

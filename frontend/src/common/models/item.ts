@@ -232,7 +232,7 @@ export enum Item {
     ZaroffsContractEssence = "ZaroffsContractEssence",
 }
 
-export function isItem(s: string): boolean {
+export function isItem(s: string): s is Item {
     return Object.values(Item).includes(s as any);
 }
 

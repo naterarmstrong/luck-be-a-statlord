@@ -7,9 +7,11 @@ import React from "react";
 import { Rarity, rarityColor } from "../common/models/rarity";
 import { EarnedValue, SpinArrow, SpinItem, SpinSymbol, instanceOfSpinItem, instanceOfSpinSymbol } from "../common/models/run";
 import TileTooltip from "./TileTooltip";
+import { Token, isToken } from "../common/models/token";
+import { TOKEN_TO_IMG } from "../utils/token";
 
 interface SymImgProps {
-    tile: Symbol | Item | SpinSymbol | SpinItem,
+    tile: Symbol | Item | Token | SpinSymbol | SpinItem,
     size?: number,
     earned?: EarnedValue,
     style?: React.CSSProperties,
@@ -18,9 +20,11 @@ interface SymImgProps {
     textAlign?: boolean,
 }
 
-const getImageSource = (tile: Symbol | Item): string => {
+const getImageSource = (tile: Symbol | Item | Token): string => {
     if (isSymbol(tile)) {
         return SYMBOL_TO_IMG.get(tile as Symbol)!
+    } else if (isToken(tile)) {
+        return TOKEN_TO_IMG[tile];
     } else {
         return ITEM_TO_IMG.get(tile as Item)!
     }
@@ -100,7 +104,7 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned, omitTooltip,
     var multiplier: number | undefined = undefined;
     var disabled: boolean | undefined = undefined;
     var imgSrc: string;
-    var enumVal: Symbol | Item;
+    var enumVal: Symbol | Item | Token;
     if (typeof tile === 'string') {
         imgSrc = getImageSource(tile);
         enumVal = tile;
@@ -148,7 +152,7 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned, omitTooltip,
         </Box>
     }
 
-    if (omitTooltip) {
+    if (omitTooltip || isToken(enumVal)) {
         return baseReturn;
     } else {
         return <TileTooltip tile={enumVal}>
