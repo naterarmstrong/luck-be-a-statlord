@@ -1,1 +1,0 @@
-# TODO: Generate file with mapping from groups to symbols

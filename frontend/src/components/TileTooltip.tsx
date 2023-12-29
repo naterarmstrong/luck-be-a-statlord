@@ -1,6 +1,6 @@
 import { Divider, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
 import { ITEM_RARITIES, Item } from "../common/models/item";
-import { SYMBOL_RARITIES, Symbol, isSymbol } from "../common/models/symbol";
+import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, isSymbol } from "../common/models/symbol";
 import React from "react";
 import { SYMBOL_DESCRIPTIONS } from "../utils/symbolDescriptions";
 import SymImg from "./SymImg";
@@ -63,6 +63,10 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
     if (isSymbol(tile)) {
         description = SYMBOL_DESCRIPTIONS[tile as Symbol];
     }
+    let value = 0;
+    if (isSymbol(tile)) {
+        value = SYMBOL_VALUES[tile as Symbol];
+    }
 
     const rarity = getRarity(tile);
 
@@ -84,7 +88,7 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
                     {rarity}
                 </Typography> : null
             }
-            <CoinVal coins={1} />
+            <CoinVal coins={value} />
             {descriptionElements}
         </React.Fragment>
     )
