@@ -7,6 +7,25 @@ export enum Rarity {
     Essence = "essence",
 }
 
+export function rarityToString(rarity: Rarity) {
+    switch (rarity) {
+        case Rarity.Common:
+            return "Common"
+        case Rarity.Uncommon:
+            return "Uncommon"
+        case Rarity.Rare:
+            return "Rare"
+        case Rarity.VeryRare:
+            return "Very Rare"
+        case Rarity.Special:
+            return "Special"
+        case Rarity.Essence:
+            return "Essence"
+        default:
+            return "Unknown"
+    }
+}
+
 export function rarityColor(rarity: Rarity): string {
     switch (rarity) {
         case Rarity.Common:

@@ -4,15 +4,19 @@ import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, isSymbol } from "../common/mode
 import React from "react";
 import { SYMBOL_DESCRIPTIONS } from "../utils/symbolDescriptions";
 import SymImg from "./SymImg";
-import { Rarity, rarityColor } from "../common/models/rarity";
+import { Rarity, rarityColor, rarityToString } from "../common/models/rarity";
+import { IIDToSymbol } from "../utils/symbol";
+import { GROUP_MEMBERS, Group, isGroup } from "../common/models/group";
 
 interface TileTooltipProps {
     tile: Symbol | Item,
     children: React.ReactElement<any, any>,
 }
 
-const tooltipBackColor = "#4a0a2b"
-const tooltipEmphColor = "#961757";
+const symbolLowColor = "#4a0a2b"
+const symbolHighColor = "#961757";
+const itemLowColor = "#0a4542"
+const itemHighColor = "#077872";
 
 const RedEmph = styled('span')(() => ({
     color: rarityColor(Rarity.Essence),
@@ -30,17 +34,21 @@ const getRarity = (tile: Symbol | Item): Rarity => {
     }
 }
 
+interface StyledTooltipProps extends TooltipProps {
+    item: boolean,
+}
 
-const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+
+const StyledTooltip = styled(({ item, className, ...props }: StyledTooltipProps) => (
     <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
+))(({ item, theme }) => ({
     [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: tooltipEmphColor,
+        backgroundColor: item ? itemHighColor : symbolHighColor,
         color: 'white',
-        maxWidth: 450,
+        maxWidth: 320,
         fontSize: "40px",
         lineHeight: .7,
-        border: '8px solid black',
+        border: '6px solid black',
         borderRadius: 0,
     },
 }));
@@ -61,7 +69,7 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
     if (isSymbol(tile)) {
         description = SYMBOL_DESCRIPTIONS[tile as Symbol];
     }
-    let value = 0;
+    let value = undefined;
     if (isSymbol(tile)) {
         value = SYMBOL_VALUES[tile as Symbol];
     }
@@ -88,6 +96,19 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
                     }
                     console.log("Pushing coin value", numeric)
                     descPieces.push(<CoinVal coins={numeric} omitGives />);
+                } else if (piece === "this") {
+                    descPieces.push(<SymImg omitTooltip textAlign size={30} tile={tile as Symbol} />);
+                } else if (IIDToSymbol(piece) !== Symbol.Unknown) {
+                    descPieces.push(<SymImg omitTooltip textAlign size={30} tile={IIDToSymbol(piece)} />);
+                } else if (isGroup(piece)) {
+                    const symbols = GROUP_MEMBERS[piece as Group];
+                    const symElements = symbols.map((s) => <SymImg omitTooltip textAlign size={30} tile={s} style={{ marginLeft: .3, marginRight: .3 }} />);
+                    if (symElements.length > 1) {
+                        const lastElement = symElements.pop()!;
+                        symElements.push(<React.Fragment> or </React.Fragment>)
+                        symElements.push(lastElement);
+                    }
+                    descPieces.push(<React.Fragment>{symElements}</React.Fragment>)
                 } else {
                     console.log("Pushing piece", piece)
                     descPieces.push(<React.Fragment>{piece}</React.Fragment>);
@@ -116,19 +137,21 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
             <Typography fontSize="50px" lineHeight={.7}> {tile} <SymImg tile={tile} omitTooltip textAlign /></Typography>
             {rarity !== Rarity.Special ?
                 <Typography color={rarityColor(rarity)} fontSize="40px" lineHeight={.7}>
-                    {rarity}
+                    {rarityToString(rarity)}
                 </Typography> : null
             }
-            <CoinVal coins={value} />
+            {value !== undefined ? <CoinVal coins={value} /> : null}
             {descriptionElements}
         </React.Fragment>
     )
 
     return (
-        <HtmlTooltip
-            title={title}>
+        <StyledTooltip
+            title={title}
+            item={!isSymbol(tile)}
+        >
             {children}
-        </HtmlTooltip>);
+        </StyledTooltip>);
 }
 
 export default TileTooltip;
