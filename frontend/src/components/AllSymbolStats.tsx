@@ -25,7 +25,7 @@ const columns: GridColDef[] = [
                     {params.value}
                 </Link>
             </Box>
-        ) // TODO: put name here too
+        )
         , minWidth: 250
     },
     {

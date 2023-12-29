@@ -141,7 +141,7 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
         descriptionElements = (
             <React.Fragment>
                 <Divider variant="middle" style={{ marginTop: "15px", marginBottom: "10px", borderColor: "black", borderWidth: "2px" }} />
-                <Typography fontSize="40px" lineHeight={.7} >
+                <Typography fontSize="40px" lineHeight={.7} key="description">
                     {descPieces}
                 </Typography>
             </React.Fragment>
@@ -150,9 +150,9 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
 
     const title = (
         <React.Fragment>
-            <Typography fontSize="50px" lineHeight={.7}> {getTitle(tile)} <SymImg tile={tile} omitTooltip textAlign /></Typography>
+            <Typography fontSize="50px" lineHeight={.7} key="title"> {getTitle(tile)} <SymImg tile={tile} omitTooltip textAlign /></Typography>
             {rarity !== Rarity.Special ?
-                <Typography color={rarityColor(rarity)} fontSize="40px" lineHeight={.7}>
+                <Typography color={rarityColor(rarity)} fontSize="40px" lineHeight={.7} key="rarity">
                     {rarityToString(rarity)}
                 </Typography> : null
             }
