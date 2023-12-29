@@ -10,6 +10,7 @@ import { GROUP_MEMBERS, Group, isGroup } from "../common/models/group";
 import { ITEM_DESCRIPTIONS } from "../utils/itemDescriptions";
 import { extractRemaining, extractToken, isToken, startsWithToken } from "../common/models/token";
 import { TOKEN_COLOR } from "../utils/token";
+import { IIDToItem } from "../utils/item";
 
 interface TileTooltipProps {
     tile: Symbol | Item,
@@ -108,6 +109,8 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
                     descPieces.push(<SymImg omitTooltip textAlign size={30} tile={tile as Symbol} />);
                 } else if (IIDToSymbol(piece) !== Symbol.Unknown) {
                     descPieces.push(<SymImg omitTooltip textAlign size={30} tile={IIDToSymbol(piece)} />);
+                } else if (IIDToItem(piece) !== Item.ItemMissing) {
+                    descPieces.push(<SymImg omitTooltip textAlign size={30} tile={IIDToItem(piece)} />);
                 } else if (isGroup(piece)) {
                     const symbols = GROUP_MEMBERS[piece as Group];
                     const symElements = symbols.map((s) => <SymImg omitTooltip textAlign size={30} tile={s} style={{ marginLeft: .3, marginRight: .3 }} />);
@@ -207,6 +210,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             || lowered === "grow"
             || !isNaN(Number(lowered))
             || lowered === "times"
+            || lowered === "less"
             || (!isNaN(Number(lowered.slice(0, -1))) && ["x", "%"].includes(lowered.slice(-1)))
             || isStringRarity(word));
         if (needsHighlight) {
