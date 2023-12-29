@@ -208,10 +208,14 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             || lowered.startsWith("remove")
             || (lowered.startsWith("add") && lowered.length < 7)
             || lowered === "grow"
-            || !isNaN(Number(lowered))
             || lowered === "times"
+            || lowered === "essences"
             || lowered === "less"
+            || lowered === "skip"
+            || lowered === "swap"
+            || !isNaN(Number(lowered))
             || (!isNaN(Number(lowered.slice(0, -1))) && ["x", "%"].includes(lowered.slice(-1)))
+            || (isStringRarity(word.slice(0, -1)) && [",", "."].includes(lowered.slice(-1)))
             || isStringRarity(word));
         if (needsHighlight) {
             if (currentStr !== "") {
@@ -219,10 +223,19 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
                 currentStr = "";
             }
             let color = rarityColor(Rarity.Essence);
+            let extra = "";
+            let displayWord = word;
             if (isStringRarity(word)) {
                 color = rarityColor(getRarityFromString(word));
+                displayWord = word + " ";
+            } else if (isStringRarity(word.slice(0, -1)) && [",", "."].includes(lowered.slice(-1))) {
+                color = rarityColor(getRarityFromString(word.slice(0, -1)));
+                extra = lowered.slice(-1) + " ";
+                displayWord = word.slice(0, -1);
+            } else {
+                displayWord = word + " "
             }
-            retSoFar.push(<React.Fragment><ColoredText color={color}>{word + " "}</ColoredText></React.Fragment>);
+            retSoFar.push(<React.Fragment><ColoredText color={color}>{displayWord}</ColoredText>{extra}</React.Fragment>);
         } else {
             currentStr = currentStr + word + " "
         }
