@@ -198,8 +198,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             lowered.startsWith("destroy")
             || lowered.startsWith("transform")
             || lowered.startsWith("remove")
-            || lowered === "adds"
-            || lowered === "adding"
+            || lowered.startsWith("add")
             || lowered === "grow"
             || !isNaN(Number(lowered))
             || lowered === "times"
