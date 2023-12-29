@@ -13,6 +13,9 @@ interface SymImgProps {
     size?: number,
     earned?: EarnedValue,
     style?: React.CSSProperties,
+    omitTooltip?: boolean,
+    // Whether or not to set the bottom margin to a negative value, so as to align better with text
+    textAlign?: boolean,
 }
 
 const getImageSource = (tile: Symbol | Item): string => {
@@ -23,7 +26,7 @@ const getImageSource = (tile: Symbol | Item): string => {
     }
 }
 
-const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
+const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned, omitTooltip, textAlign }) => {
     const fSize = size ?? 40;
     const pixelSize = fSize / 12;
     const countdownOverlayStyle = {
@@ -87,7 +90,7 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
             return null;
         }
         return <Typography style={coinsOverlayStyle} zIndex={2} position="absolute" sx={{ fontSize: `${fSize * .8}px`, lineHeight: 1 }} >
-            <SymImg tile={Symbol.Coin} style={{ marginRight: "5px" }} />
+            <SymImg tile={Symbol.Coin} omitTooltip style={{ marginRight: "5px" }} />
             {earned.coins}
         </Typography>
     }
@@ -121,29 +124,37 @@ const SymImg: React.FC<SymImgProps> = ({ tile, size, style, earned }) => {
         enumVal = Item.ItemMissing;
     }
 
+    let srcStyle = {
+        width: `${fSize}px`,
+        ...textAlign && { marginBottom: `-${fSize / 4}px` },
+        ...style
+    }
+
+    let baseReturn;
     if (countdown === undefined
         && bonus === undefined
         && multiplier === undefined
         && disabled === undefined
         && earned === undefined) {
-        return (
-            <TileTooltip tile={enumVal}>
-                <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />
-            </TileTooltip>);
-    }
-
-    return (
-        <Box position="relative">
-            <TileTooltip tile={enumVal}>
-                <Box component="img" style={{ width: `${fSize}px`, ...style }} src={imgSrc} />
-            </TileTooltip>
+        baseReturn = <Box component="img" style={srcStyle} src={imgSrc} />;
+    } else {
+        baseReturn = <Box position="relative">
+            <Box component="img" style={srcStyle} src={imgSrc} />
             {countdown !== undefined && getCountdownOverlay(countdown)}
             {bonus !== undefined && getBonusOverlay(bonus)}
             {multiplier !== undefined && getMultiplierOverlay(multiplier)}
             {disabled !== undefined && getDisabledOverlay(disabled)}
             {earned !== undefined && getCoinsOverlay(earned)}
         </Box>
-    );
+    }
+
+    if (omitTooltip) {
+        return baseReturn;
+    } else {
+        return <TileTooltip tile={enumVal}>
+            {baseReturn}
+        </TileTooltip>
+    }
 };
 
 export default SymImg;
