@@ -236,6 +236,74 @@ export function isItem(s: string): s is Item {
     return Object.values(Item).includes(s as any);
 }
 
+export function itemToDisplay(i: Item): string {
+    let upperCased = i.replace(/([A-Z][a-z])/g, " $1").trim();
+    let titleCased = upperCased.split(" ").map((s) => {
+        switch (s) {
+            case "The":
+                return "the";
+            case "On":
+                return "on";
+            case "A":
+                return "a";
+            case "And":
+                return "and";
+            default:
+                return s;
+        }
+    }).join(" ");
+
+    if (ITEM_RARITIES[i] === Rarity.Essence && titleCased.endsWith(" Essence")) {
+        // Remove the trailing essence
+        titleCased = titleCased.slice(0, -8);
+    }
+
+    // One-off fixes
+    switch (titleCased) {
+        case "BarrelO Dwarves":
+            titleCased = "Barrel of Dwarves";
+            break;
+        case "Blue Suits":
+            titleCased = "Black Suits";
+            break;
+        case "Coin OnA String":
+            titleCased = "Coin on a String";
+            break;
+        case "Devils Deal":
+            titleCased = "Devil's Deal";
+            break;
+        case "Fifth Ace":
+            titleCased = "5th Ace";
+            break;
+        case "Four Leaf Clover":
+            titleCased = "Four-leaf Clover";
+            break;
+        case "Jackolantern":
+            titleCased = "Jack-o'-lantern";
+            break;
+        case "Turtle and Rabbit":
+            titleCased = "The Tortoise and the Hare";
+            break;
+        case "X Ray Machine":
+            titleCased = "X-ray Machine";
+            break;
+        case "Symbol Bomb Small":
+            titleCased = "Small Symbol Bomb";
+            break;
+        case "Symbol Bomb Big":
+            titleCased = "Big Symbol Bomb";
+            break;
+        case "Symbol Bomb Very Big":
+            titleCased = "Very Big Symbol Bomb";
+            break;
+        case "Symbol Bomb Quantum":
+            titleCased = "Quantum Symbol Bomb";
+            break;
+    }
+
+    return titleCased;
+}
+
 export const ITEM_RARITIES: Record<Item, Rarity> = {
     [Item.AdoptionPapers]: Rarity.Common,
     [Item.AdoptionPapersEssence]: Rarity.Essence,
