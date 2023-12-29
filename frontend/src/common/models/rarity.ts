@@ -29,7 +29,7 @@ export function rarityToString(rarity: Rarity) {
 export function rarityColor(rarity: Rarity): string {
     switch (rarity) {
         case Rarity.Common:
-            return "#ffffff"
+            return "#797979"
         case Rarity.Uncommon:
             return "#61d3e3"
         case Rarity.Rare:

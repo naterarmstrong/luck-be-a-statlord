@@ -1,5 +1,5 @@
 import { Divider, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
-import { ITEM_RARITIES, Item, isItem } from "../common/models/item";
+import { ITEM_RARITIES, Item, isItem, itemToDisplay } from "../common/models/item";
 import { SYMBOL_RARITIES, SYMBOL_VALUES, Symbol, isSymbol } from "../common/models/symbol";
 import React from "react";
 import { SYMBOL_DESCRIPTIONS } from "../utils/symbolDescriptions";
@@ -31,6 +31,15 @@ const getRarity = (tile: Symbol | Item): Rarity => {
     } else {
         return ITEM_RARITIES[tile as Item];
     }
+}
+
+function getTitle(tile: Symbol | Item): string {
+    if (isSymbol(tile)) {
+        return tile;
+    } else if (isItem(tile)) {
+        return itemToDisplay(tile);
+    }
+    return tile;
 }
 
 interface StyledTooltipProps extends TooltipProps {
@@ -85,18 +94,15 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
         // The pieces of the description, which are either text or a react element.
         const descPieces: Array<React.ReactElement<any, any>> = [];
         let lastWasStr = false;
-        console.log("Parsing description", description)
         for (const piece of descSplit) {
             if (lastWasStr) {
                 lastWasStr = false;
                 // This is a group or coin or something
-                console.log("Piece", piece, piece.startsWith("coin"), piece.length)
                 if (piece.startsWith("coin") && piece.length !== 4) {
                     const numeric = Number(piece.slice(4));
                     if (isNaN(numeric)) {
                         throw new Error(`Broken description!! ${description}`)
                     }
-                    console.log("Pushing coin value", numeric)
                     descPieces.push(<CoinVal coins={numeric} omitGives />);
                 } else if (piece === "this") {
                     descPieces.push(<SymImg omitTooltip textAlign size={30} tile={tile as Symbol} />);
@@ -119,18 +125,15 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
                     if (isNaN(numeric)) {
                         throw new Error(`Broken description!! ${description}`)
                     }
-                    console.log("Pushing token value", numeric)
                     descPieces.push(<SymImg omitTooltip textAlign size={30} tile={token} />);
                     descPieces.push(<ColoredText color={TOKEN_COLOR[token]}>{numeric}</ColoredText>);
                 } else {
-                    console.log("Pushing piece", piece)
                     descPieces.push(<React.Fragment>{piece}</React.Fragment>);
                 }
 
             } else {
                 lastWasStr = true;
                 // This is just a string part. We need to split apart and look for sections to highlight.
-                console.log("Pushing string part", piece)
                 descPieces.push(processDescriptionText(piece));
             }
         }
@@ -147,7 +150,7 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
 
     const title = (
         <React.Fragment>
-            <Typography fontSize="50px" lineHeight={.7}> {tile} <SymImg tile={tile} omitTooltip textAlign /></Typography>
+            <Typography fontSize="50px" lineHeight={.7}> {getTitle(tile)} <SymImg tile={tile} omitTooltip textAlign /></Typography>
             {rarity !== Rarity.Special ?
                 <Typography color={rarityColor(rarity)} fontSize="40px" lineHeight={.7}>
                     {rarityToString(rarity)}
@@ -183,6 +186,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             currentStr = "";
 
             retSoFar.push(<React.Fragment><ColoredText color={rarityColor(Rarity.VeryRare)}>{"Very Rare "}</ColoredText></React.Fragment>);
+            continue;
         } else if (currentStr.endsWith("each ") && word === "other") {
             const prevCurrStr = currentStr.slice(0, -5);
             if (prevCurrStr !== "") {
@@ -191,6 +195,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             currentStr = "";
 
             retSoFar.push(<React.Fragment><ColoredText color={rarityColor(Rarity.Essence)}>{"each other "}</ColoredText></React.Fragment>);
+            continue;
         }
 
         const lowered = word.toLowerCase();
@@ -198,7 +203,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             lowered.startsWith("destroy")
             || lowered.startsWith("transform")
             || lowered.startsWith("remove")
-            || lowered.startsWith("add")
+            || (lowered.startsWith("add") && lowered.length < 7)
             || lowered === "grow"
             || !isNaN(Number(lowered))
             || lowered === "times"

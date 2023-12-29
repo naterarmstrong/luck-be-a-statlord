@@ -53,6 +53,7 @@ const Header: React.FC = () => {
                         open={Boolean(toolsAnchorEl)}
                         onClose={handleClose}
                     >
+                        <MenuItem onClick={() => { handleClose(); navigate("/dictionary"); }}> Dictionary</MenuItem>
                         <MenuItem onClick={() => { handleClose(); navigate("/purplePepperCalculator"); }}><SymImg tile={Item.PurplePepper} style={{ marginRight: 2 }} /> Purple Pepper Calculator</MenuItem>
                         <MenuItem onClick={() => { handleClose(); navigate("/crabCalculator"); }}><SymImg tile={Symbol.Crab} style={{ marginRight: 8 }} /> Crab Calculator</MenuItem>
                     </Menu>

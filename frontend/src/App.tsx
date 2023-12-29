@@ -16,6 +16,7 @@ import RunDisplay from "./routes/RunDisplay";
 import ItemStats from "./routes/ItemStats";
 import AllEssenceStats from "./components/AllEssenceStats";
 import RunReplay from "./routes/RunReplay";
+import Dictionary from "./routes/Dictionary";
 
 const darkTheme = createTheme({
   palette: {
@@ -61,6 +62,7 @@ const App: React.FC = () => {
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />
+            <Route path="/dictionary" element={<Dictionary />} />
           </Routes>
         </Layout>
       </userContext.Provider>
