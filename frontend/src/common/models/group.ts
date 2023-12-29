@@ -63,6 +63,9 @@ export enum Group {
     Void = "void",
 }
 
+export function isGroup(s: string): boolean {
+    return Object.values(Group).includes(s as any);
+}
 
 export const GROUP_MEMBERS: Record<Group, Array<Symbol | Item>> = {
     [Group.Gem]: [

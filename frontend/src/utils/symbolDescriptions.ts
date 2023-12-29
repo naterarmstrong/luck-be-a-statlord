@@ -112,7 +112,7 @@ export const SYMBOL_DESCRIPTIONS: Record<Symbol, string> = {
     [Symbol.Mine]: "Adds :ore: each spin. Destroys itself after giving :coin: 4 times. Adds 1 :mining_pick: item when destroyed.",
     [Symbol.Miner]: "Destroys adjacent :minerlikes:. Gives :coin20: for each :minerlikes: destroyed.",
     [Symbol.Monkey]: "Destroys adjacent :monkeylikes:. Gives :coin: equal to 6x the value of symbols destroyed this way.",
-    [Symbol.Moon]: "Adjacent :night: give 3x more :coin. Adds 3 :cheese: when destroyed.",
+    [Symbol.Moon]: "Adjacent :night: give 3x more :coin:. Adds 3 :cheese: when destroyed.",
     [Symbol.Mouse]: "Destroys adjacent :cheese:. Gives :coin20: for each :cheese: destroyed.",
     [Symbol.MrsFruit]: "Destroys adjacent :fruitlikes:. Permanently gives :coin1: for each symbol destroyed.",
     [Symbol.Ninja]: "Gives :coin1: more for each other :this:.",

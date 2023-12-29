@@ -46,15 +46,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 interface CoinValProps {
-    coins: number
+    coins: number,
+    omitGives?: boolean,
 }
 
-const CoinVal: React.FC<CoinValProps> = ({ coins }) => {
-    const style = {
-        color: rarityColor(Rarity.Rare),
-    }
-    return <Typography style={style} sx={{ fontSize: `40px`, lineHeight: .7 }} >
-        <WhiteEmph>Gives </WhiteEmph> <SymImg tile={Symbol.Coin} size={30} omitTooltip textAlign style={{ marginRight: "-10px", marginLeft: "-5px" }} /> {coins}
+const CoinVal: React.FC<CoinValProps> = ({ coins, omitGives }) => {
+    return <Typography style={{ color: rarityColor(Rarity.Rare) }} sx={{ fontSize: `40px`, lineHeight: .7 }} display="inline">
+        {omitGives ? null : <WhiteEmph>Gives </WhiteEmph>} <SymImg tile={Symbol.Coin} size={30} omitTooltip textAlign style={{ marginRight: "-10px", marginLeft: "-5px" }} /> {coins}
     </Typography>
 }
 
@@ -72,10 +70,43 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
 
     let descriptionElements = null;
     if (description) {
+        // Split the description by colons, which will pull out the relevant parts into their own strings
+        const descSplit = description.split(":")
+        // The pieces of the description, which are either text or a react element.
+        const descPieces: Array<React.ReactElement<any, any>> = [];
+        let lastWasStr = false;
+        console.log("Parsing description", description)
+        for (const piece of descSplit) {
+            if (lastWasStr) {
+                lastWasStr = false;
+                // This is a group or coin or something
+                console.log("Piece", piece, piece.startsWith("coin"), piece.length)
+                if (piece.startsWith("coin") && piece.length !== 4) {
+                    const numeric = Number(piece.slice(4));
+                    if (isNaN(numeric)) {
+                        throw new Error(`Broken description!! ${description}`)
+                    }
+                    console.log("Pushing coin value", numeric)
+                    descPieces.push(<CoinVal coins={numeric} omitGives />);
+                } else {
+                    console.log("Pushing piece", piece)
+                    descPieces.push(<React.Fragment>{piece}</React.Fragment>);
+                }
+
+            } else {
+                // This is just a string part
+                lastWasStr = true;
+                console.log("Pushing string part", piece)
+                descPieces.push(<React.Fragment>{piece}</React.Fragment>);
+            }
+        }
+
         descriptionElements = (
             <React.Fragment>
                 <Divider variant="middle" style={{ marginTop: "15px", marginBottom: "10px", borderColor: "black", borderWidth: "2px" }} />
-                {description}
+                <Typography fontSize="40px" lineHeight={.7} >
+                    {descPieces}
+                </Typography>
             </React.Fragment>
         );
     }
