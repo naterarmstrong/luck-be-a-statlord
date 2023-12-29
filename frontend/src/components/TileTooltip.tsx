@@ -44,7 +44,7 @@ const StyledTooltip = styled(({ item, className, ...props }: StyledTooltipProps)
     [`& .${tooltipClasses.tooltip}`]: {
         backgroundColor: item ? itemHighColor : symbolHighColor,
         color: 'white',
-        maxWidth: 320,
+        maxWidth: 300,
         fontSize: "40px",
         lineHeight: .7,
         border: '6px solid black',
