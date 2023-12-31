@@ -209,6 +209,7 @@ function processDescriptionText(text: string): React.ReactElement<any, any> {
             || (lowered.startsWith("add") && lowered.length < 7)
             || lowered === "grow"
             || lowered === "times"
+            || lowered === "essence"
             || lowered === "essences"
             || lowered === "less"
             || lowered === "skip"
