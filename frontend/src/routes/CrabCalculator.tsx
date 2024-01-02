@@ -88,7 +88,7 @@ const CrabCalculator: React.FC = () => {
         )
     }
 
-    return (<Grid container alignItems="center" justifyContent="center">
+    return (<Grid container alignItems="center" justifyContent="center" minHeight={"90vh"}>
         <Grid item xs={12}>
             <Typography variant="h3">
                 <SymImg tile={Symbol.Crab} size={120} style={{ marginBottom: -30 }} />

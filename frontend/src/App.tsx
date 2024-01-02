@@ -17,6 +17,9 @@ import ItemStats from "./routes/ItemStats";
 import AllEssenceStats from "./components/AllEssenceStats";
 import RunReplay from "./routes/RunReplay";
 import Dictionary from "./routes/Dictionary";
+import NotFound from "./routes/NotFound";
+import About from "./routes/About";
+import FAQ from "./routes/Faq";
 
 const darkTheme = createTheme({
   palette: {
@@ -63,6 +66,9 @@ const App: React.FC = () => {
             <Route path="/crabCalculator" element={<CrabCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />
             <Route path="/dictionary" element={<Dictionary />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
       </userContext.Provider>
