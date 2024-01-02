@@ -8,6 +8,8 @@ import SymImg from "../components/SymImg";
 import { ItemStats } from "../components/AllItemStats";
 import { EssenceStats } from "../components/AllEssenceStats";
 import { itemToDisplay } from "../common/models/item";
+import { RunInfo } from "../common/models/run";
+import DisplayRuns from "../components/DisplayRuns";
 
 interface WebsiteStats {
     userCount: number,
@@ -28,6 +30,7 @@ const MainPage: React.FC = () => {
     const [essenceStats, setEssenceStats] = useState<Array<EssenceStats>>([]);
     const [websiteStats, setWebsiteStats] = useState<WebsiteStats | undefined>(undefined);
     const [bestPlayerStats, setBestPlayerStats] = useState<Array<BestPlayerStats> | undefined>(undefined);
+    const [recentRuns, setRecentRuns] = useState<Array<RunInfo>>([]);
 
     useEffect(() => {
         const fetchSymbolStats = async () => {
@@ -82,11 +85,40 @@ const MainPage: React.FC = () => {
             setWebsiteStats(jsonData);
         }
 
+        const fetchRecentRuns = async () => {
+            const response = await fetch(`${API_ENDPOINT}/recentRuns`);
+            if (!response.ok) {
+                console.log(`Error fetching recent runs`);
+                return;
+            }
+            const jsonData = (await response.json());
+            const runs = [];
+            for (const jRunInfo of jsonData) {
+                const runInfo = new RunInfo(
+                    jRunInfo.hash,
+                    jRunInfo.number,
+                    jRunInfo.version,
+                    jRunInfo.isFloor20,
+                    jRunInfo.date,
+                    jRunInfo.duration,
+                    jRunInfo.victory,
+                    jRunInfo.guillotine,
+                    jRunInfo.spins,
+                    jRunInfo.earlySyms.split(",") as Symbol[],
+                    jRunInfo.midSyms.split(",") as Symbol[],
+                    jRunInfo.lateSyms.split(",") as Symbol[],
+                );
+                runs.push(runInfo);
+            }
+            setRecentRuns(runs);
+        }
+
         fetchSymbolStats().catch(console.error);
         fetchItemStats().catch(console.error);
         fetchEssenceStats().catch(console.error);
         fetchBestPlayers().catch(console.error);
         fetchWebsiteStats().catch(console.error);
+        fetchRecentRuns().catch(console.error);
     }, []);
 
     return <Grid container alignItems="center" justifyContent="center" spacing="50">
@@ -123,6 +155,9 @@ const MainPage: React.FC = () => {
         </Grid>
         <Grid item>
             {bestPlayersCard(bestPlayerStats)}
+        </Grid>
+        <Grid item>
+            {recentRunsCard(recentRuns)}
         </Grid>
         <Grid item>
             {bestSymbolsCard(symbolStats)}
@@ -219,7 +254,7 @@ const bestSymbolsCard = (symbolStats: Array<SymbolStats>): JSX.Element => {
                                 <TableRow key={stats.name}>
                                     <TableCell>
                                         <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/symbolDetails/${stats.name}`} color={rarityColor(stats.rarity)}>
+                                        <Link href={`/symbolDetails?symbol=${stats.name}`} color={rarityColor(stats.rarity)}>
                                             {SymbolUtils.symbolToDisplay(stats.name)}
                                         </Link>
                                     </TableCell>
@@ -278,7 +313,7 @@ const bestItemsCard = (itemStats: Array<ItemStats>): JSX.Element => {
                         <TableHead>
                             <TableRow>
                                 <TableCell>
-                                    Symbol
+                                    Item
                                 </TableCell>
                                 <TableCell>
                                     Winrate
@@ -293,7 +328,7 @@ const bestItemsCard = (itemStats: Array<ItemStats>): JSX.Element => {
                                 <TableRow key={stats.name}>
                                     <TableCell>
                                         <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails/${stats.name}`} color={rarityColor(stats.rarity)}>
+                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(stats.rarity)}>
                                             {itemToDisplay(stats.name)}
                                         </Link>
                                     </TableCell>
@@ -367,7 +402,7 @@ const popularEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => 
                                 <TableRow key={stats.name}>
                                     <TableCell>
                                         <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails/${stats.name}`} color={rarityColor(Rarity.Essence)}>
+                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(Rarity.Essence)}>
                                             {itemToDisplay(stats.name)}
                                         </Link>
                                     </TableCell>
@@ -428,7 +463,7 @@ const strongEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
                                 <TableRow key={stats.name}>
                                     <TableCell>
                                         <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails/${stats.name}`} color={rarityColor(Rarity.Essence)}>
+                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(Rarity.Essence)}>
                                             {itemToDisplay(stats.name)}
                                         </Link>
                                     </TableCell>
@@ -444,6 +479,18 @@ const strongEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
                     </Table>
                     : null
             }
+        </CardContent>
+    </Card>
+}
+
+const recentRunsCard = (runs: Array<RunInfo>): JSX.Element => {
+    return <Card>
+        <CardContent>
+            <Typography variant="h5" gutterBottom lineHeight={.5}>
+                Recently Uploaded Runs
+            </Typography>
+            TODO: Improve this so that we actually load the user at the same time, and then use that user and pass it in as a prop to display runs. Currently the link is broken
+            {<DisplayRuns runs={runs} />}
         </CardContent>
     </Card>
 }

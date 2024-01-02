@@ -392,13 +392,23 @@ app.get('/mainStats', async (req, res) => {
 });
 
 app.get('/bestPlayers', async (req, res) => {
-    console.log("asdfgasfasdfasdasdff")
     const stats = await sequelize.query(bestUsersQuery, {
         type: QueryTypes.SELECT,
         replacements: { userCount: 5, minGames: 80 }
     });
 
     return res.status(200).send(stats);
+})
+
+app.get('/recentRuns', async (req, res) => {
+    const runs = await Run.findAll({
+        order: [
+            ['date', 'DESC']
+        ],
+        limit: 3,
+    });
+
+    return res.status(200).send(runs);
 })
 
 app.get('/symbol/:symbol/details', async (req, res) => {

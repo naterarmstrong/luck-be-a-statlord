@@ -333,12 +333,12 @@ const RunReplay: React.FC = () => {
                     <Grid container justifyContent="center" spacing={3}>
                         <Grid item>
                             <Button onClick={() => updateDisplayOptions({ toggleEffects: true })} variant="contained">
-                                {displayOptions.postEffects ? "Toggle effects" : "Toggle effects"}
+                                Toggle effects (e)
                             </Button>
                         </Grid>
                         <Grid item>
                             <Button onClick={() => updateDisplayOptions({ toggleCoins: true })} variant="contained">
-                                Toggle Coins
+                                Toggle Coins (c)
                             </Button>
                         </Grid>
                     </Grid>
