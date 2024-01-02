@@ -8,6 +8,9 @@ export const sequelize = new Sequelize("sqlite:./DATA/db.sqlite");
 export const symbolWinratesQuery = fs.readFileSync('db/symbolWinrates.sql').toString();
 export const itemWinratesQuery = fs.readFileSync('db/itemWinrates.sql').toString();
 export const essenceWinratesQuery = fs.readFileSync('db/essenceWinrates.sql').toString();
-export const userStatsQuery = fs.readFileSync('db/userStats.sql').toString();
+
+// Parameterized queries
 export const symbolPairsQuery = fs.readFileSync('db/symbolPairs.sql').toString();
+export const userStatsQuery = fs.readFileSync('db/userStats.sql').toString();
 export const symbolsApartQuery = fs.readFileSync('db/symbolsApart.sql').toString();
+export const bestUsersQuery = fs.readFileSync('db/bestUsers.sql').toString();

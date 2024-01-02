@@ -10,6 +10,8 @@ export interface SymbolStats {
     name: Symbol,
     rarity: Rarity,
     win_rate: number,
+    chosen_won_games: number,
+    chosen_games: number,
     total_shows: number,
     total_games: number,
 }

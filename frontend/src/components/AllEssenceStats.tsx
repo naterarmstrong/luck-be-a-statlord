@@ -1,5 +1,5 @@
 import { Box, Link } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid"
 import { useEffect, useState } from "react";
 import { ITEM_TO_IMG } from "../utils/item";
 import { Item } from "../common/models/item";
@@ -8,7 +8,8 @@ import API_ENDPOINT from "../utils/api";
 export interface EssenceStats {
     name: Item,
     win_rate: number,
-    destroy_rate: number,
+    total_destroyed_games: number,
+    destroyed_won_games: number,
     total_games: number,
 }
 
@@ -27,7 +28,14 @@ const columns: GridColDef[] = [
         , minWidth: 250
     },
     { field: 'win_rate', headerName: 'Win Rate', minWidth: 150 },
-    { field: 'destroy_rate', headerName: 'Destroy Rate', minWidth: 150 },
+    {
+        field: 'destroy_rate', headerName: 'Destroy Rate', minWidth: 150, valueGetter: (params: GridValueGetterParams) =>
+            (100 * params.row.total_destroyed_games / params.row.total_games).toFixed(2)
+    },
+    {
+        field: 'destroy_win_rate', headerName: 'Destroy Win Rate', minWidth: 150, valueGetter: (params: GridValueGetterParams) =>
+            (100 * params.row.destroyed_won_games / (params.row.total_destroyed_games === 0 ? 1 : params.row.total_destroyed_games)).toFixed(2)
+    },
     { field: 'total_games', headerName: 'Total Games', minWidth: 150 }
 ]
 

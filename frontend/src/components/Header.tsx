@@ -28,7 +28,7 @@ const Header: React.FC = () => {
                     <Link href="/" sx={{ mr: 2, ml: 2, mb: 0 }}>
                         <SymImg tile={Symbol.Billionaire} size={80} textAlign omitTooltip />
                     </Link>
-                    <Link href="/" sx={{ mr: 2, ml: 2 }}>
+                    <Link href="/symbolStats" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6">
                             Symbols
                         </Typography>

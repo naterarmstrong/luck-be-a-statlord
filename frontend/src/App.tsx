@@ -20,6 +20,7 @@ import Dictionary from "./routes/Dictionary";
 import NotFound from "./routes/NotFound";
 import About from "./routes/About";
 import FAQ from "./routes/Faq";
+import AllSymbolStats from "./components/AllSymbolStats";
 
 const darkTheme = createTheme({
   palette: {
@@ -56,6 +57,7 @@ const App: React.FC = () => {
             <Route path="/" element={<MainPage />} />
             <Route path="/upload" element={<UploadRuns />} />
             <Route path="/symbolDetails" element={<SymbolDetails />} />
+            <Route path="/symbolStats" element={<AllSymbolStats />} />
             <Route path="/itemStats" element={<ItemStats />} />
             <Route path="/essenceStats" element={<AllEssenceStats />} />
             <Route path="/login" element={<Login />} />

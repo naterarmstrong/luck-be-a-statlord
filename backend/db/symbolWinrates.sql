@@ -12,5 +12,6 @@ WHERE
     Runs.id = SymbolDetails.RunId
     AND SymbolDetails.symbol = Symbols.name
     AND Runs.date > 1668507128000
+    AND Runs.isFloor20 = true
 GROUP BY
     Symbols.name;

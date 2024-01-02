@@ -11,7 +11,7 @@ import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { ItemDetails, ItemDetailsByRent, Run, Spin, SpinSymbol, SymbolDetails, SymbolDetailsByRent } from './models/run';
 import { RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
-import { essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
+import { bestUsersQuery, essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
 import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
@@ -379,6 +379,27 @@ app.get('/essenceStats', async (req, res) => {
 
     return res.status(200).send(stats);
 });
+
+app.get('/mainStats', async (req, res) => {
+    const userCount = await User.count();
+    const runCount = await Run.count();
+
+    const ret = {
+        'userCount': userCount,
+        'runCount': runCount,
+    }
+    return res.status(200).send(ret);
+});
+
+app.get('/bestPlayers', async (req, res) => {
+    console.log("asdfgasfasdfasdasdff")
+    const stats = await sequelize.query(bestUsersQuery, {
+        type: QueryTypes.SELECT,
+        replacements: { userCount: 5, minGames: 80 }
+    });
+
+    return res.status(200).send(stats);
+})
 
 app.get('/symbol/:symbol/details', async (req, res) => {
     return res.status(200).send();
