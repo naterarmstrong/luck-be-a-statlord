@@ -61,7 +61,7 @@ const PurplePepperCalculator: React.FC = () => {
         setOdds(triggers / trials);
     }
 
-    return (<Grid container alignItems="center" justifyContent="center" minHeight="100vh">
+    return (<Grid container alignItems="center" justifyContent="center">
         <Grid item xs={12}>
             <Typography variant="h3">
                 <SymImg tile={Item.PurplePepper} size={120} style={{ marginBottom: -30 }} />
