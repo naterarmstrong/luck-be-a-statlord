@@ -55,15 +55,6 @@ export class RunInfo {
 export class RunDetails {
     // The details on each spin
     spins: SpinData[];
-    // Aggregated information on the coins earned per symbol
-    coinsPerSymbol: Map<Symbol, number>;
-    // How many times symbols appeared in total
-    showsPerSymbol: Map<Symbol, number>;
-    // First appearance per symbol
-    firstShowPerSymbol: Map<Symbol, number>;
-    // Endless specific metrics
-    endlessCoinsPerSymbol?: Map<Symbol, number>;
-    endlessShowsPerSymbol?: Map<Symbol, number>;
 
     // Running inventory. Gets deleted before serialization
     inventory?: Map<Symbol, number>;
@@ -75,9 +66,6 @@ export class RunDetails {
 
     constructor() {
         this.spins = [];
-        this.coinsPerSymbol = new Map();
-        this.showsPerSymbol = new Map();
-        this.firstShowPerSymbol = new Map();
         this.symbolDetails = new Map();
         this.itemDetails = new Map();
         this.inventory = getSymbolAddedMap();
