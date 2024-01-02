@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Grid, Link, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Card, CardContent, Grid, Link, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import AllSymbolStats, { SymbolStats } from "../components/AllSymbolStats";
 import { useEffect, useState } from "react";
 import API_ENDPOINT from "../utils/api";
@@ -89,7 +89,7 @@ const MainPage: React.FC = () => {
         fetchWebsiteStats().catch(console.error);
     }, []);
 
-    return <Grid container alignItems="center" justifyContent="center" spacing="30">
+    return <Grid container alignItems="center" justifyContent="center" spacing="50">
         <Grid item>
             <Typography variant="h3">
                 Luck be a Statlord
@@ -99,24 +99,25 @@ const MainPage: React.FC = () => {
         <Grid item>
             <Card>
                 <CardContent>
-                    <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                        Users
+                    <Typography variant="h3">
+                        Website Stats
                     </Typography>
-                    <Typography variant="h3" lineHeight={.5}>
-                        {websiteStats?.userCount ?? "..."}
-                    </Typography>
-                </CardContent>
-            </Card>
-        </Grid>
-        <Grid item>
-            <Card>
-                <CardContent>
-                    <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                        Runs
-                    </Typography>
-                    <Typography variant="h3" lineHeight={.5}>
-                        {websiteStats?.runCount ?? "..."}
-                    </Typography>
+                    <Paper elevation={3}>
+                        <Typography sx={{ fontSize: 25, marginTop: -2 }} color="text.secondary" gutterBottom lineHeight={.9}>
+                            Users
+                        </Typography>
+                        <Typography variant="h3" lineHeight={.9} sx={{ marginTop: -3, marginBottom: -1 }}>
+                            {websiteStats?.userCount ?? "..."}
+                        </Typography>
+                    </Paper>
+                    <Paper elevation={3} sx={{ marginTop: 4 }}>
+                        <Typography sx={{ fontSize: 25, marginTop: -2 }} color="text.secondary" gutterBottom lineHeight={.9}>
+                            Runs
+                        </Typography>
+                        <Typography variant="h3" lineHeight={.9} sx={{ marginTop: -3, marginBottom: -1 }}>
+                            {websiteStats?.runCount ?? "..."}
+                        </Typography>
+                    </Paper>
                 </CardContent>
             </Card>
         </Grid>
@@ -131,6 +132,9 @@ const MainPage: React.FC = () => {
         </Grid>
         <Grid item>
             {popularEssencesCard(essenceStats)}
+        </Grid>
+        <Grid item>
+            {strongEssencesCard(essenceStats)}
         </Grid>
     </Grid>
 }
@@ -390,6 +394,67 @@ const filterPopularEssences = (stats: Array<EssenceStats>): Array<EssenceStats> 
 
     const ret = [...stats];
     ret.sort((a: EssenceStats, b: EssenceStats) => b.total_games - a.total_games)
+
+    return ret.slice(0, 4);
+}
+
+const strongEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
+    return <Card>
+        <CardContent>
+            <Typography variant="h5" gutterBottom lineHeight={.5}>
+                Best Essences
+            </Typography>
+            <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
+                By win rate
+            </Typography>
+            {
+                essenceStats ?
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>
+                                    Essence
+                                </TableCell>
+                                <TableCell>
+                                    Winrate
+                                </TableCell>
+                                <TableCell>
+                                    Total Games
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {filterStrongEssences(essenceStats).map((stats) =>
+                                <TableRow key={stats.name}>
+                                    <TableCell>
+                                        <SymImg tile={stats.name} textAlign />
+                                        <Link href={`/itemDetails/${stats.name}`} color={rarityColor(Rarity.Essence)}>
+                                            {itemToDisplay(stats.name)}
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell>
+                                        {stats.win_rate}%
+                                    </TableCell>
+                                    <TableCell>
+                                        {stats.total_games}
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    : null
+            }
+        </CardContent>
+    </Card>
+}
+
+const filterStrongEssences = (stats: Array<EssenceStats>): Array<EssenceStats> => {
+    if (stats.length === 0) {
+        return [];
+    }
+
+    const ret = [...stats];
+    ret.sort((a: EssenceStats, b: EssenceStats) => b.win_rate - a.win_rate)
 
     return ret.slice(0, 4);
 }
