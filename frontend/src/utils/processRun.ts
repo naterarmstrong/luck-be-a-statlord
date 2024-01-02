@@ -110,7 +110,10 @@ export function processRun(text: string): RunInfo {
         spinData.itemsDestroyed.forEach((item: Item) => details.recordItemDestroyed(curRentsPaid, item));
 
         for (let i = 0; i < 20; i++) {
-            details.recordSymbol(rentsPaid, spinData.postEffectLayout[i].symbol, spinData.symbolValues[i].coins);
+            // Attribute the coins to the symbol that was there at the start of the spin. This does
+            // a better job at capturing the coins from chests, thieves, etc
+            details.recordSymbol(rentsPaid, spinData.preEffectLayout[i].symbol, spinData.symbolValues[i].coins);
+
             // TODO: track last appearances like below
             // Can keep track of how many spins since a symbol was last seen, and say that it was
             // _probably_ removed if it hasn't been seen in ~3 spins. Won't work for items with 3+

@@ -347,7 +347,7 @@ app.get('/user/:id/stats', async (req, res) => {
 });
 
 app.get('/symbolStats', async (req, res) => {
-    const stats = await sequelize.query(symbolWinratesQuery, { type: QueryTypes.SELECT });
+    const stats = await sequelize.query(symbolWinratesQuery, { type: QueryTypes.SELECT, logging: false });
 
     // TODO: Account for versions in here. Not sure how exactly to store versions, could do
     // major/minor/patch as separate smallints? so then the query looks like
@@ -357,7 +357,7 @@ app.get('/symbolStats', async (req, res) => {
 });
 
 app.get('/itemStats', async (req, res) => {
-    const stats = await sequelize.query(itemWinratesQuery, { type: QueryTypes.SELECT });
+    const stats = await sequelize.query(itemWinratesQuery, { type: QueryTypes.SELECT, logging: false });
 
     // TODO: Account for versions in here. Not sure how exactly to store versions, could do
     // major/minor/patch as separate smallints? so then the query looks like
@@ -369,7 +369,7 @@ app.get('/itemStats', async (req, res) => {
 });
 
 app.get('/essenceStats', async (req, res) => {
-    const stats = await sequelize.query(essenceWinratesQuery, { type: QueryTypes.SELECT });
+    const stats = await sequelize.query(essenceWinratesQuery, { type: QueryTypes.SELECT, logging: false });
 
     // TODO: Account for versions in here. Not sure how exactly to store versions, could do
     // major/minor/patch as separate smallints? so then the query looks like
@@ -394,7 +394,8 @@ app.get('/mainStats', async (req, res) => {
 app.get('/bestPlayers', async (req, res) => {
     const stats = await sequelize.query(bestUsersQuery, {
         type: QueryTypes.SELECT,
-        replacements: { userCount: 5, minGames: 80 }
+        replacements: { userCount: 5, minGames: 80 },
+        logging: false,
     });
 
     return res.status(200).send(stats);
@@ -402,6 +403,20 @@ app.get('/bestPlayers', async (req, res) => {
 
 app.get('/recentRuns', async (req, res) => {
     const runs = await Run.findAll({
+        include: [
+            {
+                model: User,
+                attributes: ['username']
+            }
+        ],
+        where: {
+            spins: {
+                [Op.gt]: 20,
+            },
+            date: {
+                [Op.lt]: Date.now(),
+            }
+        },
         order: [
             ['date', 'DESC']
         ],
@@ -411,6 +426,7 @@ app.get('/recentRuns', async (req, res) => {
     return res.status(200).send(runs);
 })
 
+// TODO: unused
 app.get('/symbol/:symbol/details', async (req, res) => {
     return res.status(200).send();
 });

@@ -22,6 +22,7 @@ export class RunInfo {
     lateSyms: Array<Symbol>;
 
     details?: RunDetails;
+    authorInfo?: RunAuthorInfo;
 
     constructor(
         hash: string,
@@ -248,6 +249,11 @@ export class RunDetails {
         const ret = (new Array(...this.symbolDetails.entries())).sort(([, a], [, b]) => b.totalCoins - a.totalCoins).slice(0, n).map((s) => s[0])
         return ret;
     }
+}
+
+export interface RunAuthorInfo {
+    userId: number,
+    username: string,
 }
 
 function getSymbolAddedMap(): Map<Symbol, number> {

@@ -6,6 +6,8 @@ import { Item } from "../common/models/item";
 import { ITEM_TO_IMG } from "../utils/item";
 import { useContext } from "react";
 import userContext from "../contexts/UserContext";
+import SymImg from "./SymImg";
+import { Symbol } from "../common/models/symbol";
 
 const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
@@ -27,6 +29,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
             <Table>
                 <TableHead>
                     <TableRow>
+                        {runs.at(0)?.authorInfo !== undefined ? <TableCell sx={{ maxWidth: 150 }}>User</TableCell> : null}
                         <TableCell>Run #</TableCell>
                         <TableCell>Victory</TableCell>
                         <TableCell>Date Played</TableCell>
@@ -40,8 +43,11 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                 <TableBody>
                     {runs.map((run: RunInfo, index) => (
                         < TableRow role="checkbox" key={run.number} selected={run.victory} >
+                            {run.authorInfo !== undefined ?
+                                <TableCell>{run.authorInfo.username}</TableCell> : null
+                            }
                             <TableCell>
-                                <Link href={`/user/${userId}/run/${run.number}`}>
+                                <Link href={`/user/${run.authorInfo !== undefined ? run.authorInfo.userId : userId}/run/${run.number}`}>
                                     {run.number}
                                 </Link>
                             </TableCell>
@@ -57,29 +63,29 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                             <TableCell>{msToTime(run.duration)}</TableCell>
                             <TableCell>
                                 <Grid>
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[0])} />
+                                    <SymImg tile={run.earlySyms[0] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[1])} />
+                                    <SymImg tile={run.earlySyms[1] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.earlySyms[2])} />
+                                    <SymImg tile={run.earlySyms[2] ?? Symbol.Empty} />
                                 </Grid>
                             </TableCell>
                             <TableCell>
                                 <Grid>
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[0])} />
+                                    <SymImg tile={run.midSyms[0] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[1])} />
+                                    <SymImg tile={run.midSyms[1] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.midSyms[2])} />
+                                    <SymImg tile={run.midSyms[2] ?? Symbol.Empty} />
                                 </Grid>
                             </TableCell>
                             <TableCell>
                                 <Grid>
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[0])} />
+                                    <SymImg tile={run.lateSyms[0] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[1])} />
+                                    <SymImg tile={run.lateSyms[1] ?? Symbol.Empty} />
                                     <Box width="100%" />
-                                    <Box component="img" style={{ width: "40px" }} src={SYMBOL_TO_IMG.get(run.lateSyms[2])} />
+                                    <SymImg tile={run.lateSyms[2] ?? Symbol.Empty} />
                                 </Grid>
                             </TableCell>
                         </TableRow>

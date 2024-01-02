@@ -108,6 +108,10 @@ const MainPage: React.FC = () => {
                     jRunInfo.midSyms.split(",") as Symbol[],
                     jRunInfo.lateSyms.split(",") as Symbol[],
                 );
+                runInfo.authorInfo = {
+                    userId: jRunInfo.UserId,
+                    username: jRunInfo.User.username,
+                };
                 runs.push(runInfo);
             }
             setRecentRuns(runs);
@@ -121,7 +125,7 @@ const MainPage: React.FC = () => {
         fetchRecentRuns().catch(console.error);
     }, []);
 
-    return <Grid container alignItems="center" justifyContent="center" spacing="50">
+    return <Grid container alignItems="center" justifyContent="center" spacing="30">
         <Grid item>
             <Typography variant="h3">
                 Luck be a Statlord
@@ -196,7 +200,7 @@ const bestPlayersCard = (bestPlayerStats: Array<BestPlayerStats> | undefined): J
                                     Winrate
                                 </TableCell>
                                 <TableCell>
-                                    Total Games
+                                    Games
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -245,7 +249,7 @@ const bestSymbolsCard = (symbolStats: Array<SymbolStats>): JSX.Element => {
                                     Winrate
                                 </TableCell>
                                 <TableCell>
-                                    Total Games
+                                    Games
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -319,7 +323,7 @@ const bestItemsCard = (itemStats: Array<ItemStats>): JSX.Element => {
                                     Winrate
                                 </TableCell>
                                 <TableCell>
-                                    Total Games
+                                    Games
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -393,7 +397,7 @@ const popularEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => 
                                     Winrate
                                 </TableCell>
                                 <TableCell>
-                                    Total Games
+                                    Games
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -454,7 +458,7 @@ const strongEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
                                     Winrate
                                 </TableCell>
                                 <TableCell>
-                                    Total Games
+                                    Games
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -489,7 +493,6 @@ const recentRunsCard = (runs: Array<RunInfo>): JSX.Element => {
             <Typography variant="h5" gutterBottom lineHeight={.5}>
                 Recently Uploaded Runs
             </Typography>
-            TODO: Improve this so that we actually load the user at the same time, and then use that user and pass it in as a prop to display runs. Currently the link is broken
             {<DisplayRuns runs={runs} />}
         </CardContent>
     </Card>
