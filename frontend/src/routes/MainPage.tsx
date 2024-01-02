@@ -125,7 +125,7 @@ const MainPage: React.FC = () => {
         fetchRecentRuns().catch(console.error);
     }, []);
 
-    return <Grid container alignItems="center" justifyContent="center" spacing="30">
+    return <Grid container alignItems="start" justifyContent="center" spacing="30">
         <Grid item>
             <Typography variant="h3">
                 Luck be a Statlord
@@ -174,6 +174,9 @@ const MainPage: React.FC = () => {
         </Grid>
         <Grid item>
             {strongEssencesCard(essenceStats)}
+        </Grid>
+        <Grid item xs={12}>
+            <Box width="100%" height="10" />
         </Grid>
     </Grid>
 }
@@ -493,7 +496,7 @@ const recentRunsCard = (runs: Array<RunInfo>): JSX.Element => {
             <Typography variant="h5" gutterBottom lineHeight={.5}>
                 Recently Uploaded Runs
             </Typography>
-            {<DisplayRuns runs={runs} />}
+            {<DisplayRuns runs={runs} omitDuration />}
         </CardContent>
     </Card>
 }

@@ -13,10 +13,11 @@ const confirm = require('../img/confirm.png');
 const dud = require('../img/dud.png');
 
 export interface DisplayRunsProps {
-    runs: RunInfo[]
+    runs: RunInfo[],
+    omitDuration?: boolean,
 }
 
-const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
+const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs, omitDuration }) => {
     const { userId } = useContext(userContext);
 
     const getRunDate = (date: number): string => {
@@ -34,7 +35,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                         <TableCell>Victory</TableCell>
                         <TableCell>Date Played</TableCell>
                         <TableCell>Spins</TableCell>
-                        <TableCell>Duration</TableCell>
+                        {omitDuration ? null : <TableCell>Duration</TableCell>}
                         <TableCell>Early</TableCell>
                         <TableCell>Mid</TableCell>
                         <TableCell>Final</TableCell>
@@ -60,7 +61,7 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs }) => {
                             </TableCell>
                             <TableCell>{getRunDate(run.date)}</TableCell>
                             <TableCell>{run.spins}</TableCell>
-                            <TableCell>{msToTime(run.duration)}</TableCell>
+                            {omitDuration ? null : <TableCell>{msToTime(run.duration)}</TableCell>}
                             <TableCell>
                                 <Grid>
                                     <SymImg tile={run.earlySyms[0] ?? Symbol.Empty} />
