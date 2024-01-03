@@ -1,4 +1,4 @@
-import { Button, Grid, TextField, Typography } from "@mui/material";
+import { Autocomplete, Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import SymImg from "../components/SymImg";
 import { Symbol } from "../common/models/symbol";
 import { Item } from "../common/models/item";
@@ -14,6 +14,8 @@ interface EaterStats {
     breakevenAt3: number,
 }
 
+type AdjacencyItem = Item.Protractor | Item.ProtractorEssence | Item.Telescope | Item.TelescopeEssence | Item.SwappingDevice;
+
 const EaterCalculator: React.FC = () => {
     const [total, setTotal] = useState<number>(20);
     // TODO: improve this by adding option to select:
@@ -21,15 +23,28 @@ const EaterCalculator: React.FC = () => {
     // - relevant items (protractor / telescope / protractor essence / telescope essence)
 
     const [stats, setStats] = useState<EaterStats | undefined>(undefined);
+    const [item, setItem] = useState<AdjacencyItem | Item.ItemMissing>(Item.ItemMissing);
 
     const calculate = () => {
 
-        // The probability the two symbols are adjacent GIVEN that they are both present
-        const adjacentOdds = (
-            (4 / 20) * (3 / 20) // Odds its in a corner * number of square adjacent to a corner
+        // The base probability the two symbols are adjacent GIVEN that they are both present
+        let cornerOdds = (4 / 20) * (3 / 20);
+        if (item === Item.Protractor) {
+            cornerOdds = (3 / 20) * (2 / 3) + (1 / 3);
+        } else if (item === Item.ProtractorEssence) {
+            cornerOdds = 1;
+        }
+        let adjacentOdds = (
+            (4 / 20) * cornerOdds // Odds its in a corner * number of square adjacent to a corner
             + (8 / 20) * (5 / 20) // Odds its on an edge * number of squares adjacent to an edge
             + (8 / 20) * (8 / 20) // Odds its in the center * number of squares adjacent to that
         );
+
+        if (item === Item.TelescopeEssence) {
+            adjacentOdds = 1;
+        } else if (item === Item.Telescope) {
+            adjacentOdds = (2 / 3) * adjacentOdds + (1 / 3);
+        }
 
         // The probability that the two symbols are both not present
         let eTotal = Math.max(total, 20);
@@ -76,10 +91,29 @@ const EaterCalculator: React.FC = () => {
                 onChange={(e) => setTotal(e.target.value as any)} />
         </Grid>
         <Grid item xs={2}>
+            <FormControl sx={{ minWidth: 280 }}>
+                <InputLabel>Item</InputLabel>
+                <Select
+                    value={item}
+                    label="Item"
+                    variant="outlined"
+                    autoWidth
+                    onChange={(e) => setItem(e.target.value as AdjacencyItem | Item.ItemMissing)}
+                >
+                    <MenuItem value={Item.ItemMissing}>None</MenuItem>
+                    <MenuItem value={Item.Protractor}><SymImg tile={Item.Protractor} textAlign />Protractor</MenuItem>
+                    <MenuItem value={Item.ProtractorEssence}><SymImg tile={Item.ProtractorEssence} textAlign />Protractor Essence</MenuItem>
+                    <MenuItem value={Item.Telescope}><SymImg tile={Item.Telescope} textAlign />Telescope</MenuItem>
+                    <MenuItem value={Item.TelescopeEssence}><SymImg tile={Item.TelescopeEssence} textAlign />Telescope Essence</MenuItem>
+                </Select>
+            </FormControl>
+        </Grid>
+        <Grid item xs={2}>
             <Button variant="outlined" onClick={calculate}>
                 Calculate
             </Button>
         </Grid>
+        <Grid item xs={2} />
         <Grid item xs={2} />
         <Grid item xs={3} />
         <Grid item xs={6}>
