@@ -1,4 +1,4 @@
-import { Autocomplete, Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Autocomplete, Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Tooltip, Typography } from "@mui/material";
 import SymImg from "../components/SymImg";
 import { Symbol } from "../common/models/symbol";
 import { Item } from "../common/models/item";
@@ -124,15 +124,21 @@ const EaterCalculator: React.FC = () => {
                 <Typography variant="h5">
                     {stats.avgShows.toFixed(1)} appearances
                 </Typography>
-                <Typography variant="h5">
-                    At -1<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt1.toFixed(1)} spins to break even
-                </Typography>
-                <Typography variant="h5">
-                    At -2<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt2.toFixed(1)} spins to break even
-                </Typography>
-                <Typography variant="h5">
-                    At -3<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt3.toFixed(1)} spins to break even
-                </Typography>
+                <Tooltip title={"The new symbol is worth 1 less than the average symbol on your board."}>
+                    <Typography variant="h5">
+                        At -1<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt1.toFixed(1)} spins to break even
+                    </Typography>
+                </Tooltip>
+                <Tooltip title={"The new symbol is worth 2 less than the average symbol on your board."}>
+                    <Typography variant="h5">
+                        At -2<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt2.toFixed(1)} spins to break even
+                    </Typography>
+                </Tooltip>
+                <Tooltip title={"The new symbol is worth 3 less than the average symbol on your board."}>
+                    <Typography variant="h5">
+                        At -3<SymImg tile={Symbol.Coin} omitTooltip textAlign />: {stats.breakevenAt3.toFixed(1)} spins to break even
+                    </Typography>
+                </Tooltip>
             </React.Fragment> : null}
         </Grid>
         <Grid item xs={3} />
