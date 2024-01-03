@@ -343,7 +343,96 @@ app.get('/user/:id/stats', async (req, res) => {
         replacements: { userId: req.params.id }
     });
 
-    return res.status(200).send(stats);
+    const runs = await Run.findAll({
+        attributes: [
+            'number',
+            'victory',
+        ],
+        where: {
+            date: {
+                [Op.lt]: Date.now(),
+            },
+            UserId: {
+                [Op.eq]: parseInt(req.params.id, 10),
+            },
+            isFloor20: {
+                [Op.eq]: true,
+            }
+        },
+        order: [
+            ['number', 'DESC']
+        ],
+        limit: 300,
+    });
+
+    const ret = {
+        runs: runs,
+        stats: stats,
+    };
+
+    return res.status(200).send(ret);
+});
+
+app.get('/user/:id/recentRuns', async (req, res) => {
+    if (isNaN(parseInt(req.params.id, 10))) {
+        return res.status(400).send("Bad user ID");
+    }
+
+    const runs = await Run.findAll({
+        include: [
+            {
+                model: User,
+                attributes: ['username']
+            }
+        ],
+        where: {
+            spins: {
+                [Op.gt]: 20,
+            },
+            date: {
+                [Op.lt]: Date.now(),
+            },
+            UserId: {
+                [Op.eq]: parseInt(req.params.id, 10),
+            }
+        },
+        order: [
+            ['date', 'DESC']
+        ],
+        limit: 5,
+    });
+
+    return res.status(200).send(runs);
+});
+
+app.get('/user/:id/winrateInfo', async (req, res) => {
+    if (isNaN(parseInt(req.params.id, 10))) {
+        return res.status(400).send("Bad user ID");
+    }
+
+    const runs = await Run.findAll({
+        attributes: [
+            'number',
+            'victory',
+        ],
+        where: {
+            date: {
+                [Op.lt]: Date.now(),
+            },
+            UserId: {
+                [Op.eq]: parseInt(req.params.id, 10),
+            },
+            isFloor20: {
+                [Op.eq]: true,
+            }
+        },
+        order: [
+            ['number', 'DESC']
+        ],
+        limit: 300,
+    });
+
+    return res.status(200).send(runs);
 });
 
 app.get('/symbolStats', async (req, res) => {

@@ -1,7 +1,6 @@
 import { Box, Grid, Link, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { RunInfo } from "../common/models/run";
 import { msToTime } from "../common/utils/time";
-import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Item } from "../common/models/item";
 import { ITEM_TO_IMG } from "../utils/item";
 import { useContext } from "react";
@@ -15,9 +14,10 @@ const dud = require('../img/dud.png');
 export interface DisplayRunsProps {
     runs: RunInfo[],
     omitDuration?: boolean,
+    unlimitedHeight?: boolean,
 }
 
-const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs, omitDuration }) => {
+const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs, omitDuration, unlimitedHeight }) => {
     const { userId } = useContext(userContext);
 
     const getRunDate = (date: number): string => {
@@ -25,8 +25,13 @@ const DisplayRuns: React.FC<DisplayRunsProps> = ({ runs, omitDuration }) => {
         return d.toLocaleString('default', { month: 'short', day: 'numeric', year: "numeric" });
     }
 
+    let sx = {};
+    if (!unlimitedHeight) {
+        sx = { overflowY: "scroll", maxHeight: "600px" }
+    }
+
     return (
-        <Grid item sx={{ overflowY: "scroll", maxHeight: "600px" }}>
+        <Grid item sx={sx}>
             <Table>
                 <TableHead>
                     <TableRow>

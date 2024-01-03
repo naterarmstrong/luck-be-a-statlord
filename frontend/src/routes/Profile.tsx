@@ -53,8 +53,8 @@ const Profile: React.FC = () => {
                 navigate('/');
             }
             const jsonData = await response.json();
-            setStats(jsonData[0]);
-            console.log(jsonData[0]);
+            setStats(jsonData.stats[0]);
+            console.log(jsonData);
         }
 
         fetchUserStats().catch(console.error);
