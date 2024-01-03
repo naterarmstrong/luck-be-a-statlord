@@ -56,6 +56,7 @@ const Header: React.FC = () => {
                         <MenuItem onClick={() => { handleClose(); navigate("/dictionary"); }}> <SymImg tile={Item.AnthropologyDegree} omitTooltip style={{ marginRight: 2 }} />Dictionary</MenuItem>
                         <MenuItem onClick={() => { handleClose(); navigate("/purplePepperCalculator"); }}><SymImg tile={Item.PurplePepper} omitTooltip style={{ marginRight: 2 }} /> Purple Pepper Calculator</MenuItem>
                         <MenuItem onClick={() => { handleClose(); navigate("/crabCalculator"); }}><SymImg tile={Symbol.Crab} omitTooltip style={{ marginRight: 8 }} /> Crab Calculator</MenuItem>
+                        <MenuItem onClick={() => { handleClose(); navigate("/eaterCalculator"); }}><SymImg tile={Symbol.EldritchCreature} omitTooltip style={{ marginRight: 8 }} /> Eater Calculator</MenuItem>
                     </Menu>
                     <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6" color={"green"}>

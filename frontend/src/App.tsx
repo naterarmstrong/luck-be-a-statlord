@@ -21,6 +21,7 @@ import NotFound from "./routes/NotFound";
 import About from "./routes/About";
 import FAQ from "./routes/Faq";
 import AllSymbolStats from "./components/AllSymbolStats";
+import EaterCalculator from "./routes/EaterCalculator";
 
 const darkTheme = createTheme({
   palette: {
@@ -66,6 +67,7 @@ const App: React.FC = () => {
             <Route path="/user/:userId/run/:runNumber" element={<RunReplay />} />
             <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
+            <Route path="/eaterCalculator" element={<EaterCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />
             <Route path="/dictionary" element={<Dictionary />} />
             <Route path="/about" element={<About />} />
