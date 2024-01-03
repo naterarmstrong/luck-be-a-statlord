@@ -58,11 +58,11 @@ const Header: React.FC = () => {
                         <MenuItem onClick={() => { handleClose(); navigate("/crabCalculator"); }}><SymImg tile={Symbol.Crab} omitTooltip style={{ marginRight: 8 }} /> Crab Calculator</MenuItem>
                         <MenuItem onClick={() => { handleClose(); navigate("/eaterCalculator"); }}><SymImg tile={Symbol.EldritchCreature} omitTooltip style={{ marginRight: 8 }} /> Eater Calculator</MenuItem>
                     </Menu>
-                    <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
+                    {loggedIn ? <Link href="/upload" sx={{ mr: 2, ml: 2 }}>
                         <Typography variant="h6" color={"green"}>
                             Upload Runs
                         </Typography>
-                    </Link>
+                    </Link> : null}
                     <Box sx={{ flexGrow: 2 }} />
                     {loggedIn ?
                         <Link href={`/profile/${userId}`}><Typography variant="h5">{username}</Typography></Link> :

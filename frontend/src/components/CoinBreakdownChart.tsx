@@ -90,7 +90,6 @@ const CoinBreakdownChart: React.FC<CoinBreakdownprops> = ({ runInfo }) => {
             {
                 data: reqData,
                 label: "Needed",
-                curve: "step",
                 color: "red",
                 id: "needed",
             },

@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
-import { ItemDetails, ItemDetailsByRent, Run, Spin, SpinSymbol, SymbolDetails, SymbolDetailsByRent } from './models/run';
+import { ItemDetails, ItemDetailsByRent, Run, Spin, SymbolDetails, SymbolDetailsByRent } from './models/run';
 import { RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
 import { bestUsersQuery, essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
 import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';

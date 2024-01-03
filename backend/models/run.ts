@@ -37,6 +37,12 @@ export const Run = sequelize.define('Run', {
     version: {
         type: DataTypes.STRING,
     },
+    majorVersion: {
+        type: DataTypes.SMALLINT,
+    },
+    minorVersion: {
+        type: DataTypes.SMALLINT,
+    },
     earlySyms: {
         type: DataTypes.STRING,
     },
@@ -224,38 +230,3 @@ export const Spin = sequelize.define('Spin', {
 
 Run.hasMany(Spin);
 Spin.belongsTo(Run);
-
-// TODO: Seriously consider cutting the spin symbols from the database, and just putting them in a
-// blob attached to the spin. I don't think we would ever need to query them for much
-export const SpinSymbol = sequelize.define('SpinSymbol', {
-    symbol: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    value: {
-        type: DataTypes.NUMBER,
-        allowNull: false,
-    },
-    index: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 0,
-            max: 19,
-        },
-        primaryKey: true,
-    },
-    SpinId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: "spins",
-            key: "id",
-        },
-        primaryKey: true,
-    }
-}, {
-    timestamps: false
-});
-
-Spin.hasMany(SpinSymbol);
-SpinSymbol.belongsTo(Spin);
