@@ -2,6 +2,7 @@ import { Sequelize, Op, Model, DataTypes } from 'sequelize';
 import fs from 'fs';
 
 export const sequelize = new Sequelize("sqlite:./DATA/db.sqlite");
+// export const sequelize = new Sequelize("sqlite::memory");
 
 
 // Static Queries

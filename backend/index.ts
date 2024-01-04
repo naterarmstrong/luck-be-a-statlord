@@ -166,8 +166,8 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                     symbolDetailsByRent.push({
                         symbol,
                         rent: i,
-                        value: details.coinsByRentPayment[i],
-                        timesAdded: details.timesAddedChoiceByRent[i],
+                        value: details.coinsByRentPayment[i] ? details.coinsByRentPayment[i] : 0,
+                        timesAdded: details.timesAddedChoiceByRent[i] ? details.timesAddedChoiceByRent[i] : 0,
                     });
                 }
             }
@@ -188,12 +188,14 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                     itemDetailsByRent.push({
                         item,
                         rent: i,
-                        timesDestroyed: details.timesDestroyedByRent[i],
-                        timesAdded: details.timesAddedByRent[i],
+                        timesDestroyed: details.timesDestroyedByRent[i] ? details.timesDestroyedByRent[i] : 0,
+                        timesAdded: details.timesAddedByRent[i] ? details.timesAddedByRent[i] : 0,
                     });
                 }
             }
         }
+
+        console.log(symbolDetailsByRent);
 
         try {
 
@@ -214,8 +216,8 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
                 lateSyms: run.lateSyms.join(','),
                 SymbolDetails: symbolDetails,
                 ItemDetails: itemDetails,
-                SymbolDetailsByRent: symbolDetailsByRent,
-                ItemDetailsByRent: itemDetailsByRent,
+                SymbolDetailsByRents: symbolDetailsByRent,
+                ItemDetailsByRents: itemDetailsByRent,
                 Spins: run.details!.spins.map((spin: SpinData, idx: number) => {
                     return {
                         coinsEarned: spin.coinsGained,
@@ -596,4 +598,14 @@ app.delete('/resetDB', async (req, res) => {
     await initializeSymbols();
 
     return res.status(200).send();
+})
+
+app.get('/tmpQuery', async (req, res) => {
+
+    const statsSymbol2 = await sequelize.query(`
+SELECT COUNT(*) FROM SymbolDetailsByRents;`, {
+        type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).send(statsSymbol2);
 })
