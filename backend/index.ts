@@ -10,13 +10,15 @@ import cookieParser from 'cookie-parser';
 import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { ItemDetails, ItemDetailsByRent, Run, Spin, SymbolDetails, SymbolDetailsByRent } from './models/run';
-import { RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
+import { RUN_PROCESSING_VERSION, RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
 import { bestUsersQuery, essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
 import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
 import { Op, QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
 import { initializeItems } from './models/item';
+import { isSymbol } from '../frontend/src/common/models/symbol';
+import { isItem } from '../frontend/src/common/models/item';
 
 const secrets = dotenv.config();
 
@@ -48,7 +50,7 @@ sequelize.sync().then(async () => {
     console.log("DB has been synced.");
     await initializeSymbols();
     await initializeItems();
-    console.log("Symbols have been initialized.");
+    console.log("Symbols and items have been initialized.");
 }
 );
 
@@ -147,61 +149,66 @@ app.post('/uploadRuns', async (req: AuthorizedRequest, res) => {
 
     // console.log(req.body)
     for (const run of req.body as RunInfo[]) {
-        const symbolDetails = [];
-        const symbolDetailsByRent = [];
-        for (const [symbol, details] of run.details!.symbolDetails.entries()) {
-            symbolDetails.push({
-                symbol,
-                value: details.totalCoins,
-                count: details.totalShows,
-                earliestRentAdded: details.earliestRentAdded,
-                addedByChoice: details.addedByChoice,
-                addedByEffect: details.addedByEffect,
-                timesRemovedByEffect: details.timesRemovedByEffect,
-                timesDestroyedByEffect: details.timesDestroyedByEffect,
-                timesRemovedByPlayer: details.timesRemovedByPlayer,
-            });
-            for (let i = 0; i < 14; i++) {
-                if (details.coinsByRentPayment[i] != 0 || details.timesAddedChoiceByRent[i] != 0) {
-                    symbolDetailsByRent.push({
-                        symbol,
-                        rent: i,
-                        value: details.coinsByRentPayment[i] ? details.coinsByRentPayment[i] : 0,
-                        timesAdded: details.timesAddedChoiceByRent[i] ? details.timesAddedChoiceByRent[i] : 0,
-                    });
-                }
-            }
-        }
-
-        const itemDetails = [];
-        const itemDetailsByRent = [];
-        for (const [item, details] of run.details!.itemDetails.entries()) {
-            itemDetails.push({
-                item,
-                earliestRentAdded: details.earliestRentAdded,
-                addedByChoice: details.timesAddedByChoice,
-                addedByEffect: details.timesAddedNoChoice,
-                timesDestroyed: details.timesDestroyed,
-            });
-            for (let i = 0; i < 14; i++) {
-                if (details.timesAddedByRent[i] != 0 || details.timesDestroyedByRent[i] != 0) {
-                    itemDetailsByRent.push({
-                        item,
-                        rent: i,
-                        timesDestroyed: details.timesDestroyedByRent[i] ? details.timesDestroyedByRent[i] : 0,
-                        timesAdded: details.timesAddedByRent[i] ? details.timesAddedByRent[i] : 0,
-                    });
-                }
-            }
-        }
-
-        console.log(symbolDetailsByRent);
-
         try {
+
+            const symbolDetails = [];
+            const symbolDetailsByRent = [];
+            for (const [symbol, details] of run.details!.symbolDetails.entries()) {
+                if (!isSymbol(symbol)) {
+                    throw new Error("Modded run!")
+                }
+                symbolDetails.push({
+                    symbol,
+                    value: details.totalCoins,
+                    count: details.totalShows,
+                    earliestRentAdded: details.earliestRentAdded,
+                    addedByChoice: details.addedByChoice,
+                    addedByEffect: details.addedByEffect,
+                    timesRemovedByEffect: details.timesRemovedByEffect,
+                    timesDestroyedByEffect: details.timesDestroyedByEffect,
+                    timesRemovedByPlayer: details.timesRemovedByPlayer,
+                });
+                for (let i = 0; i < 14; i++) {
+                    if (details.coinsByRentPayment[i] != 0 || details.timesAddedChoiceByRent[i] != 0) {
+                        symbolDetailsByRent.push({
+                            symbol,
+                            rent: i,
+                            value: details.coinsByRentPayment[i] ? details.coinsByRentPayment[i] : 0,
+                            timesAdded: details.timesAddedChoiceByRent[i] ? details.timesAddedChoiceByRent[i] : 0,
+                        });
+                    }
+                }
+            }
+
+            const itemDetails = [];
+            const itemDetailsByRent = [];
+            for (const [item, details] of run.details!.itemDetails.entries()) {
+                if (!isItem(item)) {
+                    throw new Error("Modded run!")
+                }
+                itemDetails.push({
+                    item,
+                    earliestRentAdded: details.earliestRentAdded,
+                    addedByChoice: details.timesAddedByChoice,
+                    addedByEffect: details.timesAddedNoChoice,
+                    timesDestroyed: details.timesDestroyed,
+                });
+                for (let i = 0; i < 14; i++) {
+                    if (details.timesAddedByRent[i] != 0 || details.timesDestroyedByRent[i] != 0) {
+                        itemDetailsByRent.push({
+                            item,
+                            rent: i,
+                            timesDestroyed: details.timesDestroyedByRent[i] ? details.timesDestroyedByRent[i] : 0,
+                            timesAdded: details.timesAddedByRent[i] ? details.timesAddedByRent[i] : 0,
+                        });
+                    }
+                }
+            }
 
             await Run.create({
                 UserId: req.userId,
                 hash: run.hash,
+                processedVersion: RUN_PROCESSING_VERSION,
                 number: run.number,
                 victory: run.victory,
                 guillotine: run.guillotine,

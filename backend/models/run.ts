@@ -8,6 +8,10 @@ export const Run = sequelize.define('Run', {
         allowNull: false,
         unique: true
     },
+    processedVersion: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+    },
     number: {
         type: DataTypes.NUMBER,
         allowNull: false,

@@ -1,6 +1,8 @@
 import { Item } from "./item";
 import { ArrowDirections, Symbol } from "./symbol";
 
+export const RUN_PROCESSING_VERSION = 1;
+
 // Rename to RunSummary?
 export class RunInfo {
     hash: string;
