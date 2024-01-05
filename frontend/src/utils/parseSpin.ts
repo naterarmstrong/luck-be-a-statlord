@@ -38,7 +38,7 @@ enum DebugLevel {
 // 15. OPTIONAL - victory
 // 16a. Added symbols or Skipped symbols (optional if VICTORY)
 // 16b. OPTIONAL - Added item
-export function parseSpin(spinText: string, version: string): SpinData | null {
+export function parseSpin(spinText: string, version: SemanticVersion): SpinData | null {
     const DEBUG = DebugLevel.Error;
     // Trim off the date from the start of each line
     // The date is formatted as:
@@ -260,8 +260,8 @@ class SpinParser {
     // Only used for outputting errors
     spinNumber?: number
 
-    constructor(version: string, lines: Array<string>, debug: DebugLevel) {
-        this.version = new SemanticVersion(version);
+    constructor(version: SemanticVersion, lines: Array<string>, debug: DebugLevel) {
+        this.version = version;
         this.lines = lines;
         this.lineIdx = 0;
         this.debug = debug;
@@ -815,8 +815,7 @@ class SpinParser {
         const symOnly = symbolText.split("(")[0].trim();
         const symbol = IIDToSymbol(symOnly);
         if (symbol === Symbol.Unknown && this.isError()) {
-            console.error(`Found unknown symbol: ${symOnly}`);
-            this.sawError = true;
+            throw new Error(`Found unknown item: ${symOnly}`);
         }
 
         const extras = this.parseExtras(symbolText);
@@ -838,8 +837,7 @@ class SpinParser {
         }
 
         if (item === Item.ItemMissing && this.isError()) {
-            console.error(`Found unknown item: ${itemOnly}`)
-            this.sawError = true;
+            throw new Error(`Found unknown item: ${itemOnly}`);
         }
 
         const extras = this.parseExtras(itemText);

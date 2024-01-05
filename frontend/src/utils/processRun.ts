@@ -3,6 +3,7 @@ import { RunInfo, RunDetails, SpinData } from "../common/models/run"
 import { Item } from "../common/models/item";
 import { sha256 } from 'hash.js';
 import parseSpin from "./parseSpin";
+import { SemanticVersion } from "../common/utils/version";
 
 /*
 Thing to record:
@@ -52,7 +53,13 @@ export function processRun(text: string): RunInfo {
     const finishDateString = text.split("\n").slice(-2, -1)[0]!.match(/^\[([^\]^\n]*)\]/)?.[1]!;
     const date = parseDate(startDateString);
     const finishDate = parseDate(finishDateString);
-    const version = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
+    const versionStr = spins[0].split('\n')[1].match("--- (.*) ---")?.[1]!;
+    const version = new SemanticVersion(versionStr);
+    // In version 1.2.0, modded runs are explicitly called out at the start of the run
+    if (version.newerThan("v1.2.0") && spins[0].includes("MODDED RUN")) {
+        throw new Error("Modded run.")
+    }
+
 
 
     let isVictory = false;
@@ -133,7 +140,7 @@ export function processRun(text: string): RunInfo {
     details.endRecording();
 
 
-    const run = new RunInfo(hash, runNumber, version, isFloor20, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
+    const run = new RunInfo(hash, runNumber, versionStr, isFloor20, date, finishDate - date, isVictory, isGuillotine, spins.length - 1, earlySyms, midSyms, lateSyms);
     run.details = details;
 
     return run;

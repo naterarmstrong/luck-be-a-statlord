@@ -14,18 +14,23 @@ export class SemanticVersion {
         this.minor = Number(splits[1])
         this.patch = Number(splits[2])
 
-        if (isNaN(this.major) || isNaN(this.minor) || isNaN(this.patch)) {
+        // We allow the patch to be NaN. If we run into issues in the future, we can fix this
+        if (isNaN(this.major) || isNaN(this.minor)) {
             throw new Error("Version constructed with invalid string")
         }
     }
 
     // Returns true if this is at least as new as v
-    newerThan(v: SemanticVersion) {
+    newerThan(v: SemanticVersion | string) {
+        if (typeof v === "string") {
+            v = new SemanticVersion(v);
+        }
+
         if (this.major !== v.major) {
-            return this.major > v.major;
+            return this.major >= v.major;
         }
         if (this.minor !== v.minor) {
-            return this.minor > v.minor;
+            return this.minor >= v.minor;
         }
         return this.patch >= v.patch;
     }
