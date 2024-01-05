@@ -3,11 +3,11 @@ import AllSymbolStats, { SymbolStats } from "../components/AllSymbolStats";
 import { useEffect, useState } from "react";
 import API_ENDPOINT from "../utils/api";
 import { Rarity, rarityColor } from "../common/models/rarity";
-import { Symbol, SymbolUtils } from "../common/models/symbol";
+import { Symbol, SymbolUtils, isSymbol } from "../common/models/symbol";
 import SymImg from "../components/SymImg";
 import { ItemStats } from "../components/AllItemStats";
 import { EssenceStats } from "../components/AllEssenceStats";
-import { itemToDisplay } from "../common/models/item";
+import { Item, isItem, itemToDisplay } from "../common/models/item";
 import { RunInfo } from "../common/models/run";
 import DisplayRuns from "../components/DisplayRuns";
 
@@ -21,6 +21,46 @@ interface BestPlayerStats {
     username: string,
     win_rate: number,
     total_games: number,
+}
+
+enum Metric {
+    // pickrate
+    Popularity,
+    // Winrate when picked
+    Winrate,
+}
+
+function metricTitle(metric: Metric): string {
+    switch (metric) {
+        case Metric.Popularity:
+            return "Popular"
+        case Metric.Winrate:
+            return "Best"
+    }
+}
+
+function metricSubtext(metric: Metric): string {
+    switch (metric) {
+        case Metric.Popularity:
+            return "By pick rate"
+        case Metric.Winrate:
+            return "By winrate when picked"
+    }
+}
+
+enum TileType {
+    Symbol = "Symbol",
+    Item = "Item",
+    Essence = "Essence",
+}
+
+interface TileStats {
+    name: Symbol | Item,
+    rarity: Rarity,
+    win_rate: number,
+    total_games: number,
+    chosen_games: number,
+    chosen_won_games: number,
 }
 
 const MainPage: React.FC = () => {
@@ -164,16 +204,22 @@ const MainPage: React.FC = () => {
             {recentRunsCard(recentRuns)}
         </Grid>
         <Grid item>
-            {bestSymbolsCard(symbolStats)}
+            {bestTilesCard(symbolStats, Metric.Popularity, TileType.Symbol)}
         </Grid>
         <Grid item>
-            {bestItemsCard(itemStats)}
+            {bestTilesCard(symbolStats, Metric.Winrate, TileType.Symbol)}
         </Grid>
         <Grid item>
-            {popularEssencesCard(essenceStats)}
+            {bestTilesCard(itemStats, Metric.Popularity, TileType.Item)}
         </Grid>
         <Grid item>
-            {strongEssencesCard(essenceStats)}
+            {bestTilesCard(itemStats, Metric.Winrate, TileType.Item)}
+        </Grid>
+        <Grid item>
+            {bestTilesCard(essenceStats as any, Metric.Popularity, TileType.Essence)}
+        </Grid>
+        <Grid item>
+            {bestTilesCard(essenceStats as any, Metric.Winrate, TileType.Essence)}
         </Grid>
         <Grid item xs={12}>
             <Box width="100%" height="10" />
@@ -231,25 +277,25 @@ const bestPlayersCard = (bestPlayerStats: Array<BestPlayerStats> | undefined): J
     </Card>
 }
 
-const bestSymbolsCard = (symbolStats: Array<SymbolStats>): JSX.Element => {
+const bestTilesCard = (tileStats: Array<TileStats>, metric: Metric, type: TileType): JSX.Element => {
     return <Card>
         <CardContent>
             <Typography variant="h5" gutterBottom lineHeight={.5}>
-                Best Symbols
+                {`${metricTitle(metric)} ${type}s`}
             </Typography>
             <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                By winrate when picked
+                {metricSubtext(metric)}
             </Typography>
             {
-                symbolStats ?
+                tileStats ?
                     <Table>
                         <TableHead>
                             <TableRow>
                                 <TableCell>
-                                    Symbol
+                                    {type}
                                 </TableCell>
                                 <TableCell>
-                                    Winrate
+                                    Picked Winrate
                                 </TableCell>
                                 <TableCell>
                                     Games
@@ -257,16 +303,17 @@ const bestSymbolsCard = (symbolStats: Array<SymbolStats>): JSX.Element => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filterSymbolStats(symbolStats).map((stats) =>
+                            {filterTileStats(tileStats, metric, type).map((stats) =>
                                 <TableRow key={stats.name}>
                                     <TableCell>
                                         <SymImg tile={stats.name} textAlign />
                                         <Link href={`/symbolDetails?symbol=${stats.name}`} color={rarityColor(stats.rarity)}>
-                                            {SymbolUtils.symbolToDisplay(stats.name)}
+                                            {isSymbol(stats.name) ? SymbolUtils.symbolToDisplay(stats.name) : null}
+                                            {isItem(stats.name) ? itemToDisplay(stats.name) : null}
                                         </Link>
                                     </TableCell>
                                     <TableCell>
-                                        {(100 * stats.chosen_won_games / stats.chosen_games).toFixed(2)}%
+                                        {type === TileType.Essence ? stats.win_rate : (100 * stats.chosen_won_games / stats.chosen_games).toFixed(2)}%
                                     </TableCell>
                                     <TableCell>
                                         {stats.total_games}
@@ -281,12 +328,23 @@ const bestSymbolsCard = (symbolStats: Array<SymbolStats>): JSX.Element => {
     </Card>
 }
 
-const filterSymbolStats = (stats: Array<SymbolStats>): Array<SymbolStats> => {
+const filterTileStats = (stats: Array<TileStats>, metric: Metric, type: TileType): Array<TileStats> => {
     if (stats.length === 0) {
         return [];
     }
 
-    const bestByRarity = new Map<Rarity, SymbolStats>();
+    if (type === TileType.Essence) {
+        const ret = [...stats];
+        if (metric === Metric.Popularity) {
+            ret.sort((a: TileStats, b: TileStats) => b.total_games - a.total_games)
+        } else if (metric === Metric.Winrate) {
+            ret.sort((a: TileStats, b: TileStats) => b.win_rate - a.win_rate)
+        }
+
+        return ret.slice(0, 4);
+    }
+
+    const bestByRarity = new Map<Rarity, TileStats>();
 
     for (const symStat of stats) {
         const bestSoFar = bestByRarity.get(symStat.rarity);
@@ -297,197 +355,21 @@ const filterSymbolStats = (stats: Array<SymbolStats>): Array<SymbolStats> => {
             continue;
         }
 
-        if (symStat.chosen_won_games / symStat.chosen_games > bestSoFar.chosen_won_games / bestSoFar.chosen_games) {
-            bestByRarity.set(symStat.rarity, symStat);
+        switch (metric) {
+            case Metric.Winrate:
+                if (symStat.chosen_won_games / symStat.chosen_games > bestSoFar.chosen_won_games / bestSoFar.chosen_games) {
+                    bestByRarity.set(symStat.rarity, symStat);
+                }
+                break;
+            case Metric.Popularity:
+                if (symStat.chosen_games > bestSoFar.chosen_games) {
+                    bestByRarity.set(symStat.rarity, symStat);
+                }
+                break;
         }
     }
 
     return [bestByRarity.get(Rarity.VeryRare)!, bestByRarity.get(Rarity.Rare)!, bestByRarity.get(Rarity.Uncommon)!, bestByRarity.get(Rarity.Common)!];
-}
-
-const bestItemsCard = (itemStats: Array<ItemStats>): JSX.Element => {
-    return <Card>
-        <CardContent>
-            <Typography variant="h5" gutterBottom lineHeight={.5}>
-                Best Items
-            </Typography>
-            <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                By winrate when picked
-            </Typography>
-            {
-                itemStats ?
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>
-                                    Item
-                                </TableCell>
-                                <TableCell>
-                                    Winrate
-                                </TableCell>
-                                <TableCell>
-                                    Games
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filterItemStats(itemStats).map((stats) =>
-                                <TableRow key={stats.name}>
-                                    <TableCell>
-                                        <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(stats.rarity)}>
-                                            {itemToDisplay(stats.name)}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        {(100 * stats.chosen_won_games / stats.chosen_games).toFixed(2)}%
-                                    </TableCell>
-                                    <TableCell>
-                                        {stats.total_games}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    : null
-            }
-        </CardContent>
-    </Card>
-}
-
-const filterItemStats = (stats: Array<ItemStats>): Array<ItemStats> => {
-    if (stats.length === 0) {
-        return [];
-    }
-
-    const bestByRarity = new Map<Rarity, ItemStats>();
-
-    for (const itemStat of stats) {
-        const bestSoFar = bestByRarity.get(itemStat.rarity);
-        if (bestSoFar === undefined) {
-            if (itemStat.rarity !== Rarity.Special) {
-                bestByRarity.set(itemStat.rarity, itemStat);
-            }
-            continue;
-        }
-
-        if (itemStat.chosen_won_games / itemStat.chosen_games > bestSoFar.chosen_won_games / bestSoFar.chosen_games) {
-            bestByRarity.set(itemStat.rarity, itemStat);
-        }
-    }
-
-    return [bestByRarity.get(Rarity.VeryRare)!, bestByRarity.get(Rarity.Rare)!, bestByRarity.get(Rarity.Uncommon)!, bestByRarity.get(Rarity.Common)!];
-}
-
-const popularEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
-    return <Card>
-        <CardContent>
-            <Typography variant="h5" gutterBottom lineHeight={.5}>
-                Popular Essences
-            </Typography>
-            <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                By pick rate
-            </Typography>
-            {
-                essenceStats ?
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>
-                                    Essence
-                                </TableCell>
-                                <TableCell>
-                                    Winrate
-                                </TableCell>
-                                <TableCell>
-                                    Games
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filterPopularEssences(essenceStats).map((stats) =>
-                                <TableRow key={stats.name}>
-                                    <TableCell>
-                                        <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(Rarity.Essence)}>
-                                            {itemToDisplay(stats.name)}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        {stats.win_rate}%
-                                    </TableCell>
-                                    <TableCell>
-                                        {stats.total_games}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    : null
-            }
-        </CardContent>
-    </Card>
-}
-
-const filterPopularEssences = (stats: Array<EssenceStats>): Array<EssenceStats> => {
-    if (stats.length === 0) {
-        return [];
-    }
-
-    const ret = [...stats];
-    ret.sort((a: EssenceStats, b: EssenceStats) => b.total_games - a.total_games)
-
-    return ret.slice(0, 4);
-}
-
-const strongEssencesCard = (essenceStats: Array<EssenceStats>): JSX.Element => {
-    return <Card>
-        <CardContent>
-            <Typography variant="h5" gutterBottom lineHeight={.5}>
-                Best Essences
-            </Typography>
-            <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                By win rate
-            </Typography>
-            {
-                essenceStats ?
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>
-                                    Essence
-                                </TableCell>
-                                <TableCell>
-                                    Winrate
-                                </TableCell>
-                                <TableCell>
-                                    Games
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filterStrongEssences(essenceStats).map((stats) =>
-                                <TableRow key={stats.name}>
-                                    <TableCell>
-                                        <SymImg tile={stats.name} textAlign />
-                                        <Link href={`/itemDetails?item=${stats.name}`} color={rarityColor(Rarity.Essence)}>
-                                            {itemToDisplay(stats.name)}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        {stats.win_rate}%
-                                    </TableCell>
-                                    <TableCell>
-                                        {stats.total_games}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    : null
-            }
-        </CardContent>
-    </Card>
 }
 
 const recentRunsCard = (runs: Array<RunInfo>): JSX.Element => {
@@ -499,17 +381,6 @@ const recentRunsCard = (runs: Array<RunInfo>): JSX.Element => {
             {<DisplayRuns runs={runs} omitDuration />}
         </CardContent>
     </Card>
-}
-
-const filterStrongEssences = (stats: Array<EssenceStats>): Array<EssenceStats> => {
-    if (stats.length === 0) {
-        return [];
-    }
-
-    const ret = [...stats];
-    ret.sort((a: EssenceStats, b: EssenceStats) => b.win_rate - a.win_rate)
-
-    return ret.slice(0, 4);
 }
 
 export default MainPage;
