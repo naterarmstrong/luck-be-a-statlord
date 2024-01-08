@@ -6,7 +6,6 @@ import { SYMBOL_TO_IMG } from "../utils/symbol";
 import { Symbol } from "../common/models/symbol";
 import { ordinal } from "../utils/ordinal";
 import { LineChart } from "@mui/x-charts";
-import { msToTime } from "../common/utils/time";
 import { RunInfo } from "../common/models/run";
 import DisplayRuns from "../components/DisplayRuns";
 
@@ -168,6 +167,9 @@ const Profile: React.FC = () => {
                     <DisplayRuns runs={recentRuns} omitDuration />
                 </Grid>
             </Grid>
+        </Grid>
+        <Grid item xs={12}>
+            <Box height={10} />
         </Grid>
     </Grid>;
 }
