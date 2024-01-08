@@ -13,7 +13,7 @@ import DisplayRuns from "../components/DisplayRuns";
 type ProfileStats = {
     total_games: number,
     wins: number,
-    guillotine: number,
+    guillotines: number,
     beat_rent_1_count: number,
     beat_rent_2_count: number,
     beat_rent_3_count: number,
@@ -130,57 +130,10 @@ const Profile: React.FC = () => {
                 <Box component="img" style={{ width: "80px", marginRight: 20 }} src={SYMBOL_TO_IMG.get(Symbol.Billionaire)} />
                 {name}
             </Typography>
-            {stats ?
-                <Card sx={{ mb: 1, ml: 3, mr: 3, height: 144 }}>
-                    <CardContent sx={{ mb: -2 }}>
-                        <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                            Recent Winrate
-                        </Typography>
-                        <Typography variant="h3" lineHeight={.5}>
-                            {calculateRecentWinrate(recentRunStats)}%
-                        </Typography>
-                        <Box justifyContent={"center"}>
-                            <Typography sx={{ display: "inline-block", mx: "50px" }} color="text.secondary">
-                                Last 50 games
-                            </Typography>
-                        </Box>
-                    </CardContent>
-                </Card>
-                : null
-            }
-            {stats ?
-                <Card sx={{ mb: 1, ml: 3, mr: 3, height: 144 }}>
-                    <CardContent sx={{ mb: -2 }}>
-                        <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                            Overall Winrate
-                        </Typography>
-                        <Typography variant="h3" lineHeight={.5}>
-                            {(100 * stats.wins / stats.total_games).toFixed(1)}%
-                        </Typography>
-                        <Box justifyContent={"center"}>
-                            <Typography sx={{ display: "inline-block", mx: "50px" }} color="text.secondary">
-                                {ordinal(stats.higher_winrate_players + 1)} of {stats.total_players} players
-                            </Typography>
-                        </Box>
-                    </CardContent>
-                </Card>
-                : null
-            }
-            {stats ?
-                <Card sx={{ mb: 1, ml: 3, mr: 3, height: 144 }}>
-                    <CardContent>
-                        <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                            Games
-                        </Typography>
-                        <Typography variant="h3" lineHeight={.5}>
-                            {stats.total_games}
-                        </Typography>
-                        <Typography sx={{ display: "inline-block", mx: "50px" }} color="text.secondary">
-                            {ordinal(stats.higher_game_players + 1)} of {stats.total_players} players
-                        </Typography>
-                    </CardContent>
-                </Card>
-                : null}
+            {stats ? standardCard("Recent Winrate", `${calculateRecentWinrate(recentRunStats)}%`, "Last 50 games") : null}
+            {stats ? standardCard("Overall Winrate", `${(100 * stats.wins / stats.total_games).toFixed(1)}%`, `${ordinal(stats.higher_winrate_players + 1)} of ${stats.total_players} players`) : null}
+            {stats ? standardCard("Games", `${stats.total_games}`, `${ordinal(stats.higher_game_players + 1)} of ${stats.total_players} players`) : null}
+            {stats ? standardCard("Landlord Executions", `${stats.guillotines}`, `Only includes floor 20 executions`) : null}
         </Grid>
         <Grid item xs={8} alignSelf="start">
             <Grid container>
