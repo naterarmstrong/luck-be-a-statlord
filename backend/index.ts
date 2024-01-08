@@ -356,6 +356,7 @@ app.get('/user/:id/stats', async (req, res) => {
         attributes: [
             'number',
             'victory',
+            'date',
         ],
         where: {
             date: {
@@ -373,6 +374,7 @@ app.get('/user/:id/stats', async (req, res) => {
         ],
         limit: 300,
     });
+
 
     const ret = {
         runs: runs,
@@ -403,6 +405,9 @@ app.get('/user/:id/recentRuns', async (req, res) => {
             },
             UserId: {
                 [Op.eq]: parseInt(req.params.id, 10),
+            },
+            isFloor20: {
+                [Op.eq]: true,
             }
         },
         order: [

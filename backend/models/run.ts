@@ -56,6 +56,20 @@ export const Run = sequelize.define('Run', {
     lateSyms: {
         type: DataTypes.STRING,
     },
+}, {
+    indexes: [
+        {
+            fields: ['UserId']
+        },
+        {
+            name: 'won_runs_by_user',
+            fields: ['UserId'],
+            where: {
+                isFloor20: true,
+                victory: true,
+            }
+        }
+    ]
 });
 
 User.hasMany(Run);
