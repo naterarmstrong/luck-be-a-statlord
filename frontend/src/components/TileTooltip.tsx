@@ -26,7 +26,7 @@ const ColoredText = styled('span')(({ color }) => ({
     color: color,
 }))
 
-const getRarity = (tile: Symbol | Item): Rarity => {
+export const getRarity = (tile: Symbol | Item): Rarity => {
     if (isSymbol(tile)) {
         return SYMBOL_RARITIES[tile as Symbol];
     } else {

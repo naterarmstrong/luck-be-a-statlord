@@ -289,6 +289,7 @@ app.get('/run/:id', async (req, res) => {
     }
 
     // TODO: rehydrate all the spins, get into the correct format, and then send back
+    console.log("TODO")
 
     const runDetails = await Run.findOne({
         where: {
@@ -558,6 +559,9 @@ app.get('/tilePairs/:tile1/with/:tile2', async (req, res) => {
         where: {
             date: {
                 [Op.gt]: 1668507128000
+            },
+            isFloor20: {
+                [Op.eq]: true
             }
         }
     });

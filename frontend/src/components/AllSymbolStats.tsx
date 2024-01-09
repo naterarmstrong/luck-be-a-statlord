@@ -58,7 +58,6 @@ const columns: GridColDef[] = [
     { field: 'total_shows', headerName: 'Shows per Game', minWidth: 150 }
 ]
 
-// TODO: get into workable state in combination with backend query
 export const AllSymbolStats: React.FC = () => {
     const [stats, setStats] = useState<Array<SymbolStats>>([]);
 

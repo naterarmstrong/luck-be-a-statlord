@@ -9,7 +9,7 @@ import userContext, { UserData } from "./contexts/UserContext";
 import Cookies from "universal-cookie";
 import Profile from "./routes/Profile";
 import MainPage from "./routes/MainPage";
-import SymbolDetails from "./routes/SymbolDetails";
+import TileDetails from "./routes/TileDetails";
 import PurplePepperCalculator from "./routes/PurplePepperCalculator";
 import CrabCalculator from "./routes/CrabCalculator";
 import RunDisplay from "./routes/RunDisplay";
@@ -57,7 +57,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/upload" element={<UploadRuns />} />
-            <Route path="/symbolDetails" element={<SymbolDetails />} />
+            <Route path="/symbolDetails" element={<TileDetails mode="symbol" />} />
+            <Route path="/itemDetails" element={<TileDetails mode="item" />} />
+            <Route path="/essenceDetails" element={<TileDetails mode="essence" />} />
             <Route path="/symbolStats" element={<AllSymbolStats />} />
             <Route path="/itemStats" element={<ItemStats />} />
             <Route path="/essenceStats" element={<AllEssenceStats />} />

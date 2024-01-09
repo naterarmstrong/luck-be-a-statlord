@@ -11,6 +11,9 @@ export interface EssenceStats {
     total_destroyed_games: number,
     destroyed_won_games: number,
     total_games: number,
+    // Essences are technically always chosen, but this way it fits into the general tile stats interface
+    chosen_won_games: number,
+    chosen_games: number,
 }
 
 const columns: GridColDef[] = [
@@ -20,7 +23,7 @@ const columns: GridColDef[] = [
         renderCell: (params: any) => (
             <Box>
                 <Box component="img" style={{ width: "50px" }} src={ITEM_TO_IMG.get(params.value)} />
-                <Link href={`/itemDetails?item=${params.value}`}>
+                <Link href={`/essenceDetails?essence=${params.value}`}>
                     {params.value}
                 </Link>
             </Box>
