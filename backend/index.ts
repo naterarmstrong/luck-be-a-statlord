@@ -11,14 +11,14 @@ import { AuthorizedRequest, checkLogin } from './middleware/userAuth'
 import { User, UserModel } from './models/user';
 import { ItemDetails, ItemDetailsByRent, Run, Spin, SymbolDetails, SymbolDetailsByRent } from './models/run';
 import { RUN_PROCESSING_VERSION, RunInfo, SpinData, SpinInfo } from '../frontend/src/common/models/run'
-import { bestUsersQuery, essenceWinratesQuery, itemWinratesQuery, sequelize, symbolPairsQuery, symbolWinratesQuery, symbolsApartQuery, userStatsQuery } from './db/db';
+import { bestUsersQuery, essenceWinratesQuery, itemWinratesQuery, sequelize, symbolWinratesQuery, userStatsQuery } from './db/db';
 import { replacer, reviver } from '../frontend/src/common/utils/mapStringify';
 import { msToTime } from '../frontend/src/common/utils/time';
 import { initializeSymbols } from './models/symbol';
 import { Op, QueryTypes, UniqueConstraintError, ValidationErrorItem } from 'sequelize';
 import { initializeItems } from './models/item';
-import { isSymbol } from '../frontend/src/common/models/symbol';
-import { isItem } from '../frontend/src/common/models/item';
+import { Symbol, isSymbol } from '../frontend/src/common/models/symbol';
+import { Item, isItem } from '../frontend/src/common/models/item';
 
 const secrets = dotenv.config();
 
@@ -534,30 +534,25 @@ app.get('/symbol/:symbol/details', async (req, res) => {
     return res.status(200).send();
 });
 
-app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
-    const statsTogether = await sequelize.query(symbolPairsQuery, {
-        type: QueryTypes.SELECT,
-        replacements: {
-            symbol1: req.params.symbol,
-            symbol2: req.params.symbol2,
-        }
-    });
+app.get('/tilePairs/:tile1/with/:tile2', async (req, res) => {
+    const tile1 = req.params.tile1;
+    const tile2 = req.params.tile2;
+    if ((!isSymbol(tile1) && !isItem(tile1)) || (!isSymbol(tile2) && !isItem(tile2))) {
+        return res.status(400).send();
+    }
 
-    const statsSymbol1 = await sequelize.query(symbolsApartQuery, {
-        type: QueryTypes.SELECT,
-        replacements: {
-            symbol1: req.params.symbol,
-            symbol2: req.params.symbol2,
-        }
-    });
+    const togetherQuery = generateTilePairsQuery(tile1, tile2, false, false);
+    const apart1Query = generateTilePairsQuery(tile1, tile2, true, false);
+    const apart2Query = generateTilePairsQuery(tile2, tile1, true, true);
 
-    const statsSymbol2 = await sequelize.query(symbolsApartQuery, {
+    const queries = [togetherQuery, apart1Query, apart2Query];
+    const results = await Promise.all(queries.map((q) => sequelize.query(q, {
         type: QueryTypes.SELECT,
         replacements: {
-            symbol1: req.params.symbol2,
-            symbol2: req.params.symbol,
+            tile1: tile1,
+            tile2: tile2,
         }
-    });
+    })));
 
     const totalGames = await Run.count({
         where: {
@@ -567,21 +562,19 @@ app.get('/symbol/:symbol/with/:symbol2', async (req, res) => {
         }
     });
 
-    // ALSO TODO here: take patch parameters
-    console.log("Don't forget");
 
     const ret = {
-        WinRateTogether: (statsTogether[0] as any).win_rate,
-        WinRateSymbol1: (statsSymbol1[0] as any).win_rate,
-        WinRateSymbol2: (statsSymbol2[0] as any).win_rate,
-        GamesTogether: (statsTogether[0] as any).total_games,
-        GamesApartSymbol1: (statsSymbol1[0] as any).total_games,
-        GamesApartSymbol2: (statsSymbol2[0] as any).total_games,
+        WinrateTogether: (results[0][0] as any).win_rate,
+        WinrateTile1: (results[1][0] as any).win_rate,
+        WinrateTile2: (results[2][0] as any).win_rate,
+        GamesTogether: (results[0][0] as any).total_games,
+        GamesApartTile1: (results[1][0] as any).total_games,
+        GamesApartTile2: (results[2][0] as any).total_games,
         TotalTotalGames: totalGames,
     }
 
-    return res.status(200).send(ret);
-});
+    res.status(200).send(ret);
+})
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Route Info //////////////////////////////////////////////
@@ -614,10 +607,62 @@ app.delete('/resetDB', async (req, res) => {
 
 app.get('/tmpQuery', async (req, res) => {
 
-    const statsSymbol2 = await sequelize.query(`
-SELECT COUNT(*) FROM SymbolDetailsByRents;`, {
+    // We build the query by hand, because sequelize is rough for something this detailed
+    let firstIsSymbol = true;
+    let secondIsSymbol = true;
+    let isApart = false;
+    let query = `SELECT
+        ROUND(100 * SUM(CASE WHEN Runs.victory = true THEN 1.0 ELSE 0.0 END) / SUM(COUNT(*)) over(), 2) as win_rate,
+        COUNT(*) as total_games
+FROM
+        Runs
+        JOIN ${firstIsSymbol ? "SymbolDetails" : "ItemDetails"} as d1
+WHERE
+        Runs.id = d1.RunId
+        AND d1.${firstIsSymbol ? "symbol" : "item"} = :tile1
+        AND Runs.date > 1668507128000
+        AND ${isApart ? "NOT " : ""} EXISTS (
+            SELECT 1 FROM ${secondIsSymbol ? "SymbolDetails" : "ItemDetails"} as d2 WHERE d2.RunId = Runs.id AND d2.${secondIsSymbol ? "symbol" : "item"} = :tile2
+        );
+    `;
+
+    const symbol1 = Symbol.Amethyst;
+    const symbol2 = Symbol.Dame;
+
+    const statsSymbol2 = await sequelize.query(query, {
+        replacements: {
+            tile1: symbol1,
+            tile2: symbol2,
+        },
         type: QueryTypes.SELECT,
     });
 
     return res.status(200).send(statsSymbol2);
 })
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// UTILITIES ///////////////////////////////////////////////
+///////////// to eventually be moved into controller classes ////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+function generateTilePairsQuery(tile1: Symbol | Item, tile2: Symbol | Item, apart: boolean, reverse: boolean): string {
+    let firstIsSymbol = isSymbol(tile1);
+    let secondIsSymbol = isSymbol(tile2);
+    let query = `SELECT
+        ROUND(100 * SUM(CASE WHEN Runs.victory = true THEN 1.0 ELSE 0.0 END) / SUM(COUNT(*)) over(), 2) as win_rate,
+        COUNT(*) as total_games
+FROM
+        Runs
+        JOIN ${firstIsSymbol ? "SymbolDetails" : "ItemDetails"} as d1
+WHERE
+        Runs.id = d1.RunId
+        AND d1.${firstIsSymbol ? "symbol" : "item"} = :${reverse ? "tile2" : "tile1"}
+        AND Runs.date > 1668507128000
+        AND ${apart ? "NOT " : ""} EXISTS (
+            SELECT 1 FROM ${secondIsSymbol ? "SymbolDetails" : "ItemDetails"} as d2 WHERE d2.RunId = Runs.id AND d2.${secondIsSymbol ? "symbol" : "item"} = :${reverse ? "tile1" : "tile2"}
+        );
+    `;
+
+    return query;
+}

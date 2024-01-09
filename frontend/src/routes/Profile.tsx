@@ -153,23 +153,27 @@ const Profile: React.FC = () => {
                         <Card sx={{ mb: 1, ml: 3, mr: 3 }}>
                             <CardContent>
                                 <Typography sx={{ fontSize: 25 }} color="text.secondary" gutterBottom lineHeight={.3}>
-                                    Winrate over time (50 game window)
+                                    Winrate over time
                                 </Typography>
                                 {winrateOverTimeGraph(recentRunStats)}
+                                <Typography sx={{ display: "inline-block", mx: "50px" }} color="text.secondary">
+                                    Over last 300 games
+                                </Typography>
                             </CardContent>
                         </Card>
                         : null}
                 </Grid>
                 <Grid item xs={12}>
-                    <Typography variant="h5">
-                        Recent Runs
-                    </Typography>
-                    <DisplayRuns runs={recentRuns} omitDuration />
+                    <Card sx={{ mb: 3, ml: 3, mr: 3, mt: 3 }}>
+                        <CardContent>
+                            <Typography variant="h5">
+                                Recent Runs
+                            </Typography>
+                            <DisplayRuns runs={recentRuns} omitDuration />
+                        </CardContent>
+                    </Card>
                 </Grid>
             </Grid>
-        </Grid>
-        <Grid item xs={12}>
-            <Box height={10} />
         </Grid>
     </Grid>;
 }

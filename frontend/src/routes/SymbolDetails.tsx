@@ -10,14 +10,17 @@ import { SymbolStats } from "../components/AllSymbolStats";
 import { ordinal } from "../utils/ordinal";
 import { sfmt } from "../utils/strfmt";
 import API_ENDPOINT from "../utils/api";
+import { getTileTooltipContents, symbolHighColor } from "../components/TileTooltip";
+import ItemSelector from "../components/ItemSelector";
+import { Item, isItem } from "../common/models/item";
 
 export interface PairPerformance {
-    WinRateTogether: number,
-    WinRateSymbol1: number,
-    WinRateSymbol2: number,
+    WinrateTogether: number,
+    WinrateTile1: number,
+    WinrateTile2: number,
     GamesTogether: number,
-    GamesApartSymbol1: number,
-    GamesApartSymbol2: number,
+    GamesApartTile1: number,
+    GamesApartTile2: number,
     TotalTotalGames: number,
 }
 
@@ -34,15 +37,18 @@ const SymbolDetails: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     let startSymbol = Symbol.Unknown;
     let secondaryStartSymbol = Symbol.Unknown;
+    let secondaryStartItem = Item.ItemMissing;
     if (searchParams.get("symbol") !== null && isSymbol(searchParams.get("symbol") as any)) {
         startSymbol = searchParams.get("symbol") as Symbol;
     }
-    if (searchParams.get("secondarySymbol") !== null && isSymbol(searchParams.get("secondarySymbol") as any)) {
-        secondaryStartSymbol = searchParams.get("secondarySymbol") as Symbol;
+    if (searchParams.get("secondarySymbol") !== null && isItem(searchParams.get("secondarySymbol") as any)) {
+        secondaryStartItem = searchParams.get("secondaryItem") as Item;
     }
     const [symbol, setSymbol] = useState<Symbol>(startSymbol);
     const [secondarySymbol, setSecondarySymbol] = useState<Symbol>(secondaryStartSymbol);
-    const [pairPerf, setPairPerf] = useState<PairPerformance | null>(null);
+    const [secondaryItem, setSecondaryItem] = useState<Item>(secondaryStartItem);
+    const [symbolPairPerf, setSymbolPairPerf] = useState<PairPerformance | null>(null);
+    const [itemPairPerf, setItemPairPerf] = useState<PairPerformance | null>(null);
     const [fullStats, setFullStats] = useState<Array<SymbolStats>>([]);
     const [ratings, setRatings] = useState<Ratings | null>(null);
 
@@ -60,8 +66,8 @@ const SymbolDetails: React.FC = () => {
     }, [])
 
     useEffect(() => {
-        setSearchParams({ symbol: symbol, secondarySymbol: secondarySymbol });
-    }, [symbol, secondarySymbol, setSearchParams])
+        setSearchParams({ symbol: symbol, secondarySymbol: secondarySymbol, secondaryItem: secondaryItem });
+    }, [symbol, secondarySymbol, secondaryItem, setSearchParams])
 
 
     useEffect(() => {
@@ -70,16 +76,33 @@ const SymbolDetails: React.FC = () => {
         }
 
         const fetchSymbolStats = async () => {
-            const response = await fetch(`${API_ENDPOINT}/symbol/${symbol}/with/${secondarySymbol}`);
+            const response = await fetch(`${API_ENDPOINT}/tilePairs/${symbol}/with/${secondarySymbol}`);
             if (!response.ok) {
                 console.log(`Error fetching symbol stats`);
             }
             const jsonData = await response.json();
-            setPairPerf(jsonData);
+            setSymbolPairPerf(jsonData);
         }
 
         fetchSymbolStats().catch(console.error);
     }, [symbol, secondarySymbol])
+
+    useEffect(() => {
+        if (symbol === Symbol.Unknown || secondaryItem === Item.ItemMissing) {
+            return
+        }
+
+        const fetchSymbolStats = async () => {
+            const response = await fetch(`${API_ENDPOINT}/tilePairs/${symbol}/with/${secondaryItem}`);
+            if (!response.ok) {
+                console.log(`Error fetching item pair stats`);
+            }
+            const jsonData = await response.json();
+            setItemPairPerf(jsonData);
+        }
+
+        fetchSymbolStats().catch(console.error);
+    }, [symbol, secondaryItem])
 
     useEffect(() => {
         if (symbol === Symbol.Unknown || fullStats.length === 0) {
@@ -139,6 +162,18 @@ const SymbolDetails: React.FC = () => {
                 <Box component="img" style={{ width: "80px", marginRight: 20 }} src={SYMBOL_TO_IMG.get(symbol)} />
                 {sfmt(symbol)}
             </Typography>
+            <Card sx={{ mb: 1, ml: 3, mr: 3 }} style={{
+                backgroundColor: symbolHighColor,
+                color: 'white',
+                fontSize: "40px",
+                lineHeight: .7,
+                border: '6px solid black',
+                borderRadius: 0,
+            }}>
+                <CardContent>
+                    {getTileTooltipContents(symbol)}
+                </CardContent>
+            </Card>
             {fullStats.length > 0 && ratings ?
                 <Card sx={{ mb: 1, ml: 3, mr: 3 }}>
                     <CardContent sx={{ mb: -2 }}>
@@ -181,18 +216,36 @@ const SymbolDetails: React.FC = () => {
             <Grid container>
                 <Grid item xs={4}>
                     <Typography variant="h6">
-                        With other symbols:
+                        With symbols:
                     </Typography>
                 </Grid>
                 <Grid item xs={8}>
                     <SymbolSelector symbol={secondarySymbol} setSymbol={setSecondarySymbol} />
                 </Grid>
-                {pairPerf !== null ?
-                    <Grid item xs={12}>
-                        <SymImg tile={symbol} /> <SymImg tile={secondarySymbol} />: {pairPerf.WinRateTogether}% win rate. {(100 * pairPerf.GamesTogether / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
-                        <SymImg tile={symbol} /> <SymImg tile={Symbol.Dud} />: {pairPerf.WinRateSymbol1}% win rate. {(100 * pairPerf.GamesApartSymbol1 / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
-                        <SymImg tile={Symbol.Dud} /> <SymImg tile={secondarySymbol} />: {pairPerf.WinRateSymbol2}% win rate. {(100 * pairPerf.GamesApartSymbol2 / pairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
-                    </Grid> : null}
+                <Grid item xs={12}>
+                    {symbolPairPerf !== null ?
+                        <Grid item xs={12}>
+                            <SymImg tile={symbol} /> <SymImg tile={secondarySymbol} />: {symbolPairPerf.WinrateTogether}% win rate. {(100 * symbolPairPerf.GamesTogether / symbolPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                            <SymImg tile={symbol} /> <SymImg tile={Symbol.Dud} />: {symbolPairPerf.WinrateTile1}% win rate. {(100 * symbolPairPerf.GamesApartTile1 / symbolPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                            <SymImg tile={Symbol.Dud} /> <SymImg tile={secondarySymbol} />: {symbolPairPerf.WinrateTile2}% win rate. {(100 * symbolPairPerf.GamesApartTile2 / symbolPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                        </Grid> : null}
+                </Grid>
+                <Grid item xs={4}>
+                    <Typography variant="h6">
+                        With items:
+                    </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                    <ItemSelector item={secondaryItem} setItem={setSecondaryItem} />
+                </Grid>
+                <Grid item xs={12}>
+                    {itemPairPerf !== null ?
+                        <Grid item xs={12}>
+                            <SymImg tile={symbol} /> <SymImg tile={secondaryItem} />: {itemPairPerf.WinrateTogether}% win rate. {(100 * itemPairPerf.GamesTogether / itemPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                            <SymImg tile={symbol} /> <SymImg tile={Symbol.Dud} />: {itemPairPerf.WinrateTile1}% win rate. {(100 * itemPairPerf.GamesApartTile1 / itemPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                            <SymImg tile={Symbol.Dud} /> <SymImg tile={secondaryItem} />: {itemPairPerf.WinrateTile2}% win rate. {(100 * itemPairPerf.GamesApartTile2 / itemPairPerf.TotalTotalGames).toFixed(1)}% of games. <br />
+                        </Grid> : null}
+                </Grid>
             </Grid>
         </Grid>
     </Grid>;

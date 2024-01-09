@@ -18,9 +18,9 @@ interface TileTooltipProps {
 }
 
 const symbolLowColor = "#4a0a2b"
-const symbolHighColor = "#961757";
+export const symbolHighColor = "#961757";
 const itemLowColor = "#0a4542"
-const itemHighColor = "#077872";
+export const itemHighColor = "#077872";
 
 const ColoredText = styled('span')(({ color }) => ({
     color: color,
@@ -75,6 +75,16 @@ const CoinVal: React.FC<CoinValProps> = ({ coins, omitGives }) => {
 
 
 const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
+    return (
+        <StyledTooltip
+            title={getTileTooltipContents(tile)}
+            item={!isSymbol(tile)}
+        >
+            {children}
+        </StyledTooltip>);
+}
+
+export function getTileTooltipContents(tile: Symbol | Item) {
     let description = "";
     if (isSymbol(tile)) {
         description = SYMBOL_DESCRIPTIONS[tile];
@@ -151,7 +161,7 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
         );
     }
 
-    const title = (
+    return (
         <React.Fragment>
             <Typography fontSize="50px" lineHeight={.7} key="title"> {getTitle(tile)} <SymImg tile={tile} omitTooltip textAlign /></Typography>
             {rarity !== Rarity.Special ?
@@ -163,14 +173,6 @@ const TileTooltip: React.FC<TileTooltipProps> = ({ tile, children }) => {
             {descriptionElements}
         </React.Fragment>
     )
-
-    return (
-        <StyledTooltip
-            title={title}
-            item={!isSymbol(tile)}
-        >
-            {children}
-        </StyledTooltip>);
 }
 
 // Iteratively pass through a series of words, and change the text color for certain words to the
