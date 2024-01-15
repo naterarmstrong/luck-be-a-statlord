@@ -276,11 +276,29 @@ function winrateOverTimeGraph(runs: Array<GameStats>): JSX.Element {
     const data = [];
     let runCount = 0;
     let winCount = 0;
+    // Even though the graph works fine in general, and having date on the X-axis makes it appear on
+    // hover which is nice, if there are more than RESOLUTION games played during a single day, the
+    // dots will appear vertically stacked which is somewhat ugly.
+    let lastXAxis = "";
+    let duplicateDateCount = 0;
     for (let i = 0; i < runs.length; i++) {
         if (runCount == WINDOW_SIZE) {
             if (i % RESOLUTION == 0) {
                 data.push(100 * winCount / runCount);
-                xAxis.push(new Date(runs[i - 1].date).toDateString());
+                let dateString = new Date(runs[i - 1].date).toDateString();
+                if (dateString === lastXAxis) {
+                    duplicateDateCount += 1;
+                    // Super janky solution that just makes the strings different but display identically.
+                    // This is a bad solution if we expect many duplicates, but at absolute most
+                    // there are 50 or so which is still workable
+                    for (let i = 0; i < duplicateDateCount; i++) {
+                        dateString += `\u200b`
+                    }
+                } else {
+                    lastXAxis = dateString;
+                    duplicateDateCount = 0;
+                }
+                xAxis.push(dateString);
             }
             runCount -= 1;
             if (runs[i - WINDOW_SIZE].victory) {

@@ -1,4 +1,4 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, Link, Typography } from "@mui/material";
 import { ITEM_RARITIES, Item, itemToDisplay } from "../common/models/item";
 import { Symbol } from "../common/models/symbol";
 import { Token } from "../common/models/token";
@@ -19,7 +19,9 @@ const Dictionary: React.FC = () => {
             <Grid container>
                 {Object.keys(Symbol).map((s) => (
                     <Grid item key={s}>
-                        <SymImg tile={s as Symbol} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                        <Link href={`/symbolDetails?symbol=${s}`}>
+                            <SymImg tile={s as Symbol} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                        </Link>
                     </Grid>
                 ))}
             </Grid>
@@ -30,7 +32,9 @@ const Dictionary: React.FC = () => {
                 <Grid container>
                     {Object.keys(Item).filter((i) => ITEM_RARITIES[i as Item] !== Rarity.Essence).sort((a, b) => itemToDisplay(a as Item) < itemToDisplay(b as Item) ? -1 : 1).map((i) => (
                         <Grid item key={i}>
-                            <SymImg tile={i as Item} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                            <Link href={`/itemDetails?item=${i}`}>
+                                <SymImg tile={i as Item} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                            </Link>
                         </Grid>
                     ))}
                 </Grid>
@@ -41,7 +45,9 @@ const Dictionary: React.FC = () => {
             <Grid container>
                 {Object.keys(Item).filter((i) => ITEM_RARITIES[i as Item] === Rarity.Essence).sort((a, b) => itemToDisplay(a as Item) < itemToDisplay(b as Item) ? -1 : 1).map((e) => (
                     <Grid item key={e}>
-                        <SymImg tile={e as Item} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                        <Link href={`/essenceDetails?essence=${e}`}>
+                            <SymImg tile={e as Item} size={120} style={{ marginLeft: "30px", marginRight: "30px" }} />
+                        </Link>
                     </Grid>
                 ))}
             </Grid>
