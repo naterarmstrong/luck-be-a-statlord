@@ -98,7 +98,7 @@ const RunReplay: React.FC = () => {
         jsonData.spins,
         jsonData.earlySyms.split(",") as Symbol[],
         jsonData.midSyms.split(",") as Symbol[],
-        jsonData.lateSyms.split(",") as Symbol[]
+        jsonData.lateSyms.split(",") as Symbol[],
       );
       // Spins is top-level key on json response
       // So is symbol details and itemdetails
@@ -108,7 +108,7 @@ const RunReplay: React.FC = () => {
       runInfo.details = details;
       console.log("jsonData", jsonData);
       const spins: SpinData[] = jsonData.Spins.map((s: any) =>
-        JSON.parse(s.FullSpinData)
+        JSON.parse(s.FullSpinData),
       );
       spins.sort((s1, s2) => s1.number - s2.number);
       details.spins = spins;
@@ -156,7 +156,7 @@ const RunReplay: React.FC = () => {
     console.log(
       "updateDisplayOptions callback being called with settings",
       displayOptions,
-      e
+      e,
     );
 
     let newOptions = { ...displayOptions };
@@ -231,7 +231,7 @@ const RunReplay: React.FC = () => {
         });
       }
     },
-    [displayOptions]
+    [displayOptions],
   );
 
   useEffect(() => {
@@ -385,7 +385,7 @@ const RunReplay: React.FC = () => {
               <Grid item>
                 {getFirstItemDisplay(
                   runInfo.details.spins[displayOptions.spinIdx],
-                  displayOptions.postEffects
+                  displayOptions.postEffects,
                 )}
               </Grid>
               <Grid item minWidth={`${8 * 76}px`}>
@@ -401,7 +401,7 @@ const RunReplay: React.FC = () => {
               <Grid item>
                 {getSecondItemDisplay(
                   runInfo.details.spins[displayOptions.spinIdx],
-                  displayOptions.postEffects
+                  displayOptions.postEffects,
                 )}
               </Grid>
             </Grid>
@@ -416,7 +416,7 @@ const RunReplay: React.FC = () => {
             {getCoinDisplay(
               runInfo,
               displayOptions.postEffects,
-              displayOptions.spinIdx
+              displayOptions.spinIdx,
             )}
           </Grid>
           <Grid container justifyContent="center" spacing={3}>
@@ -475,7 +475,7 @@ const RunReplay: React.FC = () => {
 const getCoinDisplay = (
   runInfo: RunInfo,
   postEffects: boolean,
-  spinIdx: number
+  spinIdx: number,
 ) => {
   if (!runInfo || !runInfo.details) {
     return null;

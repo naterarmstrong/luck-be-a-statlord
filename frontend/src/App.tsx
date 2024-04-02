@@ -29,7 +29,7 @@ const darkTheme = createTheme({
   },
   // TODO: figure out how to make this nicer
   typography: {
-    fontFamily: 'SinsGold',
+    fontFamily: "SinsGold",
     fontSize: 30,
   },
 });
@@ -51,23 +51,35 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <userContext.Provider value={{ setUser, ...user }} >
+      <userContext.Provider value={{ setUser, ...user }}>
         <CssBaseline />
         <Layout>
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/upload" element={<UploadRuns />} />
-            <Route path="/symbolDetails" element={<TileDetails mode="symbol" />} />
+            <Route
+              path="/symbolDetails"
+              element={<TileDetails mode="symbol" />}
+            />
             <Route path="/itemDetails" element={<TileDetails mode="item" />} />
-            <Route path="/essenceDetails" element={<TileDetails mode="essence" />} />
+            <Route
+              path="/essenceDetails"
+              element={<TileDetails mode="essence" />}
+            />
             <Route path="/symbolStats" element={<AllSymbolStats />} />
             <Route path="/itemStats" element={<ItemStats />} />
             <Route path="/essenceStats" element={<AllEssenceStats />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/run/:runId" element={<RunReplay />} />
-            <Route path="/user/:userId/run/:runNumber" element={<RunReplay />} />
-            <Route path="/purplePepperCalculator" element={<PurplePepperCalculator />} />
+            <Route
+              path="/user/:userId/run/:runNumber"
+              element={<RunReplay />}
+            />
+            <Route
+              path="/purplePepperCalculator"
+              element={<PurplePepperCalculator />}
+            />
             <Route path="/crabCalculator" element={<CrabCalculator />} />
             <Route path="/eaterCalculator" element={<EaterCalculator />} />
             <Route path="/runTest" element={<RunDisplay />} />
@@ -78,8 +90,8 @@ const App: React.FC = () => {
           </Routes>
         </Layout>
       </userContext.Provider>
-    </ThemeProvider >
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
