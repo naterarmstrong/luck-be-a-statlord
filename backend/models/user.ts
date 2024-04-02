@@ -1,28 +1,31 @@
-import { Model, DataTypes } from 'sequelize';
-import { sequelize } from "../db/db"
+import { Model, DataTypes } from "sequelize";
+import { sequelize } from "../db/db";
 
-export class User extends Model { }
+export class User extends Model {}
 
 export type UserModel = {
-    username: string,
-    password: string,
-    id: number,
-}
+  username: string;
+  password: string;
+  id: number;
+};
 
 // Using this to init includes an implicit ID for the user
-User.init({
+User.init(
+  {
     username: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
     },
     password: {
-        type: DataTypes.STRING,
-        allowNull: false
-    }
-}, {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
     sequelize,
-    modelName: 'User'
-});
+    modelName: "User",
+  },
+);
 
 export default User;
