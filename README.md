@@ -1,5 +1,9 @@
 # Luck Be a Statlord
 
+Luck be a statlord is a fan website for the game Luck be a Landlord. It's focused on collecting game stats, and making replays semi-functional based on parsed run logs.
+
+## Tour
+
 ## Running the Website
 
 After installing all dependencies, start up the front and backend by running `npm start` the `frontend` and `npm start dev` `backend` folder to start in dev mode.
