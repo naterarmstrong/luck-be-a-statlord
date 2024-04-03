@@ -1,8 +1,75 @@
 # Luck Be a Statlord
 
-Luck be a statlord is a fan website for the game Luck be a Landlord. It's focused on collecting game stats, and making replays semi-functional based on parsed run logs.
+Luck be a statlord is a fan website for the game Luck be a Landlord. It's focused on collecting game stats, and making replays semi-functional based on parsed run logs. The website's styling is heavily inspired by the game, and follows it where possible.
 
 ## Tour
+
+This is a series of screenshots to show off the website functionality.
+
+### Main Page
+
+The main page contains several cards populated with interesting peeks at stats from various areas of the site.
+
+![title page](/img/main-page.png)
+![second row](/img/second-row-main-page.png)
+![third row](/img/third-row-main-page.png)
+![last row and footer](/img/final-row-footer-main-page.png)
+
+### Logging in and Uploading
+
+After logging in, which is only password-based, you can upload runs with the upload button. It will show how many runs you are uploading, and then begin processing with a progress bar. Afterwards, it shows the runs processed.
+![uploading runs](/img/uploading-runs.png)
+![processing-runs](/img/processing-runs.png)
+![displaying runs](/img/displaying-uploaded-runs.png)
+
+### Viewing Runs
+
+When viewing runs, there is a main page where you can go through the run spin-by-spin to see a replay, and also graphs summarizing the run beneath it.
+
+![mid run screenshot](/img/mid-run-screenshot.png)
+![showing coins](/img/coin-run-screenshot.png)
+
+#### A Successful Run
+
+![normal graph 1](/img/normal-coins-per-spin.png)
+![normal graph 2](/img/normal-coin-total.png)
+![normal graph 2](/img/normal-cumulative-coins.png)
+
+#### A Wildly Successful Run
+
+![runaway graph 1](/img/runaway-coins-per-spin.png)
+![runaway graph 2](/img/runaway-coin-total.png)
+![runaway graph 2](/img/runaway-cumulative-coins.png)
+
+#### A Failed Run
+
+![failed graph 1](/img/failed-run.png)
+
+### Viewing Statistics
+
+The game consists of symbols, items, and essences. There are aggregate statistics for each, and they can also be compared pairwise to see how they impact winrates.
+
+![symbol stats](/img/symbol-stats-page.png)
+![sorted symbol stats](/img/sorted-filtered-symbols.png)
+![essence stats](/img/essence-rate.png)
+![symbol details](/img/symbol-detail-page.png)
+
+### Profile Pages
+
+The profile page contains aggregate metrics about a player's performance. This only considers the hardest game difficultly, referred to as floor 20.
+
+![profile page](/img/profile-page.png)
+![profile card closeup](/img/profile-card-closeup.png)
+![winrate details](/img/winrate-details.png)
+![recent runs](/img/recent-runs.png)
+
+### Miscellaneous Tools
+
+The website also contains some small tools to help people calculate relevant stats in the game.
+
+![tools dropdown](/img/tools-window.png)
+![purple pepper calculator](/img/purple-pepper-calculator.png)
+![symbol dictionary](/img/dictionary-page.png)
 
 ## Running the Website
 
